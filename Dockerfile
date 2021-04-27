@@ -1,4 +1,5 @@
-From openjdk:8
-EXPOSE 3306 
-EXPOSE 5000 
-CMD ["java","-jar","ulake-api-0.0.1-SNAPSHOT.jar"]
+FROM java:8
+VOLUME /tmp
+EXPOSE 5000
+ADD ulake-api-0.0.1-SNAPSHOT.jar ulake-api-0.0.1-SNAPSHOT.jar
+ENTRYPOINT ["java","-jar","ulake-api-0.0.1-SNAPSHOT.jar"]
