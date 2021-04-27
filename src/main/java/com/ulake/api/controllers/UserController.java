@@ -8,19 +8,20 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.ulake.api.models.User;
 import com.ulake.api.payload.response.MessageResponse;
 import com.ulake.api.repository.RoleRepository;
 import com.ulake.api.repository.UserRepository;
+import com.ulake.api.security.services.UserDetailsImpl;
+
 import java.util.Optional;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -84,8 +85,35 @@ public class UserController {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
 	}
-
 	
+//	TODO Find by User name
+//	@GetMapping("/{username}")
+//	@PreAuthorize("hasRole('ADMIN')")
+//	public ResponseEntity<User> getUserByUsername(@PathVariable("username") String username){
+//		User user = userRepository.getUserByUsername(username);
+//		if (user != null) {
+//			return new ResponseEntity<>(user.getId(),HttpStatus.OK);
+//		}
+//		else {
+//			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+//		}
+//	}
+
+	@GetMapping("/current")
+	public ResponseEntity<User> getMyProfile(){
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+		long userId = userDetails.getId();
+		Optional<User> user = userRepository.findById(userId);
+		if (user.isPresent()) {
+			return new ResponseEntity<>(user.get(),HttpStatus.OK);
+		}
+		else {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
+	}
+	
+//	TODO Update user
 //	@PutMapping("/{id}")
 //	@PreAuthorize("hasRole('ADMIN')")
 //	public ResponseEntity<User> updateUserById(@PathVariable("id") long id, @RequestBody User user){
@@ -100,6 +128,7 @@ public class UserController {
 //		}
 //	}
 	
+//	TODO Delete User
 //	@DeleteMapping("/{id}")
 //	@PreAuthorize("hasRole('ADMIN')")
 //	public ResponseEntity<User> deleteUserById(@PathVariable("id") long id){

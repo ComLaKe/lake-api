@@ -4,7 +4,7 @@ import java.time.Instant;
 
 import javax.persistence.*;
 
-@Entity(name = "refreshtoken")
+@Entity(name = "comlake_refreshtoken")
 public class RefreshToken {
    @Id
    @GeneratedValue(strategy = GenerationType.AUTO)

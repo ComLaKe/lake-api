@@ -20,7 +20,7 @@ mvn spring-boot:run
 ## Run following SQL insert statements
 
 ```
-INSERT INTO roles(name) VALUES('ROLE_USER');
-INSERT INTO roles(name) VALUES('ROLE_ADMIN');
+INSERT INTO comlake_roles(name) VALUES('ROLE_USER');
+INSERT INTO comlake_roles(name) VALUES('ROLE_ADMIN');
 ```
 
