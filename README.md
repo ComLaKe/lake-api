@@ -25,5 +25,5 @@ INSERT INTO clake_roles(name) VALUES('ROLE_ADMIN');
 
 ## Get an executable contains all the resources and dependencies Jar file
 ```
-mvn clean install assembly:single
+mvn clean install
 ```
