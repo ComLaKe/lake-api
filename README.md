@@ -18,9 +18,12 @@ mvn spring-boot:run
 ```
 
 ## Run following SQL insert statements
-
 ```
-INSERT INTO comlake_roles(name) VALUES('ROLE_USER');
-INSERT INTO comlake_roles(name) VALUES('ROLE_ADMIN');
+INSERT INTO clake_roles(name) VALUES('ROLE_USER');
+INSERT INTO clake_roles(name) VALUES('ROLE_ADMIN');
 ```
 
+## Get an executable contains all the resources and dependencies Jar file
+```
+mvn clean install assembly:single
+```

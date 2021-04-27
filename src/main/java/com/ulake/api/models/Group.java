@@ -7,7 +7,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 
 @Entity
-@Table(	name = "comlake_groups", 
+@Table(	name = "CLake_groups", 
 		uniqueConstraints = { 
 			@UniqueConstraint(columnNames = "name") 
 		})
@@ -22,7 +22,7 @@ public class Group {
 	private String name;
 	
 	@ManyToMany(fetch = FetchType.LAZY)
-	@JoinTable(	name = "comlake_user_groups", 
+	@JoinTable(	name = "CLake_user_groups", 
 				joinColumns = @JoinColumn(name = "group_id"), 
 				inverseJoinColumns = @JoinColumn(name = "user_id"))
 

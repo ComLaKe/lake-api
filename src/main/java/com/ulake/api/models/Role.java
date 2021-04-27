@@ -3,7 +3,7 @@ package com.ulake.api.models;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "comlake_roles")
+@Table(name = "CLake_roles")
 public class Role {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
