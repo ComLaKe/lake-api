@@ -20,7 +20,7 @@ public class UlakeApiApplication {
 
 	@Bean
 	public OpenAPI customOpenAPI(@Value("${springdoc.version}") String appVersion) {
-        var securitySchemeName = "Auth JWT";
+        var securitySchemeName = "bearer-key";
 		return new OpenAPI()
 				.components(new Components().addSecuritySchemes(securitySchemeName,
 						new SecurityScheme()

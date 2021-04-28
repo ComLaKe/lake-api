@@ -1,5 +1,6 @@
 package com.ulake.api.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -9,8 +10,8 @@ import com.ulake.api.models.Group;
 
 @Repository
 public interface GroupRepository extends JpaRepository<Group, Long> {
-	Optional<Group> findByName(String name);
-
 	Boolean existsByName(String name);
 	
+	List<Group> findByName(String name);
+	List<Group> findByNameContaining(String name);
 }

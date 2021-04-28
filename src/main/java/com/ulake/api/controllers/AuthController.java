@@ -39,6 +39,13 @@ import com.ulake.api.security.jwt.JwtUtils;
 import com.ulake.api.security.services.RefreshTokenService;
 import com.ulake.api.security.services.UserDetailsImpl;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.headers.Header;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/auth")
@@ -60,7 +67,12 @@ public class AuthController {
 
 	@Autowired
 	RefreshTokenService refreshTokenService;
+	
 
+	@Operation(summary = "Logs user into the system", tags = { "user" })
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = String.class))),
+			@ApiResponse(responseCode = "400", description = "Invalid username/password supplied", content = @Content) })
 	@PostMapping("/signin")
 	public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
 	    Authentication authentication = authenticationManager
@@ -81,6 +93,8 @@ public class AuthController {
 	        userDetails.getUsername(), userDetails.getEmail(), roles));
 	}
 
+	@Operation(summary = "Create user", description = "Create user.", tags = { "user" })
+	@ApiResponses(value = { @ApiResponse(description = "successful operation", content = { @Content(mediaType = "application/json", schema = @Schema(implementation = User.class)) }) })
 	@PostMapping("/signup")
 		public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
 	    if (userRepository.existsByUsername(signUpRequest.getUsername())) {
@@ -125,6 +139,7 @@ public class AuthController {
 	    return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
 	}
 
+	@Operation(summary = "Refresh Token", description = "Refresh Token.", tags = { "user" })
 	@PostMapping("/refreshtoken")
 		public ResponseEntity<?> refreshtoken(@Valid @RequestBody TokenRefreshRequest request) {
 	    String requestRefreshToken = request.getRefreshToken();
@@ -139,7 +154,8 @@ public class AuthController {
 	        .orElseThrow(() -> new TokenRefreshException(requestRefreshToken,
 	            "Refresh token is not in database!"));
 		}
-	  
+	  	
+		@Operation(summary = "Logout the user by User ID", description = "And delete Refresh Token in database.", tags = { "user" })
 		@PostMapping("/logout")
 		public ResponseEntity<?> logoutUser(@Valid @RequestBody LogOutRequest logOutRequest) {
 	    refreshTokenService.deleteByUserId(logOutRequest.getUserId());

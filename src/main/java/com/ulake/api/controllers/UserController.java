@@ -22,6 +22,14 @@ import com.ulake.api.repository.RoleRepository;
 import com.ulake.api.repository.UserRepository;
 import com.ulake.api.security.services.UserDetailsImpl;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+
 import java.util.Optional;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -33,7 +41,9 @@ public class UserController {
 	@Autowired
 	RoleRepository roleRepository;
 
-	@GetMapping("/check_username")
+	@Operation(summary = "Check if Username is available to use", description = "Check if Username is available to use",
+			  	tags = { "user" })
+	@GetMapping("/check_username")	
 	ResponseEntity<?> username(
 	  @RequestParam("username") String username) {
 		if (userRepository.existsByUsername(username)) {
@@ -44,7 +54,9 @@ public class UserController {
 		
 		return ResponseEntity.ok(new MessageResponse("Username is available!"));
 	}
-	
+
+	@Operation(summary = "Check if Email is available to use", description = "Check if Email is available to use",
+		  	tags = { "user" })
 	@GetMapping("/check_email")
 	ResponseEntity<?> email(
 	  @RequestParam("email") String email) {
@@ -57,6 +69,9 @@ public class UserController {
 		return ResponseEntity.ok(new MessageResponse("Email is available!"));
 	}
 	
+	@Operation(summary = "Get a list of all users in the system", description = "This can only be done by admin.", 
+			security = { @SecurityRequirement(name = "bearer-key") },
+			tags = { "user" })
 	@GetMapping("/all")
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<List<User>> getAllUsers(){
@@ -74,6 +89,13 @@ public class UserController {
 			
 	}
 	
+	@Operation(summary = "Get user by ID", description = "This can only be done by admin.", 
+			security = { @SecurityRequirement(name = "bearer-key") },
+			tags = { "user" })
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = User.class))),
+			@ApiResponse(responseCode = "400", description = "Invalid ID supplied", content = @Content),
+			@ApiResponse(responseCode = "404", description = "User not found", content = @Content) })
 	@GetMapping("/{id}")
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<User> getUserById(@PathVariable("id") long id){
@@ -87,18 +109,24 @@ public class UserController {
 	}
 	
 //	TODO Find by User name
+//	@Operation(summary = "Get user by user name", description = "This can only be done by admin.", 
+//			security = { @SecurityRequirement(name = "bearer-key") },
+//			tags = { "user" })
 //	@GetMapping("/{username}")
 //	@PreAuthorize("hasRole('ADMIN')")
 //	public ResponseEntity<User> getUserByUsername(@PathVariable("username") String username){
-//		User user = userRepository.getUserByUsername(username);
+//		Optional<User> user = userRepository.findByUsername(username);
 //		if (user != null) {
-//			return new ResponseEntity<>(user.getId(),HttpStatus.OK);
+//			return new ResponseEntity<>(user.get(),HttpStatus.OK);
 //		}
 //		else {
 //			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 //		}
 //	}
 
+	@Operation(summary = "Get the logged in's user profile", description = "This can only be done by the logged in user.", 
+			security = { @SecurityRequirement(name = "bearer-key") },
+			tags = { "user" })
 	@GetMapping("/current")
 	public ResponseEntity<User> getMyProfile(){
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
