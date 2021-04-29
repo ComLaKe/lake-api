@@ -19,7 +19,7 @@ public class UlakeApiApplication {
 	}
 
 	@Bean
-	public OpenAPI customOpenAPI(@Value("${springdoc.version}") String appVersion) {
+	public OpenAPI customOpenAPI(@Value("1.5.8") String appVersion) {
         var securitySchemeName = "bearer-key";
 		return new OpenAPI()
 				.components(new Components().addSecuritySchemes(securitySchemeName,
