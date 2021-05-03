@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,6 +22,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ulake.api.repository.GroupRepository;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+
 import com.ulake.api.models.ERole;
 import com.ulake.api.models.Group;
 import com.ulake.api.models.Role;
@@ -33,6 +40,12 @@ public class GroupController {
 	@Autowired
 	GroupRepository groupRepository;
 	
+	@Operation(summary = "Add an user group", description = "This can only be done by admin.", 
+			security = { @SecurityRequirement(name = "bearer-key") },
+			tags = { "group" })
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "Status OK")
+			})
 	@PostMapping("/groups")
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<Group> createGroup(@RequestBody Group group) {
@@ -45,6 +58,10 @@ public class GroupController {
 	    }
 	}
 	
+	@Operation(summary = "Update a group by ID", description = "This can only be done by admin.", 
+			security = { @SecurityRequirement(name = "bearer-key") },
+			tags = { "group" })
+	@ApiResponses(value = @ApiResponse(description = "successful operation"))
 	@PutMapping("/groups/{id}")
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<Group> updateGroup(@PathVariable("id") long id, @RequestBody Group group) {
@@ -58,6 +75,11 @@ public class GroupController {
 	      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 	  }
 	}
+	
+	@Operation(summary = "Get all groups", description = "This can only be done by admin.", 
+			security = { @SecurityRequirement(name = "bearer-key") },
+			tags = { "group" })
+	@ApiResponses(value = @ApiResponse(description = "successful operation"))
 	@GetMapping("/groups/all")
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<List<Group>> getAllGroups(@RequestParam(required=false) String name){
