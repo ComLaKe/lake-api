@@ -81,13 +81,17 @@ public class UserController {
 			tags = { "user" })
 	@GetMapping("/all")
 	@PreAuthorize("hasRole('ADMIN')")
-	public ResponseEntity<List<User>> getAllUsers(){
+	public ResponseEntity<List<User>> getAllUsers(@RequestParam(required=false) String username){
 		try {
 			List<User> users = new ArrayList<User>();
-			userRepository.findAll().forEach(users::add);
+			if (username == null ) 
+				userRepository.findAll().forEach(users::add);
+			else
+				userRepository.findByUserNameContaining(username).forEach(users::add);
 			if (users.isEmpty()) {
 				return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 			}
+				
 			return new ResponseEntity<>(users, HttpStatus.OK);
 		}
 		catch (Exception e) {
