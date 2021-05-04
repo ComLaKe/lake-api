@@ -160,4 +160,23 @@ public class GroupController {
 			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
+	
+	@Operation(summary = "Delete a gorup", description = "This can only be done by admin.", 
+			security = { @SecurityRequirement(name = "bearer-key") },
+			tags = { "group" })
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "400", description = "Invalid group ID supplied"),
+			@ApiResponse(responseCode = "404", description = "Group not found")
+	})
+	@DeleteMapping("/groups/id/{id}")
+	@PreAuthorize("hasRole('ADMIN')")
+	public ResponseEntity<Group> deleteGroupById(@PathVariable("id") long id){
+		try {
+			groupRepository.deleteById(id);
+			return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+		} 
+		catch (Exception e) {
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
 }

@@ -204,7 +204,7 @@ public class UserController {
 			@ApiResponse(responseCode = "404", description = "User not found")
 	})
 	@DeleteMapping("/id/{id}")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<User> deleteUserById(@PathVariable("id") long id){
 		try {
 			userRepository.deleteById(id);
