@@ -12,6 +12,6 @@ import com.ulake.api.models.Group;
 public interface GroupRepository extends JpaRepository<Group, Long> {
 	Boolean existsByName(String name);
 	
-	List<Group> findByName(String name);
+	Optional<Group> findByName(String name);
 	List<Group> findByNameContaining(String name);
 }

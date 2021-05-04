@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import javax.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ulake.api.repository.GroupRepository;
+import com.ulake.api.repository.UserRepository;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -32,6 +35,9 @@ import com.ulake.api.models.ERole;
 import com.ulake.api.models.Group;
 import com.ulake.api.models.Role;
 import com.ulake.api.models.User;
+import com.ulake.api.payload.request.AddMemberRequest;
+import com.ulake.api.payload.response.MessageResponse;
+import com.ulake.api.payload.response.MessageResponse;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -39,7 +45,10 @@ import com.ulake.api.models.User;
 public class GroupController {
 	@Autowired
 	GroupRepository groupRepository;
-	
+
+	@Autowired
+	UserRepository userRepository;
+
 	@Operation(summary = "Add an user group", description = "This can only be done by admin.", 
 			security = { @SecurityRequirement(name = "bearer-key") },
 			tags = { "group" })
@@ -58,11 +67,11 @@ public class GroupController {
 	    }
 	}
 	
-	@Operation(summary = "Update a group by ID", description = "This can only be done by admin.", 
+	@Operation(summary = "Update a group name by ID", description = "This can only be done by admin.", 
 			security = { @SecurityRequirement(name = "bearer-key") },
 			tags = { "group" })
 	@ApiResponses(value = @ApiResponse(description = "successful operation"))
-	@PutMapping("/groups/{id}")
+	@PutMapping("/groups/id/{id}")
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<Group> updateGroup(@PathVariable("id") long id, @RequestBody Group group) {
 	  Optional<Group> groupData = groupRepository.findById(id);
@@ -74,6 +83,57 @@ public class GroupController {
 	  } else {
 	      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 	  }
+	}
+	
+//	@Operation(summary = "Add a user to a group", description = "This can only be done by admin.", 
+//			security = { @SecurityRequirement(name = "bearer-key") },
+//			tags = { "group" })
+//	@ApiResponses(value = @ApiResponse(description = "successful operation"))
+//	@PutMapping("/groups/{name}")
+//	@PreAuthorize("hasRole('ADMIN')")
+//	public ResponseEntity<Group> addMember(@PathVariable("id") String name, @RequestBody Group group) {
+//	  Optional<Group> groupData = groupRepository.findByName(name);
+//	  if (groupData.isPresent()) {
+//	    	Group _group = groupData.get();	    	
+////		    Set<User> strUsers = _group.getUsers();
+//		    _group.setName(group.getName());
+//	      return new ResponseEntity<>(groupRepository.save(_group), HttpStatus.OK);
+//	  } else {
+//	      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+//	  }
+//	}
+	
+	@Operation(summary = "Add a user to a group", description = "This can only be done by admin.", 
+			security = { @SecurityRequirement(name = "bearer-key") },
+			tags = { "group" })
+	@ApiResponses(value = @ApiResponse(description = "successful operation"))
+	@PutMapping("/groups/{name}")
+	@PreAuthorize("hasRole('ADMIN')")
+	public ResponseEntity<?> addMember(@PathVariable("name") String name, @Valid @RequestBody AddMemberRequest addMemberRequest) {
+	  Optional<Group> groupData = groupRepository.findByName(name);
+	  if (groupData.isPresent()) {
+	    	Group _group = groupData.get();
+	    	
+			Set<String> strUsers = addMemberRequest.getUser();
+			Set<User> users = new HashSet<>();
+			
+			if (strUsers == null) {
+			    return ResponseEntity.badRequest().body(new MessageResponse("Error: Please enter at least a user!"));
+			} else {
+				strUsers.forEach(user -> {
+					User groupUser = userRepository.findByUsername(user)
+							.orElseThrow(() -> new RuntimeException("Error: User is not found."));
+					users.add(groupUser);
+				});
+			}
+			
+			_group.setUsers(users);
+			groupRepository.save(_group);
+	      return new ResponseEntity<>(groupRepository.save(_group), HttpStatus.OK);
+	  } else {
+	      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+	  }
+//		return ResponseEntity.ok(new MessageResponse("Add a user to a group successfully!"));
 	}
 	
 	@Operation(summary = "Get all groups", description = "This can only be done by admin.", 
