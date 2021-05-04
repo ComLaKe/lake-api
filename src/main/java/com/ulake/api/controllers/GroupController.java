@@ -27,6 +27,8 @@ import com.ulake.api.repository.GroupRepository;
 import com.ulake.api.repository.UserRepository;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -77,7 +79,6 @@ public class GroupController {
 	  Optional<Group> groupData = groupRepository.findById(id);
 	  if (groupData.isPresent()) {
 	    	Group _group = groupData.get();	    	
-//		    Set<User> strUsers = _group.getUsers();
 		    _group.setName(group.getName());
 	      return new ResponseEntity<>(groupRepository.save(_group), HttpStatus.OK);
 	  } else {
@@ -85,23 +86,39 @@ public class GroupController {
 	  }
 	}
 	
-//	@Operation(summary = "Add a user to a group", description = "This can only be done by admin.", 
-//			security = { @SecurityRequirement(name = "bearer-key") },
-//			tags = { "group" })
-//	@ApiResponses(value = @ApiResponse(description = "successful operation"))
-//	@PutMapping("/groups/{name}")
-//	@PreAuthorize("hasRole('ADMIN')")
-//	public ResponseEntity<Group> addMember(@PathVariable("id") String name, @RequestBody Group group) {
-//	  Optional<Group> groupData = groupRepository.findByName(name);
-//	  if (groupData.isPresent()) {
-//	    	Group _group = groupData.get();	    	
-////		    Set<User> strUsers = _group.getUsers();
-//		    _group.setName(group.getName());
-//	      return new ResponseEntity<>(groupRepository.save(_group), HttpStatus.OK);
-//	  } else {
-//	      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-//	  }
-//	}
+	@Operation(summary = "Get a group by ID", description = "This can only be done by logged in user.", 
+			security = { @SecurityRequirement(name = "bearer-key") },
+			tags = { "group" })
+	@ApiResponses(value = @ApiResponse(description = "successful operation"))
+	@GetMapping("/groups/id/{id}")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+	public ResponseEntity<Group> getGroupById(@PathVariable("id") long id) {
+	  Optional<Group> groupData = groupRepository.findById(id);
+	  if (groupData.isPresent()) {
+	      return new ResponseEntity<>(groupData.get(), HttpStatus.OK);
+	  } else {
+	      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+	  }
+	}
+	
+	@Operation(summary = "Get a group by name", description = "This can only be done by logged in user.", 
+			security = { @SecurityRequirement(name = "bearer-key") },
+			tags = { "group" })
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = User.class))),
+			@ApiResponse(responseCode = "400", description = "Invalid username supplied", content = @Content),
+			@ApiResponse(responseCode = "404", description = "User not found", content = @Content) })
+	@GetMapping("/groups/{name}")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+	public ResponseEntity<Group> getGroupByName(@PathVariable("name") String name){
+		Optional<Group> group = groupRepository.findByName(name);
+		if (group != null) {
+			return new ResponseEntity<>(group.get(),HttpStatus.OK);
+		}
+		else {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
+	}
 	
 	@Operation(summary = "Add a user to a group", description = "This can only be done by admin.", 
 			security = { @SecurityRequirement(name = "bearer-key") },
@@ -136,12 +153,12 @@ public class GroupController {
 //		return ResponseEntity.ok(new MessageResponse("Add a user to a group successfully!"));
 	}
 	
-	@Operation(summary = "Get all groups", description = "This can only be done by admin.", 
+	@Operation(summary = "Get all groups", description = "This can only be done by logged in user.", 
 			security = { @SecurityRequirement(name = "bearer-key") },
 			tags = { "group" })
 	@ApiResponses(value = @ApiResponse(description = "successful operation"))
 	@GetMapping("/groups/all")
-	@PreAuthorize("hasRole('ADMIN')")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
 	public ResponseEntity<List<Group>> getAllGroups(@RequestParam(required=false) String name){
 		try {
 			List<Group> groups = new ArrayList<Group>();
