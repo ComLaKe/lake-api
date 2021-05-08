@@ -12,7 +12,6 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-import javax.persistence.Version;
 import javax.validation.constraints.NotBlank;
 
 @Entity
@@ -33,11 +32,13 @@ public class File {
 	private User user; 
 	
 	private String cid;
-	
+
 	@NotBlank
 	private String name;
-	
+
 	private String mimeType;
+
+	private Long size;
 	
 	@Temporal(TemporalType.TIMESTAMP)   
 	@Column(name = "date_created", nullable = false, updatable = false, insertable = false, 
@@ -99,6 +100,14 @@ public class File {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+	
+	public Long getSize() {
+		return size;
+	}
+
+	public void setSize(Long size) {
+		this.size = size;
 	}
 	
 	public String getMimeType() {

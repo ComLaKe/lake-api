@@ -17,8 +17,6 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.validation.constraints.NotBlank;
 
-import org.hibernate.annotations.CreationTimestamp;
-
 @Entity
 @Table(	name = "CLake_documents")
 public class Document {
@@ -40,6 +38,7 @@ public class Document {
 
     private String description;
 
+//    TODO: Think of what to do with topics @ManyToMany or @ManyToOne with Document / How to set Permissions??? 
     private String topics;
 
     private String source;
