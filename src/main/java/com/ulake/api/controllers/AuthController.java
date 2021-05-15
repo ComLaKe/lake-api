@@ -155,9 +155,9 @@ public class AuthController {
 	            "Refresh token is not in database!"));
 		}
 	  	
-		@Operation(summary = "Logout the user by User ID", description = "And delete Refresh Token in database.", tags = { "user" })
-		@PostMapping("/logout")
-		public ResponseEntity<?> logoutUser(@Valid @RequestBody LogOutRequest logOutRequest) {
+	@Operation(summary = "Logout the user by User ID", description = "And delete Refresh Token in database.", tags = { "user" })
+	@PostMapping("/logout")
+	public ResponseEntity<?> logoutUser(@Valid @RequestBody LogOutRequest logOutRequest) {
 	    refreshTokenService.deleteByUserId(logOutRequest.getUserId());
 	    return ResponseEntity.ok(new MessageResponse("Log out successful!"));
 	}

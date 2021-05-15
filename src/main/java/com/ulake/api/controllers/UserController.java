@@ -142,7 +142,7 @@ public class UserController {
 			security = { @SecurityRequirement(name = "bearer-key") },
 			tags = { "user" })
 	@GetMapping("/current")
-	public ResponseEntity<User> getMyProfile(){
+	public ResponseEntity<User> getCurrentProfile(){
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 		long userId = userDetails.getId();

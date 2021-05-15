@@ -178,7 +178,7 @@ public class GroupController {
 		}
 	}
 	
-	@Operation(summary = "Delete a gorup", description = "This can only be done by admin.", 
+	@Operation(summary = "Delete a group", description = "This can only be done by admin.", 
 			security = { @SecurityRequirement(name = "bearer-key") },
 			tags = { "group" })
 	@ApiResponses(value = {

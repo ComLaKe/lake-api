@@ -1,4 +1,4 @@
-package com.ulake.api.security;
+package com.ulake.api.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;

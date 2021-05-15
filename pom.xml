@@ -54,7 +54,11 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
-		
+		<dependency>
+		    <groupId>javax.inject</groupId>
+		    <artifactId>javax.inject</artifactId>
+		    <version>1</version>
+		</dependency>
 		<!-- Spring Security Dependencies --> 
 		<dependency>
 		    <groupId>org.springframework.security</groupId>
