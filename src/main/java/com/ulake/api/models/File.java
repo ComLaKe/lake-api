@@ -16,7 +16,7 @@ import javax.validation.constraints.NotBlank;
 
 @Entity
 @Table(	name = "CLake_files")
-public class File {
+public class File{
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
@@ -54,15 +54,7 @@ public class File {
 	
 	public File() {
 	}
-	
-	public File(Long id) {
-		this.id = id;
-	}
-	
-	public File(Long documentId, Long fileId) {
-		this.id = fileId;
-		this.document = new Document(documentId);
-	}
+
 	
 	public Long getId() {
 		return id;

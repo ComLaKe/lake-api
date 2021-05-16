@@ -12,7 +12,7 @@ import javax.validation.constraints.Size;
 			@UniqueConstraint(columnNames = "name") 
 		})
 
-public class Group {
+public class Group{
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;

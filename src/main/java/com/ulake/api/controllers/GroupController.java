@@ -89,7 +89,10 @@ public class GroupController {
 	@Operation(summary = "Get a group by ID", description = "This can only be done by logged in user.", 
 			security = { @SecurityRequirement(name = "bearer-key") },
 			tags = { "group" })
-	@ApiResponses(value = @ApiResponse(description = "successful operation"))
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = Group.class))),
+			@ApiResponse(responseCode = "400", description = "Invalid ID supplied", content = @Content),
+			@ApiResponse(responseCode = "404", description = "Group not found", content = @Content) })
 	@GetMapping("/groups/id/{id}")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
 	public ResponseEntity<Group> getGroupById(@PathVariable("id") long id) {
@@ -105,9 +108,9 @@ public class GroupController {
 			security = { @SecurityRequirement(name = "bearer-key") },
 			tags = { "group" })
 	@ApiResponses(value = {
-			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = User.class))),
-			@ApiResponse(responseCode = "400", description = "Invalid username supplied", content = @Content),
-			@ApiResponse(responseCode = "404", description = "User not found", content = @Content) })
+			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = Group.class))),
+			@ApiResponse(responseCode = "400", description = "Invalid name supplied", content = @Content),
+			@ApiResponse(responseCode = "404", description = "Group not found", content = @Content) })
 	@GetMapping("/groups/{name}")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
 	public ResponseEntity<Group> getGroupByName(@PathVariable("name") String name){

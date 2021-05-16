@@ -1,6 +1,5 @@
 package com.ulake.api.models;
 
-import java.beans.Transient;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -21,13 +20,7 @@ import javax.validation.constraints.NotBlank;
 
 @Entity
 @Table(	name = "CLake_documents")
-@NamedQuery(
-		name = "getDocumentsWithStats",
-		query = "select Document, count(file), max(file.createDate)" +
-			" from Document as Document" +
-			" left outer join Document.files as file with file.visible = true" +
-			" group by Document")
-public class Document {
+public class Document implements IEntity{
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
@@ -59,26 +52,12 @@ public class Document {
 	@Column(name = "date_updated", nullable = false, updatable = false, insertable = false, 
 	columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
     private Date updateDate;
-	
-	// Stats fields
-	private boolean calculateFileStats = true;
-	private int numVisibleFiles;
-	private Date lastVisibleFileDate;
 
 	public Document() {
 		
 	}
 	
-	public Document(Long id) {
-		this.id = id;
-	}
-	public Document(Document orig) {
-		this.id = orig.id;
-		this.title = orig.title;
-		this.owner = orig.owner;
-		this.files = orig.files;
-	}
-	
+    @Override
 	public Long getId() {
 		return id;
 	}
@@ -163,49 +142,4 @@ public class Document {
 		this.updateDate = updateDate;
 	}
 	
-	@Transient
-	public boolean getCalculateFileStats() { return calculateFileStats; }
-	
-	public void setCalculateFileStats(boolean flag) {
-		this.calculateFileStats = flag;
-	}
-
-	@Transient
-	public int getNumVisibleFiles() {
-		if (calculateFileStats) {
-			int count = 0;
-			for (File file : files) {
-				if (file.isVisible()) { count++; }
-			}
-			return count;
-		} else {
-			return numVisibleFiles;
-		}
-	}
-	
-	public void setNumVisibleFiles(int n) {
-		this.numVisibleFiles = n;
-	}
-
-	@Transient
-	public Date getLastVisibleFileDate() {
-		if (calculateFileStats) {
-			Date date = null;
-			for (File file : files) {
-				if (file.isVisible()) {
-					Date dateCreated = file.getCreateDate();
-					if (date == null || date.compareTo(dateCreated) < 0) {
-						date = file.getCreateDate();
-					}
-				}
-			}
-			return date;
-		} else {
-			return lastVisibleFileDate;
-		}
-	}
-	
-	public void setLastVisibleFileDate(Date date) {
-		this.lastVisibleFileDate = date;
-	}
 }
