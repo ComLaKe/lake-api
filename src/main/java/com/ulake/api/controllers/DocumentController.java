@@ -38,7 +38,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.ulake.api.models.File;
 import com.ulake.api.models.Document;
-import com.ulake.api.models.User;
 import com.ulake.api.repository.DocumentRepository;
 import com.ulake.api.repository.UserRepository;
 import com.ulake.api.security.services.LocalPermissionService;
@@ -64,31 +63,48 @@ public class DocumentController {
     @Autowired
     private LocalPermissionService permissionService;
 
-
-//	@Operation(summary = "Get all Document", description = "This can only be done by logged in user.", 
-//			security = { @SecurityRequirement(name = "bearer-key") },
-//			tags = { "document" })
-//	@ApiResponses(value = @ApiResponse(description = "successful operation"))
-//	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
-//    @PostAuthorize("hasPermission(returnObject, 'READ') or hasPermission(returnObject, 'ADMINISTRATION')")
-//	@GetMapping("/documents")
-//	public ResponseEntity<List<Document>> getAllDocuments(){
-//		try {
-//			List<Document> documents = new ArrayList<Document>();			
-//			documentRepository.findAll().forEach(documents::add);
-//			if (documents.isEmpty()) {
-//				return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
-//			}
-//			
-//			return new ResponseEntity<>(documents, HttpStatus.OK);
-//		} catch (Exception e) {
-//			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-//		}
-//	}
+//    TODO BUG 
+	@Operation(summary = "Get all Document", description = "This can only be done by logged in user.", 
+			security = { @SecurityRequirement(name = "bearer-key") },
+			tags = { "document" })
+	@ApiResponses(value = @ApiResponse(description = "successful operation"))
+	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+	@GetMapping("/documents")
+	public ResponseEntity<List<Document>> getAllDocuments(){
+		try {
+			List<Document> documents = new ArrayList<Document>();			
+			documentRepository.findAll().forEach(documents::add);
+			if (documents.isEmpty()) {
+				return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
+			}
+			
+			return new ResponseEntity<>(documents, HttpStatus.OK);
+		} catch (Exception e) {
+			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
 //	public List<Document> getAllDocuments(){
 //		return documentRepository.findAll();
 //	}
 
+	@Operation(summary = "Get a document by id", description = "This can only be done by logged in user. Only User with Read permission or Admin permission can use.", 
+			security = { @SecurityRequirement(name = "bearer-key") },
+			tags = { "document" })
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = Document.class))),
+			@ApiResponse(responseCode = "400", description = "Invalid id supplied", content = @Content),
+			@ApiResponse(responseCode = "404", description = "Document not found", content = @Content) })
+	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+	@GetMapping("/documents/{id}")
+	public ResponseEntity<Document> getDocumentById(@PathVariable("id") long id) {
+		  Optional<Document> documentData = documentRepository.findById(id);
+		  if (documentData.isPresent()) {
+		      return new ResponseEntity<>(documentData.get(), HttpStatus.OK);
+		  } else {
+		      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		  }
+	}
+	
 	@Operation(summary = "Get a document by title", description = "This can only be done by logged in user. Only User with Read permission or Admin permission can use.", 
 			security = { @SecurityRequirement(name = "bearer-key") },
 			tags = { "document" })
@@ -97,10 +113,9 @@ public class DocumentController {
 			@ApiResponse(responseCode = "400", description = "Invalid title supplied", content = @Content),
 			@ApiResponse(responseCode = "404", description = "Document not found", content = @Content) })
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
-    @PostAuthorize("hasPermission(returnObject, 'READ') or hasPermission(returnObject, 'ADMINISTRATION')")
-	@GetMapping("/documents/{title}")
-	public Document getDocumentById(@PathVariable("title") String title) {
-	  return documentRepository.findByTitleContaining(title);
+	@GetMapping("/documents/search/{title}")
+	public Document getDocumentByTitle(@PathVariable("title") String title) {
+		  return documentRepository.findByTitleContaining(title);
 	}
 	
 	@Operation(summary = "Add an document", description = "This can only be done by logged in user.", 
@@ -110,7 +125,7 @@ public class DocumentController {
 			@ApiResponse(responseCode = "200", description = "Status OK")
 			})
 	@PostMapping("/documents")
-	@PreAuthorize("hasRole('ADMIN')")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
 	public ResponseEntity<Document> createDocument(@RequestBody Document document) {
 	    try {
 			Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
