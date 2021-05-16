@@ -65,42 +65,42 @@ public class DocumentController {
     private LocalPermissionService permissionService;
 
 
-	@Operation(summary = "Get all Document", description = "This can only be done by logged in user.", 
-			security = { @SecurityRequirement(name = "bearer-key") },
-			tags = { "document" })
-	@ApiResponses(value = @ApiResponse(description = "successful operation"))
-	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
-    @PostAuthorize("hasPermission(returnObject, 'READ') or hasPermission(returnObject, 'ADMINISTRATION')")
-	@GetMapping("/documents")
-	public ResponseEntity<List<Document>> getAllDocuments(){
-		try {
-			List<Document> documents = new ArrayList<Document>();			
-			documentRepository.findAll().forEach(documents::add);
-			if (documents.isEmpty()) {
-				return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
-			}
-			
-			return new ResponseEntity<>(documents, HttpStatus.OK);
-		} catch (Exception e) {
-			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-		}
-	}
+//	@Operation(summary = "Get all Document", description = "This can only be done by logged in user.", 
+//			security = { @SecurityRequirement(name = "bearer-key") },
+//			tags = { "document" })
+//	@ApiResponses(value = @ApiResponse(description = "successful operation"))
+//	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+//    @PostAuthorize("hasPermission(returnObject, 'READ') or hasPermission(returnObject, 'ADMINISTRATION')")
+//	@GetMapping("/documents")
+//	public ResponseEntity<List<Document>> getAllDocuments(){
+//		try {
+//			List<Document> documents = new ArrayList<Document>();			
+//			documentRepository.findAll().forEach(documents::add);
+//			if (documents.isEmpty()) {
+//				return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
+//			}
+//			
+//			return new ResponseEntity<>(documents, HttpStatus.OK);
+//		} catch (Exception e) {
+//			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+//		}
+//	}
 //	public List<Document> getAllDocuments(){
 //		return documentRepository.findAll();
 //	}
 
-	@Operation(summary = "Get a document by ID", description = "This can only be done by logged in user. Only User with Read permission or Admin permission can use.", 
+	@Operation(summary = "Get a document by title", description = "This can only be done by logged in user. Only User with Read permission or Admin permission can use.", 
 			security = { @SecurityRequirement(name = "bearer-key") },
 			tags = { "document" })
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = Document.class))),
-			@ApiResponse(responseCode = "400", description = "Invalid id supplied", content = @Content),
-			@ApiResponse(responseCode = "404", description = "ID not found", content = @Content) })
+			@ApiResponse(responseCode = "400", description = "Invalid title supplied", content = @Content),
+			@ApiResponse(responseCode = "404", description = "Document not found", content = @Content) })
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
     @PostAuthorize("hasPermission(returnObject, 'READ') or hasPermission(returnObject, 'ADMINISTRATION')")
-	@GetMapping("/documents/{id}")
-	public Optional<Document> getDocumentById(@PathVariable("id") Long id) {
-	  return documentRepository.findById(id);
+	@GetMapping("/documents/{title}")
+	public Document getDocumentById(@PathVariable("title") String title) {
+	  return documentRepository.findByTitleContaining(title);
 	}
 	
 	@Operation(summary = "Add an document", description = "This can only be done by logged in user.", 
@@ -115,7 +115,6 @@ public class DocumentController {
 	    try {
 			Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 			UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-	        System.out.println(authentication.getDetails());
 	    	document.setOwner(userRepository.findByEmail(userDetails.getEmail()));
 	    	Document _document = documentRepository.save(document);
 	        System.out.println(document);
