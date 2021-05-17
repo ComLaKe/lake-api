@@ -1,9 +1,14 @@
 package com.ulake.api;
 
+import javax.annotation.Resource;
+
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+
+import com.ulake.api.security.services.FilesStorageService;
 
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
@@ -12,12 +17,20 @@ import io.swagger.v3.oas.models.info.License;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 
 @SpringBootApplication
-public class UlakeApiApplication {
+public class UlakeApiApplication implements CommandLineRunner{
+	@Resource
+	FilesStorageService storageService;
 
 	public static void main(String[] args) {
 		SpringApplication.run(UlakeApiApplication.class, args);
 	}
-
+	
+	@Override
+	public void run(String... arg) throws Exception {
+	    storageService.deleteAll();
+	    storageService.init();
+	}
+	
 	@Bean
 	public OpenAPI customOpenAPI(@Value("1.5.8") String appVersion) {
         var securitySchemeName = "bearer-key";
@@ -31,5 +44,5 @@ public class UlakeApiApplication {
 				.info(new Info().title("Lake API").version(appVersion)
 						.license(new License().name("Apache 2.0").url("http://springdoc.org")));
 	}
-
+	
 }

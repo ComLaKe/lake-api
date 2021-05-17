@@ -1,13 +1,22 @@
 package com.ulake.api.controllers;
 
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.domain.ObjectIdentityImpl;
@@ -16,6 +25,7 @@ import org.springframework.security.acls.model.MutableAcl;
 import org.springframework.security.acls.model.MutableAclService;
 import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.security.acls.model.Sid;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -33,11 +43,19 @@ import org.springframework.validation.BindingResult;
 
 import com.ulake.api.models.Document;
 import com.ulake.api.models.File;
+import com.ulake.api.models.File;
 import com.ulake.api.models.User;
+import com.ulake.api.payload.request.AddMemberRequest;
 import com.ulake.api.payload.response.MessageResponse;
+import com.ulake.api.repository.DocumentRepository;
+import com.ulake.api.repository.FileRepository;
+import com.ulake.api.repository.UserRepository;
+import com.ulake.api.security.services.FilesStorageService;
 import com.ulake.api.security.services.UserDetailsImpl;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -46,99 +64,160 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 @RestController
 @RequestMapping("/api")
 public class FileController {
-//	private static final Logger log = LoggerFactory.getLogger(FileController.class);
-//	
-//	@Inject private DocumentService documentService;
-//	
-//	private File getFileVerifyDocumentId(Long documentId, Long fileId) {
-//		File file = documentService.getFile(fileId);
-//		Assert.isTrue(documentId.equals(file.getDocument().getId()), "Document ID mismatch");
-//		return file;
-//	}
-//	
-//	@Operation(summary = "Get File by ID", description = "This can only be done by admin or file owner.", 
-//			security = { @SecurityRequirement(name = "bearer-key") },
-//			tags = { "file" })
-//	@GetMapping("/document/{documentId}/files/{fileId}")
-//	public ResponseEntity<File> getFileById(@PathVariable("id") Long documentId, @PathVariable("id") Long fileId){
-//		File fileData = getFileVerifyDocumentId(documentId, fileId);
-//		return new ResponseEntity<>(fileData,HttpStatus.OK);
-//	}
-//	
-//	@Operation(summary = "Create a file", description = "This can only be done by logged in user.", 
-//			security = { @SecurityRequirement(name = "bearer-key") },
-//			tags = { "file" })
-//	@PostMapping("/documents/{documentId}/files")
-//	public ResponseEntity<?> createFile(@PathVariable("documentId") Long documentId, @RequestBody File file) {
-//	    try {
-//			file.setDocument(documentService.getDocument(documentId, false));
-//						
-//			SecurityContext securityCtx = SecurityContextHolder.getContext();
-//			org.springframework.security.core.Authentication authn = securityCtx.getAuthentication();
-//						
-//			file.setUser((User) authn.getPrincipal());
-//			file.setVisible(true);
-//			documentService.createFile(file);
-//		  return ResponseEntity.ok(new MessageResponse("Create file successful!"));
-//	    } catch (Exception e) {
-//	      return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-//	    }
-//	}
-//	
-////	@PutMapping("/documents/{documentId}/files/{fileId}")
-////	public ResponseEntity<?> updateFile(			
-////			@PathVariable("documentId") Long documentId,
-////			@PathVariable("fileId") Long fileId,
-////			@RequestBody File file,
-////			BindingResult result) {
-////		File fileData = getFileVerifyDocumentId(documentId, fileId);
-////		
-////		if (result.hasErrors()) {
-////			log.debug("Submitted file has validation errors");
-////		    return ResponseEntity.ok(new MessageResponse("Submitted file has validation errors!"));
-////		}
-////		
-////		log.debug("File validated; updating file subject and text");
-////		fileData.setName(file.getName());
-////		documentService.setFileName(fileData);
-////	    return ResponseEntity.ok(new MessageResponse("Update File successful!"));
-////	}
-//	
-//	@Operation(summary = "Update a file's visible", description = "This can only be done by admin or file owner.", 
-//			security = { @SecurityRequirement(name = "bearer-key") },
-//			tags = { "file" })
-//	@PutMapping("/document/{documentId}/files/{fileId}/visible")
-//	public ResponseEntity<?> putFileVisible(			
-//			@PathVariable("documentId") Long documentId,
-//			@PathVariable("fileId") Long fileId,
-//			@RequestParam("value") boolean value,
-//			HttpServletResponse res) {
-//		res.setContentType("text/plain");
-//		File file = new File(documentId, fileId);
-//		file.setVisible(value);
-//		documentService.setFileVisible(file);
-//	    return ResponseEntity.ok(new MessageResponse("Update File's visible successful!"));
-//	}
-//	
-//	@Operation(summary = "Delete a file", description = "This can only be done by admin or file owner.", 
-//		security = { @SecurityRequirement(name = "bearer-key") },
-//		tags = { "file" })
-//	@ApiResponses(value = {
-//		@ApiResponse(responseCode = "400", description = "Invalid file ID supplied"),
-//		@ApiResponse(responseCode = "404", description = "File not found")
-//	})	
-//	@DeleteMapping("/document/{documentId}/files/{fileId}")
-//	public ResponseEntity<?> deleteMessage(			
-//			@PathVariable("documentId") Long documentId,
-//			@PathVariable("fileId") Long fileId) {
-//		try {
-//			documentService.deleteFile(getFileVerifyDocumentId(documentId, fileId));	    
-//			return ResponseEntity.ok(new MessageResponse("Delete File successful!"));			
-//		}
-//		catch (Exception e) {	
-//			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-//		}
-//		
-//	}
+	@Autowired
+	private DocumentRepository documentRepository;
+	
+    @Autowired
+    private UserRepository userRepository;
 
+    @Autowired
+	private FileRepository fileRepository;
+	
+    @Autowired
+    FilesStorageService storageService;
+    
+	@Operation(summary = "Add a file", description = "This can only be done by logged in user having the document permissions.", 
+			security = { @SecurityRequirement(name = "bearer-key") },
+			tags = { "file" })
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "Status OK")
+			})
+	@PostMapping("/document/{documentTitle}/files")
+//	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+//    @PostAuthorize("hasPermission(returnObject, 'READ') or hasPermission(returnObject, 'ADMINISTRATION')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+	public ResponseEntity<File> createFile(
+			@PathVariable("documentTitle") String documentTitle, 
+			@RequestBody File file) {
+	    try {
+			Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+			UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+	    	file.setUser(userRepository.findByEmail(userDetails.getEmail()));
+	    	file.setDocument(documentRepository.findByTitle(documentTitle));
+	    	File _file = fileRepository.save(file);
+	      return new ResponseEntity<>(_file, HttpStatus.CREATED);
+	    } catch (Exception e) {
+	      return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+	    }
+	}
+	
+	@Operation(summary = "Update a file name by ID", description = "This can only be done by admin.", 
+			security = { @SecurityRequirement(name = "bearer-key") },
+			tags = { "file" })
+	@ApiResponses(value = @ApiResponse(description = "successful operation"))
+	@PutMapping("/files/id/{id}")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+	public ResponseEntity<File> updateFile(@PathVariable("id") long id, @RequestBody File file) {
+	  Optional<File> fileData = fileRepository.findById(id);
+	  if (fileData.isPresent()) {
+	    	File _file = fileData.get();	    	
+		    _file.setName(file.getName());
+		    _file.setCid(file.getCid());
+		    _file.setMimeType(file.getMimeType());
+		    _file.setSize(file.getSize());
+		    _file.setUpdateDate(file.getUpdateDate());
+	      return new ResponseEntity<>(fileRepository.save(_file), HttpStatus.OK);
+	  } else {
+	      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+	  }
+	}
+	
+//	@Operation(summary = "Attach a file to a document", description = "This can only be done by admin.", 
+//			security = { @SecurityRequirement(name = "bearer-key") },
+//			tags = { "file" })
+//	@ApiResponses(value = @ApiResponse(description = "successful operation"))
+//	@PutMapping("/documents/{documentId}/files/id/{fileId}")
+//	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+//	public ResponseEntity<File> attachFile(
+//			@PathVariable("documentId") long documentId, 
+//			@PathVariable("fileId") long fileId) {
+//	  Optional<File> fileData = fileRepository.findById(fileId);
+//	  if (fileData.isPresent()) {
+//	    	File _file = fileData.get();	    	
+//	      return new ResponseEntity<>(fileRepository.save(_file), HttpStatus.OK);
+//	  } else {
+//	      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+//	  }
+//	}
+	
+	@Operation(summary = "Get a file by ID", description = "This can only be done by logged in user.", 
+			security = { @SecurityRequirement(name = "bearer-key") },
+			tags = { "file" })
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = File.class))),
+			@ApiResponse(responseCode = "400", description = "Invalid ID supplied", content = @Content),
+			@ApiResponse(responseCode = "404", description = "File not found", content = @Content) })
+	@GetMapping("/files/id/{id}")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+	public ResponseEntity<File> getFileById(@PathVariable("id") long id) {
+	  Optional<File> fileData = fileRepository.findById(id);
+	  if (fileData.isPresent()) {
+	      return new ResponseEntity<>(fileData.get(), HttpStatus.OK);
+	  } else {
+	      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+	  }
+	}
+	
+	@Operation(summary = "Get a file by name", description = "This can only be done by logged in user.", 
+			security = { @SecurityRequirement(name = "bearer-key") },
+			tags = { "file" })
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = File.class))),
+			@ApiResponse(responseCode = "400", description = "Invalid name supplied", content = @Content),
+			@ApiResponse(responseCode = "404", description = "File not found", content = @Content) })
+	@GetMapping("/files/{name}")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+	public ResponseEntity<File> getFileByName(@PathVariable("name") String name){
+		Optional<File> file = fileRepository.findByName(name);
+		if (file != null) {
+			return new ResponseEntity<>(file.get(),HttpStatus.OK);
+		}
+		else {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
+	}
+	
+	@Operation(summary = "Get all files", description = "This can only be done by logged in user.", 
+			security = { @SecurityRequirement(name = "bearer-key") },
+			tags = { "file" })
+	@ApiResponses(value = @ApiResponse(description = "successful operation"))
+	@GetMapping("/files/all")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+	public ResponseEntity<List<File>> getAllFiles(@RequestParam(required=false) String name){
+		try {
+			List<File> files = new ArrayList<File>();
+			
+			if (name == null)
+				fileRepository.findAll().forEach(files::add);
+			else
+				fileRepository.findByNameContaining(name).forEach(files::add);
+			
+			if (files.isEmpty()) {
+				return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
+			}
+			
+			return new ResponseEntity<>(files, HttpStatus.OK);
+		} catch (Exception e) {
+			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+	
+	@Operation(summary = "Delete a file", description = "This can only be done by admin.", 
+			security = { @SecurityRequirement(name = "bearer-key") },
+			tags = { "file" })
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "400", description = "Invalid file ID supplied"),
+			@ApiResponse(responseCode = "404", description = "File not found")
+	})
+	@DeleteMapping("/files/id/{id}")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+	public ResponseEntity<File> deleteFileById(@PathVariable("id") long id){
+		try {
+			fileRepository.deleteById(id);
+			return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+		} 
+		catch (Exception e) {
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
 }

@@ -40,7 +40,7 @@ public class File{
 
 	private Long size;
 	
-	private boolean visible = true;
+//	private boolean visible = true;
 	
 	@Temporal(TemporalType.TIMESTAMP)   
 	@Column(name = "date_created", nullable = false, updatable = false, insertable = false, 
@@ -112,13 +112,13 @@ public class File{
 		this.mimeType = mimeType;
 	}	
 	
-	public boolean isVisible() { 
-		return visible; 
-	}
-	
-	public void setVisible(boolean visible) {
-		this.visible = visible; 
-	}
+//	public boolean isVisible() { 
+//		return visible; 
+//	}
+//	
+//	public void setVisible(boolean visible) {
+//		this.visible = visible; 
+//	}
 
 	public Date getCreateDate() {
 		return createDate;
