@@ -20,7 +20,7 @@ import javax.validation.constraints.NotBlank;
 
 @Entity
 @Table(	name = "CLake_documents")
-public class Document implements IEntity{
+public class Folder implements IEntity{
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
@@ -53,7 +53,7 @@ public class Document implements IEntity{
 	columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
     private Date updateDate;
 
-	public Document() {
+	public Folder() {
 		
 	}
 	

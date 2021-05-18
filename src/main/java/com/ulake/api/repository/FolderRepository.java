@@ -9,15 +9,15 @@ import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
 
-import com.ulake.api.models.Document;
+import com.ulake.api.models.Folder;
 
 
-public interface DocumentRepository extends JpaRepository<Document, Long> {
-    List<Document> findAll();
+public interface FolderRepository extends JpaRepository<Folder, Long> {
+    List<Folder> findAll();
     
-	Document findByTitle(String title);
+	Folder findByTitle(String title);
 	
-	Document findByTitleContaining(String title);
+	Folder findByTitleContaining(String title);
     
-    Document findById(Integer id);
+    Folder findById(Integer id);
 }

@@ -41,13 +41,13 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.util.Assert;
 import org.springframework.validation.BindingResult;
 
-import com.ulake.api.models.Document;
+import com.ulake.api.models.Folder;
 import com.ulake.api.models.File;
 import com.ulake.api.models.File;
 import com.ulake.api.models.User;
 import com.ulake.api.payload.request.AddMemberRequest;
 import com.ulake.api.payload.response.MessageResponse;
-import com.ulake.api.repository.DocumentRepository;
+import com.ulake.api.repository.FolderRepository;
 import com.ulake.api.repository.FileRepository;
 import com.ulake.api.repository.UserRepository;
 import com.ulake.api.security.services.FilesStorageService;
@@ -65,7 +65,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 @RequestMapping("/api")
 public class FileController {
 	@Autowired
-	private DocumentRepository documentRepository;
+	private FolderRepository folderRepository;
 	
     @Autowired
     private UserRepository userRepository;
@@ -76,24 +76,24 @@ public class FileController {
     @Autowired
     FilesStorageService storageService;
     
-	@Operation(summary = "Add a file", description = "This can only be done by logged in user having the document permissions.", 
+	@Operation(summary = "Add a file", description = "This can only be done by logged in user having the folder permissions.", 
 			security = { @SecurityRequirement(name = "bearer-key") },
 			tags = { "file" })
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "Status OK")
 			})
-	@PostMapping("/document/{documentTitle}/files")
+	@PostMapping("/folder/{folderTitle}/files")
 //	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
 //    @PostAuthorize("hasPermission(returnObject, 'READ') or hasPermission(returnObject, 'ADMINISTRATION')")
     @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
 	public ResponseEntity<File> createFile(
-			@PathVariable("documentTitle") String documentTitle, 
+			@PathVariable("folderTitle") String folderTitle, 
 			@RequestBody File file) {
 	    try {
 			Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 			UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 	    	file.setUser(userRepository.findByEmail(userDetails.getEmail()));
-	    	file.setDocument(documentRepository.findByTitle(documentTitle));
+	    	file.setFolder(folderRepository.findByTitle(folderTitle));
 	    	File _file = fileRepository.save(file);
 	      return new ResponseEntity<>(_file, HttpStatus.CREATED);
 	    } catch (Exception e) {
@@ -122,14 +122,14 @@ public class FileController {
 	  }
 	}
 	
-//	@Operation(summary = "Attach a file to a document", description = "This can only be done by admin.", 
+//	@Operation(summary = "Attach a file to a folder", description = "This can only be done by admin.", 
 //			security = { @SecurityRequirement(name = "bearer-key") },
 //			tags = { "file" })
 //	@ApiResponses(value = @ApiResponse(description = "successful operation"))
-//	@PutMapping("/documents/{documentId}/files/id/{fileId}")
+//	@PutMapping("/folders/{folderId}/files/id/{fileId}")
 //	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
 //	public ResponseEntity<File> attachFile(
-//			@PathVariable("documentId") long documentId, 
+//			@PathVariable("folderId") long folderId, 
 //			@PathVariable("fileId") long fileId) {
 //	  Optional<File> fileData = fileRepository.findById(fileId);
 //	  if (fileData.isPresent()) {

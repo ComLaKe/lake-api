@@ -23,8 +23,8 @@ public class File{
 	
 	@NotBlank
 	@ManyToOne
-	@JoinColumn(name = "document_id", nullable = false)
-	private Document document;
+	@JoinColumn(name = "folder_id", nullable = false)
+	private Folder folder;
 	
 	@ManyToOne
 	@JoinColumn(name = "user_id", nullable = false)
@@ -64,12 +64,12 @@ public class File{
 		this.id = id;
 	}
 	
-	public Document getDocument() {
-		return document;
+	public Folder getFolder() {
+		return folder;
 	}
 	
-	public void setDocument(Document document) {
-		this.document = document;
+	public void setFolder(Folder folder) {
+		this.folder = folder;
 	}
 	
 	public User getUser() {
