@@ -14,16 +14,16 @@ import com.ulake.api.models.File;
 public interface FileRepository extends JpaRepository<File, Long> {
 	Boolean existsByName(String name);
 		
-	@PostFilter("hasPermission(filterObject, 'READ') or hasPermission(returnObject, 'ADMINISTRATION')")
+	@PostFilter("hasPermission(filterObject, 'READ') or hasPermission(#file, 'ADMINISTRATION')")
 	List<File> findByNameContaining(String name);
 	
-	@PostFilter("hasPermission(filterObject, 'READ') or hasPermission(returnObject, 'ADMINISTRATION')")
+	@PostFilter("hasPermission(filterObject, 'READ') or hasPermission(#file, 'ADMINISTRATION')")
 	List<File> findByName(String title);
 	
-	@PostFilter("hasPermission(filterObject, 'READ') or hasPermission(returnObject, 'ADMINISTRATION')")
+	@PostFilter("hasPermission(filterObject, 'READ') or hasPermission(#file, 'ADMINISTRATION')")
 	List<File> findAll();
 	
-    @PreAuthorize("hasPermission(#id, 'com.ulake.api.models.File', 'READ') or hasPermission(returnObject, 'ADMINISTRATION')")
+    @PreAuthorize("hasPermission(#id, 'com.ulake.api.models.File', 'READ') or hasPermission(#file, 'ADMINISTRATION')")
     Optional<File> findById(Long id);
     
 //    @SuppressWarnings("unchecked")

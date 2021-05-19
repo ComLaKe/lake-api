@@ -1,6 +1,7 @@
 package com.ulake.api.models;
 
 import java.util.Date;
+import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -32,6 +33,10 @@ public class File implements IEntity{
 
 	private String mimeType;
 
+	private String source;
+	
+	private String topics;
+	
 	private Long size;
 		
 	@Temporal(TemporalType.TIMESTAMP)   
@@ -101,6 +106,22 @@ public class File implements IEntity{
 	public void setMimeType(String mimeType) {
 		this.mimeType = mimeType;
 	}	
+	
+	public String getSource() {
+		return source;
+	}
+
+	public void setSource(String source) {
+		this.source = source;
+	}
+	
+	public String getTopics() {
+		return topics;
+	}
+
+	public void setTopics(String topics) {
+		this.topics = topics;
+	}
 
 	public Date getCreateDate() {
 		return createDate;

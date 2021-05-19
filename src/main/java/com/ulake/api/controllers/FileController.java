@@ -85,35 +85,27 @@ public class FileController {
 	@PostMapping("/files")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
     @PostAuthorize("hasPermission(returnObject, 'READ') or hasPermission(returnObject, 'ADMINISTRATION')")
-//	public File createFile(
-//			@RequestBody CreateFileRequest createFileRequest) {
-//		File file = new File(createFileRequest.getCid(), createFileRequest.getName(),
-//				createFileRequest.getMimeType(), createFileRequest.getSize());
-//		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//		UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-//		file.setUser(userRepository.findByEmail(userDetails.getEmail()));
-//        permissionService.addPermissionForUser(file, BasePermission.ADMINISTRATION, authentication.getName());
-//    	return fileRepository.save(file);
-//	}
 	public File createFile(@RequestBody File file) {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
     	file.setOwner(userRepository.findByEmail(userDetails.getEmail()));
     	File _file = fileRepository.save(file);
         System.out.println(file);
-        permissionService.addPermissionForAuthority(file, BasePermission.ADMINISTRATION, "ROLE_ADMIN");
+//        permissionService.addPermissionForAuthority(file, BasePermission.ADMINISTRATION, "ROLE_ADMIN");
+        permissionService.addPermissionForUser(file, BasePermission.ADMINISTRATION, "admin");
         permissionService.addPermissionForUser(file, BasePermission.READ, authentication.getName());
         permissionService.addPermissionForUser(file, BasePermission.WRITE, authentication.getName());
         return _file;
 	}
 	
-	@Operation(summary = "Update a file name by ID", description = "This can only be done by admin.", 
+	@Operation(summary = "Update a file by ID", description = "This can only be done by admin.", 
 			security = { @SecurityRequirement(name = "bearer-key") },
 			tags = { "file" })
 	@ApiResponses(value = @ApiResponse(description = "successful operation"))
 	@PutMapping("/files/id/{id}")
 //	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
-    @PreAuthorize("(hasRole('ADMIN') or hasRole('USER')) AND (hasPermission(#file, 'WRITE') or hasPermission(returnObject, 'ADMINISTRATION'))")
+//    @PreAuthorize("(hasRole('ADMIN') or hasRole('USER')) AND (hasPermission(#file, 'WRITE') or hasPermission(returnObject, 'ADMINISTRATION'))")
+	@PreAuthorize("hasRole('ADMIN') or hasPermission(#file, 'WRITE') or hasPermission(#file, 'ADMINISTRATION')")
 	public File updateFile(@PathVariable("id") Long id, @RequestBody File file) {
 	  Optional<File> fileData = fileRepository.findById(id);
 //	  TODO Will fail if not found
@@ -121,6 +113,8 @@ public class FileController {
 	  _file.setName(file.getName());
 	  _file.setCid(file.getCid());
 	  _file.setMimeType(file.getMimeType());
+	  _file.setSource(file.getSource());
+	  _file.setTopics(file.getTopics());
 	  _file.setSize(file.getSize());
 	  _file.setUpdateDate(file.getUpdateDate());
       return fileRepository.save(_file);
@@ -135,7 +129,7 @@ public class FileController {
 			@ApiResponse(responseCode = "404", description = "File not found", content = @Content) })
 	@GetMapping("/files/id/{id}")
 //	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
-    @PreAuthorize("(hasRole('ADMIN') or hasRole('USER')) AND (hasPermission(#id, 'com.ulake.api.models.File', 'READ') or hasPermission(returnObject, 'ADMINISTRATION'))")
+    @PreAuthorize("(hasRole('ADMIN')) or (hasPermission(#id, 'com.ulake.api.models.File', 'READ') or hasPermission(returnObject, 'ADMINISTRATION'))")
 	public File getFileById(@PathVariable("id") Long id) {
 	  Optional<File> fileData = fileRepository.findById(id);
 	  File _file = fileData.get();
