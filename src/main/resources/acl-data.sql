@@ -11,4 +11,4 @@ INSERT INTO acl_sid (id, principal, sid) VALUES
 (4, 1, 'user1');
 
 INSERT INTO acl_class (id, class) VALUES
-(1, 'com.ulake.api.models.Document');
+(1, 'com.ulake.api.models.File');

@@ -21,11 +21,6 @@ public class File{
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	
-	@NotBlank
-	@ManyToOne
-	@JoinColumn(name = "folder_id", nullable = false)
-	private Folder folder;
-	
 	@ManyToOne
 	@JoinColumn(name = "user_id", nullable = false)
 	@NotBlank
@@ -62,14 +57,6 @@ public class File{
 
 	public void setId(Long id) {
 		this.id = id;
-	}
-	
-	public Folder getFolder() {
-		return folder;
-	}
-	
-	public void setFolder(Folder folder) {
-		this.folder = folder;
 	}
 	
 	public User getUser() {
@@ -111,14 +98,6 @@ public class File{
 	public void setMimeType(String mimeType) {
 		this.mimeType = mimeType;
 	}	
-	
-//	public boolean isVisible() { 
-//		return visible; 
-//	}
-//	
-//	public void setVisible(boolean visible) {
-//		this.visible = visible; 
-//	}
 
 	public Date getCreateDate() {
 		return createDate;
