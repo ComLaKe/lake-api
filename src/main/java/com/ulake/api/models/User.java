@@ -48,7 +48,7 @@ public class User implements IEntity{
 		this.email = email;
 		this.password = password;
 	}
-
+	
 	public Long getId() {
 		return id;
 	}

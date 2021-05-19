@@ -16,15 +16,14 @@ import javax.validation.constraints.NotBlank;
 
 @Entity
 @Table(	name = "CLake_files")
-public class File{
+public class File implements IEntity{
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	
 	@ManyToOne
-	@JoinColumn(name = "user_id", nullable = false)
-	@NotBlank
-	private User user; 
+	@JoinColumn(name = "owner_id", nullable = false)
+	private User owner; 
 	
 	private String cid;
 
@@ -34,9 +33,7 @@ public class File{
 	private String mimeType;
 
 	private Long size;
-	
-//	private boolean visible = true;
-	
+		
 	@Temporal(TemporalType.TIMESTAMP)   
 	@Column(name = "date_created", nullable = false, updatable = false, insertable = false, 
 	columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
@@ -50,7 +47,13 @@ public class File{
 	public File() {
 	}
 
-	
+	public File(String cid, String name, String mimeType, Long size) {
+		this.cid = cid;
+		this.name = name;
+		this.mimeType = mimeType;
+		this.size = size;
+	}
+    @Override
 	public Long getId() {
 		return id;
 	}
@@ -59,12 +62,12 @@ public class File{
 		this.id = id;
 	}
 	
-	public User getUser() {
-		return user;
+	public User getOwner() {
+		return owner;
 	}
 	
-	public void setUser(User user) {
-		this.user = user;
+	public void setOwner(User owner) {
+		this.owner = owner;
 	}
 	
 	public String getCid() {
