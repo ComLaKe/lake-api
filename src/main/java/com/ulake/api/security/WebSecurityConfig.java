@@ -17,7 +17,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import com.ulake.api.security.jwt.AuthEntryPointJwt;
 import com.ulake.api.security.jwt.AuthTokenFilter;
-import com.ulake.api.security.services.UserDetailsServiceImpl;
+import com.ulake.api.security.services.impl.UserDetailsServiceImpl;
 
 @Configuration
 @EnableWebSecurity

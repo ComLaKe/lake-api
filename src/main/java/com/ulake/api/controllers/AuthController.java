@@ -39,7 +39,7 @@ import com.ulake.api.repository.RoleRepository;
 import com.ulake.api.repository.UserRepository;
 import com.ulake.api.security.jwt.JwtUtils;
 import com.ulake.api.security.services.RefreshTokenService;
-import com.ulake.api.security.services.UserDetailsImpl;
+import com.ulake.api.security.services.impl.UserDetailsImpl;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.headers.Header;

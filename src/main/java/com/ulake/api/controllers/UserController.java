@@ -23,7 +23,8 @@ import com.ulake.api.models.User;
 import com.ulake.api.payload.response.MessageResponse;
 import com.ulake.api.repository.RoleRepository;
 import com.ulake.api.repository.UserRepository;
-import com.ulake.api.security.services.UserDetailsImpl;
+import com.ulake.api.security.services.impl.UserDetailsImpl;
+
 import org.springframework.web.bind.annotation.RequestBody;
 
 import io.swagger.v3.oas.annotations.Operation;

@@ -25,6 +25,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.ulake.api.repository.GroupRepository;
 import com.ulake.api.repository.UserRepository;
+import com.ulake.api.security.services.FilesStorageService;
+import com.ulake.api.security.services.LocalPermissionService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -51,6 +53,9 @@ public class GroupController {
 	@Autowired
 	UserRepository userRepository;
 
+    @Autowired
+    private LocalPermissionService permissionService;
+
 	@Operation(summary = "Add an user group", description = "This can only be done by admin.", 
 			security = { @SecurityRequirement(name = "bearer-key") },
 			tags = { "group" })
@@ -63,6 +68,7 @@ public class GroupController {
 	    try {
 	    	Group _group = groupRepository
 	          .save(new Group(group.getName()));
+	    	permissionService.createSidAuthority(group.getName());
 	      return new ResponseEntity<>(_group, HttpStatus.CREATED);
 	    } catch (Exception e) {
 	      return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);

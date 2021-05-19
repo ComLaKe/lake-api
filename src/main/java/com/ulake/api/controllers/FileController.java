@@ -52,7 +52,7 @@ import com.ulake.api.repository.FileRepository;
 import com.ulake.api.repository.UserRepository;
 import com.ulake.api.security.services.FilesStorageService;
 import com.ulake.api.security.services.LocalPermissionService;
-import com.ulake.api.security.services.UserDetailsImpl;
+import com.ulake.api.security.services.impl.UserDetailsImpl;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -87,14 +87,15 @@ public class FileController {
 			})
 	@PostMapping("/files")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
-    @PostAuthorize("hasPermission(returnObject, 'READ') or hasPermission(returnObject, 'ADMINISTRATION')")
+    @PostAuthorize("hasPermission(returnObject, 'READ')")
 	public File createFile(@RequestBody File file) {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
     	file.setOwner(userRepository.findByEmail(userDetails.getEmail()));
     	File _file = fileRepository.save(file);
         System.out.println(file);
-        permissionService.addPermissionForAuthority(file, BasePermission.ADMINISTRATION, "ROLE_ADMIN");
+        permissionService.addPermissionForAuthority(file, BasePermission.READ, "ROLE_ADMIN");
+        permissionService.addPermissionForAuthority(file, BasePermission.WRITE, "ROLE_ADMIN");
         permissionService.addPermissionForUser(file, BasePermission.READ, authentication.getName());
         permissionService.addPermissionForUser(file, BasePermission.WRITE, authentication.getName());
         return _file;
@@ -105,7 +106,7 @@ public class FileController {
 			tags = { "file" })
 	@ApiResponses(value = @ApiResponse(description = "successful operation"))
 	@PutMapping("/files/id/{id}")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#file, 'WRITE') or hasPermission(#file, 'ADMINISTRATION')")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#file, 'WRITE')")
 	public File updateFile(@PathVariable("id") Long id, @RequestBody File file) {
 	  Optional<File> fileData = fileRepository.findById(id);
 //	  TODO Will fail if not found
@@ -128,7 +129,7 @@ public class FileController {
 			@ApiResponse(responseCode = "400", description = "Invalid ID supplied", content = @Content),
 			@ApiResponse(responseCode = "404", description = "File not found", content = @Content) })
 	@GetMapping("/files/id/{id}")
-    @PreAuthorize("(hasRole('ADMIN')) or (hasPermission(#id, 'com.ulake.api.models.File', 'READ') or hasPermission(returnObject, 'ADMINISTRATION'))")
+    @PreAuthorize("(hasRole('ADMIN')) or (hasPermission(#id, 'com.ulake.api.models.File', 'READ'))")
 	public File getFileById(@PathVariable("id") Long id) {
 	  Optional<File> fileData = fileRepository.findById(id);
 	  File _file = fileData.get();
@@ -143,7 +144,7 @@ public class FileController {
 //			@ApiResponse(responseCode = "400", description = "Invalid ID supplied", content = @Content),
 //			@ApiResponse(responseCode = "404", description = "File not found", content = @Content) })
 //	@DeleteMapping("/files/id/{id}")
-//    @PreAuthorize("(hasRole('ADMIN')) or (hasPermission(#id, 'com.ulake.api.models.File', 'WRITE') or hasPermission(returnObject, 'ADMINISTRATION'))")
+//    @PreAuthorize("(hasRole('ADMIN')) or (hasPermission(#id, 'com.ulake.api.models.File', 'WRITE'))")
 //	public Long deleteFileById(@PathVariable("id") Long id) {
 //	  return fileRepository.removeById(id);
 //	}
@@ -170,7 +171,7 @@ public class FileController {
 	@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = File.class))),
 	@ApiResponse(responseCode = "400", description = "Invalid ID supplied", content = @Content),
 	@ApiResponse(responseCode = "404", description = "User not found", content = @Content) })
-	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#file, 'WRITE') or hasPermission(#file, 'ADMINISTRATION')")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#file, 'WRITE')")
 	@PostMapping("/acl/grant_permssions")
 	public ResponseEntity<?> grantPermissionForUser(
 			@RequestParam Long fileId,
@@ -189,9 +190,9 @@ public class FileController {
         LOGGER.error("Grant {} permission to principal {} on File {}", 
         		perm, user, file);
 		if (perm == "READ") {
-			permissionService.updatePermissionForUser(file, BasePermission.READ, user.getUsername());	
+			permissionService.addPermissionForUser(file, BasePermission.READ, user.getUsername());	
 		} else if (perm == "WRITE") {
-			permissionService.updatePermissionForUser(file, BasePermission.WRITE, user.getUsername());
+			permissionService.addPermissionForUser(file, BasePermission.WRITE, user.getUsername());
 		}
 	    return ResponseEntity.ok(new MessageResponse("Grant Permssiosn for User successful!"));
 	}

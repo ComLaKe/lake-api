@@ -1,4 +1,4 @@
-package com.ulake.api.security.services;
+package com.ulake.api.security.services.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;

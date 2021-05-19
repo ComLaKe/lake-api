@@ -49,6 +49,10 @@ public class LocalPermissionService {
         addPermissionForSid(targetObj, permission, sid);
     }
 
+    public void createSidAuthority(String authority) {
+        final Sid sid = new GrantedAuthoritySid(authority);
+    }
+    
     private void addPermissionForSid(IEntity targetObj, Permission permission, Sid sid) {
         final TransactionTemplate tt = new TransactionTemplate(transactionManager);
 

@@ -1,4 +1,4 @@
-package com.ulake.api.security.services;
+package com.ulake.api.security.services.impl;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -12,6 +12,8 @@ import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileSystemUtils;
 import org.springframework.web.multipart.MultipartFile;
+
+import com.ulake.api.security.services.FilesStorageService;
 
 @Service
 public class FilesStorageServiceImpl implements FilesStorageService {
