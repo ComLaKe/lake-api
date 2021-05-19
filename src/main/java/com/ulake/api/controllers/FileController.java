@@ -101,7 +101,9 @@ public class FileController {
     	file.setOwner(userRepository.findByEmail(userDetails.getEmail()));
     	File _file = fileRepository.save(file);
         System.out.println(file);
-        permissionService.addPermissionForUser(file, BasePermission.ADMINISTRATION, authentication.getName());
+        permissionService.addPermissionForAuthority(file, BasePermission.ADMINISTRATION, "ROLE_ADMIN");
+        permissionService.addPermissionForUser(file, BasePermission.READ, authentication.getName());
+        permissionService.addPermissionForUser(file, BasePermission.WRITE, authentication.getName());
         return _file;
 	}
 	
@@ -145,8 +147,7 @@ public class FileController {
 			tags = { "file" })
 	@ApiResponses(value = @ApiResponse(description = "successful operation"))
 	@GetMapping("/files/all")
-	@PreAuthorize("(hasRole('ADMIN') or hasRole('USER')) AND (hasPermission(filterObject, 'READ') or hasPermission(returnObject, 'ADMINISTRATION'))")
-//    @PostFilter("hasPermission(filterObject, 'READ') or hasPermission(returnObject, 'ADMINISTRATION')")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
 	public List<File> getAllFiles(@RequestParam(required=false) String name){
 		List<File> files = new ArrayList<File>();
 		if (name == null)
