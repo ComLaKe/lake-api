@@ -110,9 +110,9 @@ public class UserController {
 	@GetMapping("/id/{id}")
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<User> getUserById(@PathVariable("id") long id){
-		Optional<User> userId = userRepository.findById(id);
-		if (userId.isPresent()) {
-			return new ResponseEntity<>(userId.get(),HttpStatus.OK);
+		Optional<User> userData = userRepository.findById(id);
+		if (userData.isPresent()) {
+			return new ResponseEntity<>(userData.get(),HttpStatus.OK);
 		}
 		else {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);

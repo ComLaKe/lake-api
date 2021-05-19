@@ -20,6 +20,7 @@ import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.acls.domain.BasePermission;
+import org.springframework.security.acls.domain.GrantedAuthoritySid;
 import org.springframework.security.acls.domain.ObjectIdentityImpl;
 import org.springframework.security.acls.domain.PrincipalSid;
 import org.springframework.security.acls.model.MutableAcl;
@@ -27,6 +28,8 @@ import org.springframework.security.acls.model.MutableAclService;
 import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.security.acls.model.Sid;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -44,8 +47,6 @@ import org.springframework.validation.BindingResult;
 
 import com.ulake.api.models.File;
 import com.ulake.api.models.User;
-import com.ulake.api.payload.request.AddMemberRequest;
-import com.ulake.api.payload.request.CreateFileRequest;
 import com.ulake.api.payload.response.MessageResponse;
 import com.ulake.api.repository.FileRepository;
 import com.ulake.api.repository.UserRepository;
@@ -75,6 +76,8 @@ public class FileController {
     
     @Autowired
     private LocalPermissionService permissionService;
+    
+    private Logger LOGGER = LoggerFactory.getLogger(FileController.class);
 
 	@Operation(summary = "Add a file", description = "This can only be done by logged in user having the file permissions.", 
 			security = { @SecurityRequirement(name = "bearer-key") },
@@ -91,8 +94,7 @@ public class FileController {
     	file.setOwner(userRepository.findByEmail(userDetails.getEmail()));
     	File _file = fileRepository.save(file);
         System.out.println(file);
-//        permissionService.addPermissionForAuthority(file, BasePermission.ADMINISTRATION, "ROLE_ADMIN");
-        permissionService.addPermissionForUser(file, BasePermission.ADMINISTRATION, "admin");
+        permissionService.addPermissionForAuthority(file, BasePermission.ADMINISTRATION, "ROLE_ADMIN");
         permissionService.addPermissionForUser(file, BasePermission.READ, authentication.getName());
         permissionService.addPermissionForUser(file, BasePermission.WRITE, authentication.getName());
         return _file;
@@ -103,9 +105,7 @@ public class FileController {
 			tags = { "file" })
 	@ApiResponses(value = @ApiResponse(description = "successful operation"))
 	@PutMapping("/files/id/{id}")
-//	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
-//    @PreAuthorize("(hasRole('ADMIN') or hasRole('USER')) AND (hasPermission(#file, 'WRITE') or hasPermission(returnObject, 'ADMINISTRATION'))")
-	@PreAuthorize("hasRole('ADMIN') or hasPermission(#file, 'WRITE') or hasPermission(#file, 'ADMINISTRATION')")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#file, 'WRITE') or hasPermission(#file, 'ADMINISTRATION')")
 	public File updateFile(@PathVariable("id") Long id, @RequestBody File file) {
 	  Optional<File> fileData = fileRepository.findById(id);
 //	  TODO Will fail if not found
@@ -128,13 +128,25 @@ public class FileController {
 			@ApiResponse(responseCode = "400", description = "Invalid ID supplied", content = @Content),
 			@ApiResponse(responseCode = "404", description = "File not found", content = @Content) })
 	@GetMapping("/files/id/{id}")
-//	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
     @PreAuthorize("(hasRole('ADMIN')) or (hasPermission(#id, 'com.ulake.api.models.File', 'READ') or hasPermission(returnObject, 'ADMINISTRATION'))")
 	public File getFileById(@PathVariable("id") Long id) {
 	  Optional<File> fileData = fileRepository.findById(id);
 	  File _file = fileData.get();
 	  return _file;
 	}
+	
+//	@Operation(summary = "Delete a file by ID", description = "This can only be done by logged in user.", 
+//			security = { @SecurityRequirement(name = "bearer-key") },
+//			tags = { "file" })
+//	@ApiResponses(value = {
+//			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = File.class))),
+//			@ApiResponse(responseCode = "400", description = "Invalid ID supplied", content = @Content),
+//			@ApiResponse(responseCode = "404", description = "File not found", content = @Content) })
+//	@DeleteMapping("/files/id/{id}")
+//    @PreAuthorize("(hasRole('ADMIN')) or (hasPermission(#id, 'com.ulake.api.models.File', 'WRITE') or hasPermission(returnObject, 'ADMINISTRATION'))")
+//	public Long deleteFileById(@PathVariable("id") Long id) {
+//	  return fileRepository.removeById(id);
+//	}
 	
 	@Operation(summary = "Get all files", description = "This can only be done by logged in user.", 
 			security = { @SecurityRequirement(name = "bearer-key") },
@@ -151,19 +163,36 @@ public class FileController {
 		return files;
 	}
 	
-//	@Operation(summary = "Delete a file", description = "This can only be done by admin.", 
-//			security = { @SecurityRequirement(name = "bearer-key") },
-//			tags = { "file" })
-//	@ApiResponses(value = {
-//			@ApiResponse(responseCode = "400", description = "Invalid file ID supplied"),
-//			@ApiResponse(responseCode = "404", description = "File not found")
-//	})
-//	@DeleteMapping("/files/id/{id}")
-//    @PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#file, 'WRITE') or hasPermission(returnObject, 'ADMINISTRATION')")
-////	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
-//	public File deleteFileById(@PathVariable("id") long id){
-//		File fileData = fileRepository.deleteById(id);
-//		File _file = fileData.get();
-//		return _file;
-//	}
+	@Operation(summary = "Grant Permission For User", description = "This can only by done by Admin or File Owner.", 
+			security = { @SecurityRequirement(name = "bearer-key") },
+			tags = { "acl" })
+	@ApiResponses(value = {
+	@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = File.class))),
+	@ApiResponse(responseCode = "400", description = "Invalid ID supplied", content = @Content),
+	@ApiResponse(responseCode = "404", description = "User not found", content = @Content) })
+	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#file, 'WRITE') or hasPermission(#file, 'ADMINISTRATION')")
+	@PostMapping("/acl/grant_permssions")
+	public ResponseEntity<?> grantPermissionForUser(
+			@RequestParam Long fileId,
+			@RequestParam Long userId,
+			@RequestParam String perm) {
+		Optional<File> fileData = fileRepository.findById(fileId);
+		File file = fileData.get();
+		if (!fileData.isPresent()) {
+			return ResponseEntity.badRequest().body(new MessageResponse("Error: File Not Found!"));
+		}
+		Optional<User> userData = userRepository.findById(userId);
+		if (!userData.isPresent()) {
+			return ResponseEntity.badRequest().body(new MessageResponse("Error: User Not Found!"));
+		}
+		User user = userData.get();
+        LOGGER.error("Grant {} permission to principal {} on File {}", 
+        		perm, user, file);
+		if (perm == "READ") {
+			permissionService.updatePermissionForUser(file, BasePermission.READ, user.getUsername());	
+		} else if (perm == "WRITE") {
+			permissionService.updatePermissionForUser(file, BasePermission.WRITE, user.getUsername());
+		}
+	    return ResponseEntity.ok(new MessageResponse("Grant Permssiosn for User successful!"));
+	}
 }

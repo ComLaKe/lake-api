@@ -26,6 +26,9 @@ public interface FileRepository extends JpaRepository<File, Long> {
     @PreAuthorize("hasPermission(#id, 'com.ulake.api.models.File', 'READ') or hasPermission(#file, 'ADMINISTRATION')")
     Optional<File> findById(Long id);
     
+    @PreAuthorize("hasPermission(#id, 'com.ulake.api.models.File', 'WRITE') or hasPermission(#file, 'ADMINISTRATION')")
+    Long removeById(Long id);
+    
 //    @SuppressWarnings("unchecked")
 //    @PreAuthorize("hasPermission(#file, 'WRITE') or hasPermission(returnObject, 'ADMINISTRATION')")
 //    File save(@Param("file")File file);
