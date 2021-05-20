@@ -177,7 +177,7 @@ public class FileController {
 	@ApiResponse(responseCode = "400", description = "Invalid ID supplied", content = @Content),
 	@ApiResponse(responseCode = "404", description = "User not found", content = @Content) })
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#file, 'WRITE')")
-	@PostMapping("/acl/grant_permssions/user")
+	@PostMapping("/acl/grant_permssion/user")
 	public ResponseEntity<?> grantPermissionForUser(
 			@RequestParam Long fileId,
 			@RequestParam Long userId,
@@ -198,7 +198,7 @@ public class FileController {
 			case "READ":
 				permissionService.addPermissionForUser(file, BasePermission.READ, user.getUsername());
 		}
-	    return ResponseEntity.ok(new MessageResponse("Grant Permssiosn for User successful!"));
+	    return ResponseEntity.ok(new MessageResponse("Grant Permssion for User successful!"));
 	}
 	
 	@Operation(summary = "Grant Permission For Group", description = "This can only by done by Admin or File Owner.", 
@@ -209,7 +209,7 @@ public class FileController {
 	@ApiResponse(responseCode = "400", description = "Invalid ID supplied", content = @Content),
 	@ApiResponse(responseCode = "404", description = "User not found", content = @Content) })
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#file, 'WRITE')")
-	@PostMapping("/acl/grant_permssions/group")
+	@PostMapping("/acl/grant_permssion/group")
 	public ResponseEntity<?> grantPermissionForGroup(
 			@RequestParam Long fileId,
 			@RequestParam Long groupId,
@@ -230,6 +230,58 @@ public class FileController {
 			case "READ":
 				permissionService.addPermissionForAuthority(file, BasePermission.READ, group.getName());
 		}
-	    return ResponseEntity.ok(new MessageResponse("Grant Permssiosn for Group successful!"));
+	    return ResponseEntity.ok(new MessageResponse("Grant Permssion for Group successful!"));
+	}
+	
+	@Operation(summary = "Remove ALL Permission For User", description = "This can only by done by Admin or File Owner.", 
+			security = { @SecurityRequirement(name = "bearer-key") },
+			tags = { "acl" })
+	@ApiResponses(value = {
+	@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = File.class))),
+	@ApiResponse(responseCode = "400", description = "Invalid ID supplied", content = @Content),
+	@ApiResponse(responseCode = "404", description = "User not found", content = @Content) })
+	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#file, 'WRITE')")
+	@PostMapping("/acl/remove/user")
+	public ResponseEntity<?> removePermissionForUser(
+			@RequestParam Long fileId,
+			@RequestParam Long userId) {
+		Optional<File> fileData = fileRepository.findById(fileId);
+		File file = fileData.get();
+		if (!fileData.isPresent()) {
+			return ResponseEntity.badRequest().body(new MessageResponse("Error: File Not Found!"));
+		}
+		Optional<User> userData = userRepository.findById(userId);
+		if (!userData.isPresent()) {
+			return ResponseEntity.badRequest().body(new MessageResponse("Error: User Not Found!"));
+		}
+		User user = userData.get();
+		permissionService.removeAllPermissionForUser(file, user.getUsername());
+	    return ResponseEntity.ok(new MessageResponse("Remove all Permssions for User successful!"));
+	}
+	
+	@Operation(summary = "Remove ALL Permission For Group", description = "This can only by done by Admin or File Owner.", 
+			security = { @SecurityRequirement(name = "bearer-key") },
+			tags = { "acl" })
+	@ApiResponses(value = {
+	@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = File.class))),
+	@ApiResponse(responseCode = "400", description = "Invalid ID supplied", content = @Content),
+	@ApiResponse(responseCode = "404", description = "User not found", content = @Content) })
+	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#file, 'WRITE')")
+	@PostMapping("/acl/remove/group")
+	public ResponseEntity<?> removePermissionForGroup(
+			@RequestParam Long fileId,
+			@RequestParam Long groupId) {
+		Optional<File> fileData = fileRepository.findById(fileId);
+		File file = fileData.get();
+		if (!fileData.isPresent()) {
+			return ResponseEntity.badRequest().body(new MessageResponse("Error: File Not Found!"));
+		}
+		Optional<Group> groupData = groupRepository.findById(groupId);
+		if (!groupData.isPresent()) {
+			return ResponseEntity.badRequest().body(new MessageResponse("Error: User Not Found!"));
+		}
+		Group group = groupData.get();
+		permissionService.removeAllPermissionForAuthority(file, group.getName());
+	    return ResponseEntity.ok(new MessageResponse("Remove All Permissions for Group successful!"));
 	}
 }

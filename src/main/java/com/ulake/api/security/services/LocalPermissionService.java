@@ -1,5 +1,7 @@
 package com.ulake.api.security.services;
 
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,11 +39,11 @@ public class LocalPermissionService {
         		permission, username, targetObj);
     }
     
-    public void updatePermissionForUser(IEntity targetObj, Permission permission, String username) {
+    public void removeAllPermissionForUser(IEntity targetObj, String username) {
         final Sid sid = new PrincipalSid(username);
-        updatePermissionForSid(targetObj, permission, sid);
-        LOGGER.error("Grant {} permission to principal {} on Object {}", 
-        		permission, username, targetObj);
+        deleteAllPermissionForSid(targetObj, sid);
+        LOGGER.error("Remove all permissions to principal {} on Object {}", 
+        		username, targetObj);
     }
 
     public void addPermissionForAuthority(IEntity targetObj, Permission permission, String authority) {
@@ -50,11 +52,19 @@ public class LocalPermissionService {
         LOGGER.error("Grant {} permission to principal {} on Object {}", 
         		permission, authority, targetObj);
     }
-
-    public void createSidAuthority(String authority) {
-        final Sid sid = new GrantedAuthoritySid(authority);
+    
+    public void removeAllPermissionForAuthority(IEntity targetObj, String authority) {
+        final Sid sid = new GrantedAuthoritySid(authority);        
+        deleteAllPermissionForSid(targetObj, sid);
+        LOGGER.error("Remove all permissions to principal {} on Object {}", 
+        		authority, targetObj);
     }
     
+    public void removeAcl(IEntity targetObj) {  
+    	deleteAcl(targetObj);
+        LOGGER.error("Remove ACL on Object {}", targetObj);
+    }
+
     private void addPermissionForSid(IEntity targetObj, Permission permission, Sid sid) {
         final TransactionTemplate tt = new TransactionTemplate(transactionManager);
 
@@ -71,32 +81,50 @@ public class LocalPermissionService {
                 }
 
                 acl.insertAce(acl.getEntries().size(), permission, sid, true);
-                LOGGER.debug("acl.getEntries().size(): ", acl.getEntries().size());
                 
                 aclService.updateAcl(acl);
-                LOGGER.debug("ACL: ", acl);
             }
         });
     }
     
-    private void updatePermissionForSid(IEntity targetObj, Permission permission, Sid sid) {
+    private void deleteAllPermissionForSid(IEntity targetObj, Sid sid) {
         final TransactionTemplate tt = new TransactionTemplate(transactionManager);
 
         tt.execute(new TransactionCallbackWithoutResult() {
             @Override
             protected void doInTransactionWithoutResult(TransactionStatus status) {
                 final ObjectIdentity oi = new ObjectIdentityImpl(targetObj.getClass(), targetObj.getId());
+                try {
+                    MutableAcl acl = (MutableAcl) aclService.readAclById(oi);
+                    List<AccessControlEntry> aclEntries = acl.getEntries();
+                    for (int i = aclEntries.size() - 1; i >= 0; i--) {
+                        AccessControlEntry ace = aclEntries.get(i);
+                        if (ace.getSid().equals(sid)) {
+                            acl.deleteAce(i);
+                        }
+                    }
+                    if (acl.getEntries().isEmpty()) {
+                        aclService.deleteAcl(oi, true);
+                    }
+                    aclService.updateAcl(acl);
+                } catch (NotFoundException ignore) {
+                }
+            }
+        });
+    }
+    
+    private void deleteAcl(IEntity targetObj) {
+        final TransactionTemplate tt = new TransactionTemplate(transactionManager);
 
-                MutableAcl acl = null;
-                acl = (MutableAcl) aclService.readAclById(oi);
-            	
-                aclService.deleteAcl(oi, true);
-                
-                acl.insertAce(acl.getEntries().size(), permission, sid, true);
-                LOGGER.debug("acl.getEntries().size(): ", acl.getEntries().size());
-                
-                aclService.updateAcl(acl);
-                LOGGER.debug("ACL: ", acl);
+        tt.execute(new TransactionCallbackWithoutResult() {
+            @Override
+            protected void doInTransactionWithoutResult(TransactionStatus status) {
+                final ObjectIdentity oi = new ObjectIdentityImpl(targetObj.getClass(), targetObj.getId());
+                try {
+                    MutableAcl acl = (MutableAcl) aclService.readAclById(oi);
+                    aclService.deleteAcl(oi, true);
+                } catch (NotFoundException ignore) {
+                }
             }
         });
     }
