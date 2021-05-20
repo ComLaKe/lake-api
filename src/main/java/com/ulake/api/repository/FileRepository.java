@@ -14,20 +14,20 @@ import com.ulake.api.models.File;
 public interface FileRepository extends JpaRepository<File, Long> {
 	Boolean existsByName(String name);
 		
-	@PostFilter("hasPermission(filterObject, 'READ') or hasPermission(#file, 'ADMINISTRATION')")
+	@PostFilter("hasPermission(filterObject, 'READ')")
 	List<File> findByNameContaining(String name);
 	
-	@PostFilter("hasPermission(filterObject, 'READ') or hasPermission(#file, 'ADMINISTRATION')")
+	@PostFilter("hasPermission(filterObject, 'READ')")
 	List<File> findByName(String title);
 	
-	@PostFilter("hasPermission(filterObject, 'READ') or hasPermission(#file, 'ADMINISTRATION')")
+	@PostFilter("hasPermission(filterObject, 'READ')")
 	List<File> findAll();
 	
-    @PreAuthorize("hasPermission(#id, 'com.ulake.api.models.File', 'READ') or hasPermission(#file, 'ADMINISTRATION')")
+    @PreAuthorize("hasPermission(#id, 'com.ulake.api.models.File', 'READ')")
     Optional<File> findById(Long id);
     
-    @PreAuthorize("hasPermission(#id, 'com.ulake.api.models.File', 'WRITE') or hasPermission(#file, 'ADMINISTRATION')")
-    Long removeById(Long id);
+    @PreAuthorize("hasPermission(#id, 'com.ulake.api.models.File', 'WRITE')")
+    File removeById(Long id);
     
 //    @SuppressWarnings("unchecked")
 //    @PreAuthorize("hasPermission(#file, 'WRITE') or hasPermission(returnObject, 'ADMINISTRATION')")

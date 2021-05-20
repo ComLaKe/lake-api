@@ -110,7 +110,7 @@ public class FileController {
 			security = { @SecurityRequirement(name = "bearer-key") },
 			tags = { "file" })
 	@ApiResponses(value = @ApiResponse(description = "successful operation"))
-	@PutMapping("/files/id/{id}")
+	@PutMapping("/files/{id}")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#file, 'WRITE')")
 	public File updateFile(@PathVariable("id") Long id, @RequestBody File file) {
 	  Optional<File> fileData = fileRepository.findById(id);
@@ -133,7 +133,7 @@ public class FileController {
 			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = File.class))),
 			@ApiResponse(responseCode = "400", description = "Invalid ID supplied", content = @Content),
 			@ApiResponse(responseCode = "404", description = "File not found", content = @Content) })
-	@GetMapping("/files/id/{id}")
+	@GetMapping("/files/{id}")
     @PreAuthorize("(hasRole('ADMIN')) or (hasPermission(#id, 'com.ulake.api.models.File', 'READ'))")
 	public File getFileById(@PathVariable("id") Long id) {
 	  Optional<File> fileData = fileRepository.findById(id);
@@ -141,18 +141,27 @@ public class FileController {
 	  return _file;
 	}
 	
-//	@Operation(summary = "Delete a file by ID", description = "This can only be done by logged in user.", 
-//			security = { @SecurityRequirement(name = "bearer-key") },
-//			tags = { "file" })
-//	@ApiResponses(value = {
-//			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = File.class))),
-//			@ApiResponse(responseCode = "400", description = "Invalid ID supplied", content = @Content),
-//			@ApiResponse(responseCode = "404", description = "File not found", content = @Content) })
-//	@DeleteMapping("/files/id/{id}")
-//    @PreAuthorize("(hasRole('ADMIN')) or (hasPermission(#id, 'com.ulake.api.models.File', 'WRITE'))")
-//	public Long deleteFileById(@PathVariable("id") Long id) {
-//	  return fileRepository.removeById(id);
-//	}
+	@Operation(summary = "Delete a file by ID", description = "This can only be done by logged in user.", 
+			security = { @SecurityRequirement(name = "bearer-key") },
+			tags = { "file" })
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = File.class))),
+			@ApiResponse(responseCode = "400", description = "Invalid ID supplied", content = @Content),
+			@ApiResponse(responseCode = "404", description = "File not found", content = @Content) })
+	@DeleteMapping("/files/{id}")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#file, 'WRITE')")
+	public ResponseEntity<File> deleteFileById(@PathVariable("id") long id){
+		try {
+			Optional<File> fileData = fileRepository.findById(id);
+			File file = fileData.get();
+			fileRepository.deleteById(id);
+			permissionService.removeAcl(file);	
+			return new ResponseEntity<>(HttpStatus.OK);
+		} 
+		catch (Exception e) {
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
 	
 	@Operation(summary = "Get all files", description = "This can only be done by logged in user.", 
 			security = { @SecurityRequirement(name = "bearer-key") },
