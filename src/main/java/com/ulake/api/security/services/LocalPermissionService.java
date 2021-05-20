@@ -47,6 +47,8 @@ public class LocalPermissionService {
     public void addPermissionForAuthority(IEntity targetObj, Permission permission, String authority) {
         final Sid sid = new GrantedAuthoritySid(authority);
         addPermissionForSid(targetObj, permission, sid);
+        LOGGER.error("Grant {} permission to principal {} on Object {}", 
+        		permission, authority, targetObj);
     }
 
     public void createSidAuthority(String authority) {

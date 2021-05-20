@@ -46,9 +46,11 @@ import org.springframework.util.Assert;
 import org.springframework.validation.BindingResult;
 
 import com.ulake.api.models.File;
+import com.ulake.api.models.Group;
 import com.ulake.api.models.User;
 import com.ulake.api.payload.response.MessageResponse;
 import com.ulake.api.repository.FileRepository;
+import com.ulake.api.repository.GroupRepository;
 import com.ulake.api.repository.UserRepository;
 import com.ulake.api.security.services.FilesStorageService;
 import com.ulake.api.security.services.LocalPermissionService;
@@ -70,6 +72,9 @@ public class FileController {
 
     @Autowired
 	private FileRepository fileRepository;
+    
+    @Autowired
+	private GroupRepository groupRepository;
 	
     @Autowired
     FilesStorageService storageService;
@@ -172,7 +177,7 @@ public class FileController {
 	@ApiResponse(responseCode = "400", description = "Invalid ID supplied", content = @Content),
 	@ApiResponse(responseCode = "404", description = "User not found", content = @Content) })
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#file, 'WRITE')")
-	@PostMapping("/acl/grant_permssions")
+	@PostMapping("/acl/grant_permssions/user")
 	public ResponseEntity<?> grantPermissionForUser(
 			@RequestParam Long fileId,
 			@RequestParam Long userId,
@@ -187,13 +192,44 @@ public class FileController {
 			return ResponseEntity.badRequest().body(new MessageResponse("Error: User Not Found!"));
 		}
 		User user = userData.get();
-        LOGGER.error("Grant {} permission to principal {} on File {}", 
-        		perm, user, file);
-		if (perm == "READ") {
-			permissionService.addPermissionForUser(file, BasePermission.READ, user.getUsername());	
-		} else if (perm == "WRITE") {
-			permissionService.addPermissionForUser(file, BasePermission.WRITE, user.getUsername());
+		switch (perm) {
+			case "WRITE":
+				permissionService.addPermissionForUser(file, BasePermission.WRITE, user.getUsername());
+			case "READ":
+				permissionService.addPermissionForUser(file, BasePermission.READ, user.getUsername());
 		}
 	    return ResponseEntity.ok(new MessageResponse("Grant Permssiosn for User successful!"));
+	}
+	
+	@Operation(summary = "Grant Permission For Group", description = "This can only by done by Admin or File Owner.", 
+			security = { @SecurityRequirement(name = "bearer-key") },
+			tags = { "acl" })
+	@ApiResponses(value = {
+	@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = File.class))),
+	@ApiResponse(responseCode = "400", description = "Invalid ID supplied", content = @Content),
+	@ApiResponse(responseCode = "404", description = "User not found", content = @Content) })
+	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#file, 'WRITE')")
+	@PostMapping("/acl/grant_permssions/group")
+	public ResponseEntity<?> grantPermissionForGroup(
+			@RequestParam Long fileId,
+			@RequestParam Long groupId,
+			@RequestParam String perm) {
+		Optional<File> fileData = fileRepository.findById(fileId);
+		File file = fileData.get();
+		if (!fileData.isPresent()) {
+			return ResponseEntity.badRequest().body(new MessageResponse("Error: File Not Found!"));
+		}
+		Optional<Group> groupData = groupRepository.findById(groupId);
+		if (!groupData.isPresent()) {
+			return ResponseEntity.badRequest().body(new MessageResponse("Error: User Not Found!"));
+		}
+		Group group = groupData.get();
+		switch (perm) {
+			case "WRITE":
+				permissionService.addPermissionForAuthority(file, BasePermission.WRITE, group.getName());
+			case "READ":
+				permissionService.addPermissionForAuthority(file, BasePermission.READ, group.getName());
+		}
+	    return ResponseEntity.ok(new MessageResponse("Grant Permssiosn for Group successful!"));
 	}
 }

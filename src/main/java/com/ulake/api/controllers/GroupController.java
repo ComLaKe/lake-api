@@ -68,7 +68,7 @@ public class GroupController {
 	    try {
 	    	Group _group = groupRepository
 	          .save(new Group(group.getName()));
-	    	permissionService.createSidAuthority(group.getName());
+//	    	permissionService.createSidAuthority(group.getName());
 	      return new ResponseEntity<>(_group, HttpStatus.CREATED);
 	    } catch (Exception e) {
 	      return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
