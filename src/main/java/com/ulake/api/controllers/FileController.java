@@ -14,7 +14,10 @@ import javax.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PostFilter;
@@ -42,6 +45,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.util.Assert;
 import org.springframework.validation.BindingResult;
 
@@ -75,13 +79,12 @@ public class FileController {
     
     @Autowired
 	private GroupRepository groupRepository;
-	
-    @Autowired
-    FilesStorageService storageService;
     
     @Autowired
     private LocalPermissionService permissionService;
     
+    @Autowired
+    FilesStorageService storageService;
     private Logger LOGGER = LoggerFactory.getLogger(FileController.class);
 
 	@Operation(summary = "Add a file", description = "This can only be done by logged in user having the file permissions.", 
@@ -90,20 +93,14 @@ public class FileController {
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "Status OK")
 			})
-	@PostMapping("/files")
+	@PostMapping(value = "/files", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
-    @PostAuthorize("hasPermission(returnObject, 'READ')")
-	public File createFile(@RequestBody File file) {
-		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-		UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-    	file.setOwner(userRepository.findByEmail(userDetails.getEmail()));
-    	File _file = fileRepository.save(file);
-        System.out.println(file);
-        permissionService.addPermissionForAuthority(file, BasePermission.READ, "ROLE_ADMIN");
-        permissionService.addPermissionForAuthority(file, BasePermission.WRITE, "ROLE_ADMIN");
-        permissionService.addPermissionForUser(file, BasePermission.READ, authentication.getName());
-        permissionService.addPermissionForUser(file, BasePermission.WRITE, authentication.getName());
-        return _file;
+//    @PostAuthorize("hasPermission(returnObject, 'READ')")
+	public ResponseEntity<MessageResponse> uploadFile(@RequestParam("file") MultipartFile file) {
+	    String message = "";
+	      storageService.save(file);
+	      message = "Uploaded the file successfully: " + file.getOriginalFilename();
+	      return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse(message));
 	}
 	
 	@Operation(summary = "Update a file by ID", description = "This can only be done by admin.", 
@@ -163,7 +160,7 @@ public class FileController {
 		}
 	}
 	
-	@Operation(summary = "Get all files", description = "This can only be done by logged in user.", 
+	@Operation(summary = "Get all files", description = "This can only be done by logged in user with file permissions.", 
 			security = { @SecurityRequirement(name = "bearer-key") },
 			tags = { "file" })
 	@ApiResponses(value = @ApiResponse(description = "successful operation"))
@@ -176,6 +173,17 @@ public class FileController {
 		else
 			fileRepository.findByNameContaining(name).forEach(files::add);
 		return files;
+	}
+	
+	@Operation(summary = "Get File Data", description = "This can only be done by logged in user.", 
+			security = { @SecurityRequirement(name = "bearer-key") },
+			tags = { "file" })
+//    @PreAuthorize("(hasRole('ADMIN')) or (hasPermission(#id, 'com.ulake.api.models.File', 'READ'))")
+	@GetMapping("/files/{filename:.+}")
+	public ResponseEntity<Resource> getFileData(@PathVariable String filename) {
+	    Resource file = storageService.load(filename);
+	    return ResponseEntity.ok()
+	        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getFilename() + "\"").body(file);
 	}
 	
 	@Operation(summary = "Grant Permission For User", description = "This can only by done by Admin or File Owner.", 
