@@ -17,10 +17,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileSystemUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.ulake.api.controllers.FileController;
 import com.ulake.api.models.File;
+import com.ulake.api.models.User;
 import com.ulake.api.repository.FileRepository;
 import com.ulake.api.repository.GroupRepository;
 import com.ulake.api.repository.UserRepository;
@@ -56,26 +58,27 @@ public class FilesStorageServiceImpl implements FilesStorageService {
     try {
       Files.copy(file.getInputStream(), this.root.resolve(file.getOriginalFilename()));
       
-      File fileInfo = null;
-      
       // Find out who is the current logged in user
       Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
       UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
       
-      // Set File Owner
-      fileInfo.setOwner(userRepository.findByEmail(userDetails.getEmail()));
-	  fileInfo.setName(file.getOriginalFilename());
-	  fileInfo.setMimeType(file.getContentType());
-	  fileInfo.setSize(file.getSize());
+      User fileOwner = userRepository.findByEmail(userDetails.getEmail());
+      String fileName = StringUtils.cleanPath(file.getOriginalFilename());
+      String fileMimeType =  file.getContentType();
+      Long fileSize = file.getSize();
+      byte[] fileData = file.getBytes();
+	  File fileInfo = new File(fileOwner, fileName, fileMimeType, fileSize, fileData);
 	  
 	  //	Save File Metadata in our db;
 	  fileRepository.save(fileInfo);
-      LOGGER.error("fileInfo", fileInfo);
+	  LOGGER.error("fileInfo", fileInfo);
+	  
 	  //	Add ACL WRITE and READ Permission For Admin and File Owner
       permissionService.addPermissionForAuthority(fileInfo, BasePermission.READ, "ROLE_ADMIN");
       permissionService.addPermissionForAuthority(fileInfo, BasePermission.WRITE, "ROLE_ADMIN");
       permissionService.addPermissionForUser(fileInfo, BasePermission.READ, authentication.getName());
-      permissionService.addPermissionForUser(fileInfo, BasePermission.WRITE, authentication.getName());	  
+      permissionService.addPermissionForUser(fileInfo, BasePermission.WRITE, authentication.getName());
+      
     } catch (Exception e) {
       throw new RuntimeException("Could not store the file. Error: " + e.getMessage());
     }

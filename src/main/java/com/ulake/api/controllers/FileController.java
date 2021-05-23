@@ -95,14 +95,19 @@ public class FileController {
 			})
 	@PostMapping(value = "/files", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
-//    @PostAuthorize("hasPermission(returnObject, 'READ')")
+    @PostAuthorize("hasPermission(returnObject, 'READ')")
 	public ResponseEntity<MessageResponse> uploadFile(@RequestParam("file") MultipartFile file) {
 	    String message = "";
+	    try {
 	      storageService.save(file);
 	      message = "Uploaded the file successfully: " + file.getOriginalFilename();
 	      return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse(message));
-	}
-	
+	    } catch (Exception e) {
+	      message = "Could not upload the file: " + file.getOriginalFilename() + "!";
+	      return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(new MessageResponse(message));
+	    }
+	}	  
+		
 	@Operation(summary = "Update a file by ID", description = "This can only be done by admin.", 
 			security = { @SecurityRequirement(name = "bearer-key") },
 			tags = { "file" })
@@ -175,15 +180,17 @@ public class FileController {
 		return files;
 	}
 	
-	@Operation(summary = "Get File Data", description = "This can only be done by logged in user.", 
+	@Operation(summary = "Get File Data", description = "This can only be done by logged in user and those who have read permssions of file.", 
 			security = { @SecurityRequirement(name = "bearer-key") },
 			tags = { "file" })
-//    @PreAuthorize("(hasRole('ADMIN')) or (hasPermission(#id, 'com.ulake.api.models.File', 'READ'))")
-	@GetMapping("/files/{filename:.+}")
-	public ResponseEntity<Resource> getFileData(@PathVariable String filename) {
-	    Resource file = storageService.load(filename);
+	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#file, 'READ')")
+	@GetMapping("/files/data/{id}")
+	public ResponseEntity<byte[]> getFileData(@PathVariable Long id) {
+	    File fileInfo = fileRepository.findById(id).get();
+
 	    return ResponseEntity.ok()
-	        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getFilename() + "\"").body(file);
+	        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileInfo.getName() + "\"")
+	        .body(fileInfo.getData());
 	}
 	
 	@Operation(summary = "Grant Permission For User", description = "This can only by done by Admin or File Owner.", 

@@ -9,6 +9,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
@@ -28,7 +29,6 @@ public class File implements IEntity{
 	
 	private String cid;
 
-	@NotBlank
 	private String name;
 
 	private String mimeType;
@@ -38,7 +38,10 @@ public class File implements IEntity{
 	private String topics;
 	
 	private Long size;
-		
+	
+	@Lob
+	private byte[] data;
+
 	@Temporal(TemporalType.TIMESTAMP)   
 	@Column(name = "date_created", nullable = false, updatable = false, insertable = false, 
 	columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
@@ -52,11 +55,12 @@ public class File implements IEntity{
 	public File() {
 	}
 
-	public File(String cid, String name, String mimeType, Long size) {
-		this.cid = cid;
+	public File(User owner, String name, String mimeType, Long size, byte[] data) {
+		this.owner = owner;
 		this.name = name;
 		this.mimeType = mimeType;
 		this.size = size;
+		this.data = data;
 	}
     @Override
 	public Long getId() {
@@ -121,6 +125,14 @@ public class File implements IEntity{
 
 	public void setTopics(String topics) {
 		this.topics = topics;
+	}
+	
+	public byte[] getData() {
+	    return data;
+	}
+
+	public void setData(byte[] data) {
+	    this.data = data;
 	}
 
 	public Date getCreateDate() {
