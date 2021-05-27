@@ -10,6 +10,7 @@ import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.acls.domain.PrincipalSid;
 import org.springframework.security.acls.model.Sid;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -47,6 +48,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -156,7 +158,10 @@ public class AuthController {
 	            "Refresh token is not in database!"));
 		}
 	  	
-	@Operation(summary = "Logout the user by User ID", description = "And delete Refresh Token in database.", tags = { "user" })
+	@Operation(summary = "Logout the user by User ID", description = "And delete Refresh Token in database.", 
+			security = { @SecurityRequirement(name = "bearer-key") },
+			tags = { "user" })
+	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
 	@PostMapping("/logout")
 	public ResponseEntity<?> logoutUser(@Valid @RequestBody LogOutRequest logOutRequest) {
 	    refreshTokenService.deleteByUserId(logOutRequest.getUserId());
