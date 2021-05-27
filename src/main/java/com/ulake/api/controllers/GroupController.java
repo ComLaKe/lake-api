@@ -43,7 +43,7 @@ import com.ulake.api.payload.request.AddMemberRequest;
 import com.ulake.api.payload.response.MessageResponse;
 import com.ulake.api.payload.response.MessageResponse;
 
-@CrossOrigin(origins = "*", maxAge = 3600)
+@CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequestMapping("/api")
 public class GroupController {

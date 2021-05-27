@@ -3,16 +3,16 @@ package com.ulake.api.controllers;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.acls.domain.PrincipalSid;
-import org.springframework.security.acls.model.Sid;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -29,7 +29,6 @@ import com.ulake.api.models.ERole;
 import com.ulake.api.models.RefreshToken;
 import com.ulake.api.models.Role;
 import com.ulake.api.models.User;
-import com.ulake.api.payload.request.LogOutRequest;
 import com.ulake.api.payload.request.LoginRequest;
 import com.ulake.api.payload.request.SignupRequest;
 import com.ulake.api.payload.request.TokenRefreshRequest;
@@ -41,6 +40,7 @@ import com.ulake.api.repository.UserRepository;
 import com.ulake.api.security.jwt.JwtUtils;
 import com.ulake.api.security.services.RefreshTokenService;
 import com.ulake.api.security.services.impl.UserDetailsImpl;
+import org.springframework.web.bind.annotation.GetMapping;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.headers.Header;
@@ -50,7 +50,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
-@CrossOrigin(origins = "*", maxAge = 3600)
+
+@CrossOrigin(origins = "http://localhost:3000", maxAge = 3600)
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -72,7 +73,9 @@ public class AuthController {
 	@Autowired
 	RefreshTokenService refreshTokenService;
 	
-
+    @Value("${app.jwtExpirationMs}")
+    Long jwtExpirationMs;
+    
 	@Operation(summary = "Logs user into the system", tags = { "user" })
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = String.class))),
@@ -87,13 +90,15 @@ public class AuthController {
 	    UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 	
 	    String jwt = jwtUtils.generateJwtToken(userDetails);
-	
+	    
 	    List<String> roles = userDetails.getAuthorities().stream().map(item -> item.getAuthority())
 	        .collect(Collectors.toList());
 	
 	    RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getId());
-	
-	    return ResponseEntity.ok(new JwtResponse(jwt, refreshToken.getToken(), userDetails.getId(),
+	    
+	    Long jwtExpirationS = jwtExpirationMs / 1000;
+	    
+	    return ResponseEntity.ok(new JwtResponse(jwt, refreshToken.getToken(), jwtExpirationS, userDetails.getId(),
 	        userDetails.getUsername(), userDetails.getEmail(), roles));
 	}
 
@@ -142,8 +147,9 @@ public class AuthController {
 	    return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
 	}
 
+	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
 	@Operation(summary = "Refresh Token", description = "Refresh Token.", tags = { "user" })
-	@PostMapping("/refreshtoken")
+	@PostMapping("/refresh-token")
 		public ResponseEntity<?> refreshtoken(@Valid @RequestBody TokenRefreshRequest request) {
 	    String requestRefreshToken = request.getRefreshToken();
 	
@@ -162,9 +168,12 @@ public class AuthController {
 			security = { @SecurityRequirement(name = "bearer-key") },
 			tags = { "user" })
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
-	@PostMapping("/logout")
-	public ResponseEntity<?> logoutUser(@Valid @RequestBody LogOutRequest logOutRequest) {
-	    refreshTokenService.deleteByUserId(logOutRequest.getUserId());
+	@GetMapping("/logout")
+	public ResponseEntity<?> logoutUser() {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+		long userId = userDetails.getId();
+	    refreshTokenService.deleteByUserId(userId);
 	    return ResponseEntity.ok(new MessageResponse("Log out successful!"));
 	}
 }
