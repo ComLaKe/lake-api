@@ -8,6 +8,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -46,7 +47,7 @@ import org.springframework.data.domain.PageRequest;
 
 @CrossOrigin(origins = "http://localhost:3000", maxAge = 3600)
 @RestController
-@RequestMapping("/api/user")
+@RequestMapping("/api")
 public class UserController {
 	@Autowired
 	UserRepository userRepository;
@@ -69,7 +70,7 @@ public class UserController {
   
 	@Operation(summary = "Check if Username is available to use", description = "Check if Username is available to use",
 			  	tags = { "user" })
-	@GetMapping("/check_username")	
+	@GetMapping("/users/check_username")	
 	ResponseEntity<?> username(
 	  @RequestParam("username") String username) {
 		if (userRepository.existsByUsername(username)) {
@@ -83,7 +84,7 @@ public class UserController {
 
 	@Operation(summary = "Check if Email is available to use", description = "Check if Email is available to use",
 		  	tags = { "user" })
-	@GetMapping("/check_email")
+	@GetMapping("/users/check_email")
 	ResponseEntity<?> email(
 	  @RequestParam("email") String email) {
 		if (userRepository.existsByEmail(email)) {
@@ -98,9 +99,9 @@ public class UserController {
 	@Operation(summary = "Get a list of all users in the system", description = "This can only be done by admin.", 
 			security = { @SecurityRequirement(name = "bearer-key") },
 			tags = { "user" })
-	@GetMapping("/all")
+	@GetMapping("/users")
 	@PreAuthorize("hasRole('ADMIN')")
-	public ResponseEntity<Map<String, Object>> getAllUsers(
+	public ResponseEntity<List<User>> getAllUsers(
 		      @RequestParam(required = false) String email,
 		      @RequestParam(defaultValue = "0") int page,
 		      @RequestParam(defaultValue = "10") int size,
@@ -136,13 +137,18 @@ public class UserController {
 	          return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	        }
 
-	        Map<String, Object> response = new HashMap<>();
-	        response.put("users", users);
-	        response.put("currentPage", pageTuts.getNumber());
-	        response.put("totalItems", pageTuts.getTotalElements());
-	        response.put("totalPages", pageTuts.getTotalPages());
+//	        Map<String, Object> response = new HashMap<>();
+//	        response.put("users", users);
+//	        response.put("currentPage", pageTuts.getNumber());
+//	        response.put("total", pageTuts.getTotalElements());
+//	        response.put("totalPages", pageTuts.getTotalPages());
 
-	        return new ResponseEntity<>(response, HttpStatus.OK);
+	        HttpHeaders responseHeaders = new HttpHeaders();
+	        long l = pageTuts.getTotalElements();
+	        String total = String.valueOf(l);
+	        responseHeaders.set("x-total-count", total);
+
+	        return new ResponseEntity<>(users, responseHeaders,HttpStatus.OK);
 	      } catch (Exception e) {
 	        return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
 	      }
@@ -155,7 +161,7 @@ public class UserController {
 			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = User.class))),
 			@ApiResponse(responseCode = "400", description = "Invalid ID supplied", content = @Content),
 			@ApiResponse(responseCode = "404", description = "User not found", content = @Content) })
-	@GetMapping("/{id}")
+	@GetMapping("/users/{id}")
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<User> getUserById(@PathVariable("id") long id){
 		Optional<User> userData = userRepository.findById(id);
@@ -174,7 +180,7 @@ public class UserController {
 			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = User.class))),
 			@ApiResponse(responseCode = "400", description = "Invalid username supplied", content = @Content),
 			@ApiResponse(responseCode = "404", description = "User not found", content = @Content) })
-	@GetMapping("/find/{username}")
+	@GetMapping("/users/find/{username}")
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<User> getUserByUsername(@PathVariable("username") String username){
 		Optional<User> user = userRepository.findByUsername(username);
@@ -189,7 +195,7 @@ public class UserController {
 	@Operation(summary = "Get the logged in's user profile", description = "This can only be done by the logged in user.", 
 			security = { @SecurityRequirement(name = "bearer-key") },
 			tags = { "user" })
-	@GetMapping("/current")
+	@GetMapping("/users/current")
 	public ResponseEntity<User> getCurrentProfile(){
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
@@ -207,7 +213,7 @@ public class UserController {
 			security = { @SecurityRequirement(name = "bearer-key") },
 			tags = { "user" })
 	@ApiResponses(value = @ApiResponse(description = "successful operation"))
-	@PutMapping("/{id}")
+	@PutMapping("/users/{id}")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
 	public ResponseEntity<User> updateUserById(@PathVariable("id") long id, @RequestBody User user){
 		Optional<User> userId = userRepository.findById(id);
@@ -251,7 +257,7 @@ public class UserController {
 			@ApiResponse(responseCode = "400", description = "Invalid user ID supplied"),
 			@ApiResponse(responseCode = "404", description = "User not found")
 	})
-	@DeleteMapping("/{id}")
+	@DeleteMapping("/users/{id}")
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<User> deleteUserById(@PathVariable("id") long id){
 		try {
