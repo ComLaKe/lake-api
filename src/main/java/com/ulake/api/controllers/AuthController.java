@@ -116,7 +116,11 @@ public class AuthController {
 	
 	    // Create new user's account
 	    User user = new User(signUpRequest.getUsername(), signUpRequest.getEmail(),
-	        encoder.encode(signUpRequest.getPassword()));
+	        encoder.encode(signUpRequest.getPassword()),
+	        		signUpRequest.getFirstname(), 
+	        		signUpRequest.getLastname(),
+	        		signUpRequest.getDepartment(),
+	        		signUpRequest.getAffiliation());
 	
 	    Set<String> strRoles = signUpRequest.getRole();
 	    Set<Role> roles = new HashSet<>();
@@ -164,7 +168,7 @@ public class AuthController {
 	            "Refresh token is not in database!"));
 		}
 	  	
-	@Operation(summary = "Logout the user by User ID", description = "And delete Refresh Token in database.", 
+	@Operation(summary = "Logout current user", description = "And delete Refresh Token in database.", 
 			security = { @SecurityRequirement(name = "bearer-key") },
 			tags = { "user" })
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")

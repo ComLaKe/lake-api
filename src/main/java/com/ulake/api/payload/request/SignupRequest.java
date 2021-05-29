@@ -14,6 +14,14 @@ public class SignupRequest {
     @Email
     private String email;
     
+	private String firstname;
+	
+	private String lastname;
+	
+	private String department;
+	
+	private String affiliation;
+
     private Set<String> role;
     
     @NotBlank
@@ -44,6 +52,38 @@ public class SignupRequest {
         this.password = password;
     }
     
+	public String getFirstname() {
+		return username;
+	}
+	
+	public void setFirstname(String firstname) {
+		this.firstname = firstname;
+	}
+	
+	public String getLastname() {
+		return lastname;
+	}
+
+	public void setLastname(String lastname) {
+		this.lastname = lastname;
+	}
+	
+	public String getDepartment() {
+		return department;
+	}
+	
+	public void setDepartment(String department) {
+		this.department = department;
+	}
+
+	public String getAffiliation() {
+		return affiliation;
+	}
+	
+	public void setAffiliation(String affiliation) {
+		this.affiliation = affiliation;
+	}
+	
     public Set<String> getRole() {
       return this.role;
     }

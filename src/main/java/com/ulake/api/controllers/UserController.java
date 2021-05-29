@@ -1,9 +1,13 @@
 package com.ulake.api.controllers;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -36,6 +40,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 import java.util.Optional;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 
 @CrossOrigin(origins = "http://localhost:3000", maxAge = 3600)
 @RestController
@@ -49,7 +56,17 @@ public class UserController {
 
 	@Autowired
 	PasswordEncoder encoder;
+	
+	private Sort.Direction getSortDirection(String direction) {
+	    if (direction.equals("asc")) {
+	      return Sort.Direction.ASC;
+	    } else if (direction.equals("desc")) {
+	      return Sort.Direction.DESC;
+	    }
 
+	    return Sort.Direction.ASC;
+	}
+  
 	@Operation(summary = "Check if Username is available to use", description = "Check if Username is available to use",
 			  	tags = { "user" })
 	@GetMapping("/check_username")	
@@ -83,24 +100,53 @@ public class UserController {
 			tags = { "user" })
 	@GetMapping("/all")
 	@PreAuthorize("hasRole('ADMIN')")
-	public ResponseEntity<List<User>> getAllUsers(@RequestParam(required=false) String username){
-		try {
-			List<User> users = new ArrayList<User>();
-			if (username == null ) 
-				userRepository.findAll().forEach(users::add);
-			else
-				userRepository.findByUsernameContaining(username).forEach(users::add);
-			if (users.isEmpty()) {
-				return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-			}
-				
-			return new ResponseEntity<>(users, HttpStatus.OK);
-		}
-		catch (Exception e) {
-			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-		}
-			
-	}
+	public ResponseEntity<Map<String, Object>> getAllUsers(
+		      @RequestParam(required = false) String email,
+		      @RequestParam(defaultValue = "0") int page,
+		      @RequestParam(defaultValue = "10") int size,
+		      @RequestParam(defaultValue = "id,desc") String[] sort
+			){
+	    try {
+	        List<Order> orders = new ArrayList<Order>();
+
+	        if (sort[0].contains(",")) {
+	          // will sort more than 2 fields
+	          // sortOrder="field, direction"
+	          for (String sortOrder : sort) {
+	            String[] _sort = sortOrder.split(",");
+	            orders.add(new Order(getSortDirection(_sort[1]), _sort[0]));
+	          }
+	        } else {
+	          // sort=[field, direction]
+	          orders.add(new Order(getSortDirection(sort[1]), sort[0]));
+	        }
+
+	        List<User> users = new ArrayList<User>();
+	        Pageable pagingSort = PageRequest.of(page, size, Sort.by(orders));
+
+	        Page<User> pageTuts;
+	        if (email == null)
+	          pageTuts = userRepository.findAll(pagingSort);
+	        else
+	          pageTuts = userRepository.findByEmailContaining(email, pagingSort);
+
+	        users = pageTuts.getContent();
+
+	        if (users.isEmpty()) {
+	          return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+	        }
+
+	        Map<String, Object> response = new HashMap<>();
+	        response.put("users", users);
+	        response.put("currentPage", pageTuts.getNumber());
+	        response.put("totalItems", pageTuts.getTotalElements());
+	        response.put("totalPages", pageTuts.getTotalPages());
+
+	        return new ResponseEntity<>(response, HttpStatus.OK);
+	      } catch (Exception e) {
+	        return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+	      }
+	    }	
 	
 	@Operation(summary = "Get user by ID", description = "This can only be done by admin.", 
 			security = { @SecurityRequirement(name = "bearer-key") },
@@ -109,7 +155,7 @@ public class UserController {
 			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = User.class))),
 			@ApiResponse(responseCode = "400", description = "Invalid ID supplied", content = @Content),
 			@ApiResponse(responseCode = "404", description = "User not found", content = @Content) })
-	@GetMapping("/id/{id}")
+	@GetMapping("/{id}")
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<User> getUserById(@PathVariable("id") long id){
 		Optional<User> userData = userRepository.findById(id);
@@ -128,7 +174,7 @@ public class UserController {
 			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = User.class))),
 			@ApiResponse(responseCode = "400", description = "Invalid username supplied", content = @Content),
 			@ApiResponse(responseCode = "404", description = "User not found", content = @Content) })
-	@GetMapping("/{username}")
+	@GetMapping("/find/{username}")
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<User> getUserByUsername(@PathVariable("username") String username){
 		Optional<User> user = userRepository.findByUsername(username);
@@ -161,7 +207,7 @@ public class UserController {
 			security = { @SecurityRequirement(name = "bearer-key") },
 			tags = { "user" })
 	@ApiResponses(value = @ApiResponse(description = "successful operation"))
-	@PutMapping("/id/{id}")
+	@PutMapping("/{id}")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
 	public ResponseEntity<User> updateUserById(@PathVariable("id") long id, @RequestBody User user){
 		Optional<User> userId = userRepository.findById(id);
@@ -205,7 +251,7 @@ public class UserController {
 			@ApiResponse(responseCode = "400", description = "Invalid user ID supplied"),
 			@ApiResponse(responseCode = "404", description = "User not found")
 	})
-	@DeleteMapping("/id/{id}")
+	@DeleteMapping("/{id}")
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<User> deleteUserById(@PathVariable("id") long id){
 		try {
