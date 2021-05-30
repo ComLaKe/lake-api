@@ -209,7 +209,7 @@ public class UserController {
 		}
 	}
 	
-	@Operation(summary = "Update user's email", description = "This can only be done by the logged in user.", 
+	@Operation(summary = "Update user ", description = "This can only be done by the logged in user.", 
 			security = { @SecurityRequirement(name = "bearer-key") },
 			tags = { "user" })
 	@ApiResponses(value = @ApiResponse(description = "successful operation"))
@@ -219,7 +219,11 @@ public class UserController {
 		Optional<User> userId = userRepository.findById(id);
 		if (userId.isPresent()) {
 			User userInfo = userId.get();
-			userInfo.setEmail(user.getEmail());
+//			userInfo.setEmail(user.getEmail());
+			userInfo.setDepartment(user.getDepartment());
+			userInfo.setAffiliation(user.getAffiliation());
+			userInfo.setFirstname(user.getFirstname());
+			userInfo.setLastname(user.getLastname());
 //			userInfo.setPassword(user.getPassword());
 			return new ResponseEntity<>(userRepository.save(userInfo),HttpStatus.OK);
 		}
