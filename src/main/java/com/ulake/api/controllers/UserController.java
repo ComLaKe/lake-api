@@ -59,9 +59,9 @@ public class UserController {
 	PasswordEncoder encoder;
 	
 	private Sort.Direction getSortDirection(String direction) {
-	    if (direction.equals("asc")) {
+	    if (direction.equals("ASC")) {
 	      return Sort.Direction.ASC;
-	    } else if (direction.equals("desc")) {
+	    } else if (direction.equals("DESC")) {
 	      return Sort.Direction.DESC;
 	    }
 
@@ -104,8 +104,8 @@ public class UserController {
 	public ResponseEntity<List<User>> getAllUsers(
 		      @RequestParam(required = false) String email,
 		      @RequestParam(defaultValue = "0") int page,
-		      @RequestParam(defaultValue = "10") int size,
-		      @RequestParam(defaultValue = "id,desc") String[] sort
+		      @RequestParam(defaultValue = "10") int perPage,
+		      @RequestParam(defaultValue = "id,asc") String[] sort
 			){
 	    try {
 	        List<Order> orders = new ArrayList<Order>();
@@ -123,7 +123,7 @@ public class UserController {
 	        }
 
 	        List<User> users = new ArrayList<User>();
-	        Pageable pagingSort = PageRequest.of(page, size, Sort.by(orders));
+	        Pageable pagingSort = PageRequest.of(page, perPage, Sort.by(orders));
 
 	        Page<User> pageTuts;
 	        if (email == null)
@@ -195,7 +195,7 @@ public class UserController {
 	@Operation(summary = "Get the logged in's user profile", description = "This can only be done by the logged in user.", 
 			security = { @SecurityRequirement(name = "bearer-key") },
 			tags = { "user" })
-	@GetMapping("/users/current")
+	@GetMapping("/users/my-profile")
 	public ResponseEntity<User> getCurrentProfile(){
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
