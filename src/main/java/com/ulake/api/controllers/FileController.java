@@ -124,7 +124,6 @@ public class FileController {
 	  _file.setSource(file.getSource());
 	  _file.setTopics(file.getTopics());
 	  _file.setSize(file.getSize());
-	  _file.setUpdateDate(file.getUpdateDate());
       return fileRepository.save(_file);
 	}
 	

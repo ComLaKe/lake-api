@@ -41,16 +41,6 @@ public class File implements IEntity{
 	
 	@Lob
 	private byte[] data;
-
-	@Temporal(TemporalType.TIMESTAMP)   
-	@Column(name = "date_created", nullable = false, updatable = false, insertable = false, 
-	columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-    private Date createDate;
-
-	@Temporal(TemporalType.TIMESTAMP)   
-	@Column(name = "date_updated", nullable = false, updatable = false, insertable = false, 
-	columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
-    private Date updateDate;
 	
 	public File() {
 	}
@@ -62,6 +52,7 @@ public class File implements IEntity{
 		this.size = size;
 		this.data = data;
 	}
+	
     @Override
 	public Long getId() {
 		return id;
@@ -133,21 +124,5 @@ public class File implements IEntity{
 
 	public void setData(byte[] data) {
 	    this.data = data;
-	}
-
-	public Date getCreateDate() {
-		return createDate;
-	}
-	
-	public void setCreateDate(Date createDate) {
-		this.createDate = createDate;
-	}
-	
-	public Date getUpdateDate() {
-		return updateDate;
-	}
-	
-	public void setUpdateDate(Date updateDate) {
-		this.updateDate = updateDate;
 	}
 }

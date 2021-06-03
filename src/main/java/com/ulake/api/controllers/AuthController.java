@@ -53,7 +53,6 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 @CrossOrigin(origins = "http://localhost:3000", maxAge = 3600)
 @RestController
-@RequestMapping("/api/auth")
 public class AuthController {
 	@Autowired
 	AuthenticationManager authenticationManager;
@@ -80,7 +79,7 @@ public class AuthController {
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = String.class))),
 			@ApiResponse(responseCode = "400", description = "Invalid username/password supplied", content = @Content) })
-	@PostMapping("/signin")
+	@PostMapping("/api/auth/signin")
 	public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
 	    Authentication authentication = authenticationManager
 	        .authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
@@ -104,7 +103,7 @@ public class AuthController {
 
 	@Operation(summary = "Create user", description = "Create user.", tags = { "user" })
 	@ApiResponses(value = { @ApiResponse(description = "successful operation", content = { @Content(mediaType = "application/json", schema = @Schema(implementation = User.class)) }) })
-	@PostMapping("/signup")
+	@PostMapping("/api/users")
 		public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
 	    if (userRepository.existsByUsername(signUpRequest.getUsername())) {
 	      return ResponseEntity.badRequest().body(new MessageResponse("Error: Username is already taken!"));
@@ -153,7 +152,7 @@ public class AuthController {
 
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
 	@Operation(summary = "Refresh Token", description = "Refresh Token.", tags = { "user" })
-	@PostMapping("/refresh-token")
+	@PostMapping("/api/auth/refresh-token")
 		public ResponseEntity<?> refreshtoken(@Valid @RequestBody TokenRefreshRequest request) {
 	    String requestRefreshToken = request.getRefreshToken();
 	
