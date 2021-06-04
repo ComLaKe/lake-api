@@ -3,6 +3,8 @@ package com.ulake.api.repository;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.security.access.prepost.PostAuthorize;
@@ -18,7 +20,7 @@ public interface FileRepository extends JpaRepository<File, Long> {
 	List<File> findByNameContaining(String name);
 	
 	@PostFilter("hasPermission(filterObject, 'READ')")
-	List<File> findByName(String title);
+	File findByName(String name);
 	
 	@PostFilter("hasPermission(filterObject, 'READ')")
 	List<File> findAll();
@@ -29,6 +31,12 @@ public interface FileRepository extends JpaRepository<File, Long> {
     @PreAuthorize("hasPermission(#id, 'com.ulake.api.models.File', 'WRITE')")
     File removeById(Long id);
     
+    @PreAuthorize("hasPermission(#id, 'com.ulake.api.models.File', 'READ')")
+    Optional<File> findByIdAndFolderId(Long id, Long folderId);
+    
+//	@PostFilter("hasPermission(filterObject, 'READ')")
+//    Page<File> findByFolderId(Long folderId, Pageable pageable);
+
 //    @SuppressWarnings("unchecked")
 //    @PreAuthorize("hasPermission(#file, 'WRITE') or hasPermission(returnObject, 'ADMINISTRATION')")
 //    File save(@Param("file")File file);

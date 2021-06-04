@@ -2,39 +2,20 @@ package com.ulake.api.controllers;
 
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
-import javax.inject.Inject;
-import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PostAuthorize;
-import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.acls.domain.BasePermission;
-import org.springframework.security.acls.domain.GrantedAuthoritySid;
-import org.springframework.security.acls.domain.ObjectIdentityImpl;
-import org.springframework.security.acls.domain.PrincipalSid;
-import org.springframework.security.acls.model.MutableAcl;
-import org.springframework.security.acls.model.MutableAclService;
-import org.springframework.security.acls.model.ObjectIdentity;
-import org.springframework.security.acls.model.Sid;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -46,19 +27,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.util.Assert;
-import org.springframework.validation.BindingResult;
 
+import com.ulake.api.advice.ResourceNotFoundException;
 import com.ulake.api.models.File;
-import com.ulake.api.models.Group;
-import com.ulake.api.models.User;
 import com.ulake.api.payload.response.MessageResponse;
 import com.ulake.api.repository.FileRepository;
-import com.ulake.api.repository.GroupRepository;
-import com.ulake.api.repository.UserRepository;
+import com.ulake.api.repository.FolderRepository;
 import com.ulake.api.security.services.FilesStorageService;
 import com.ulake.api.security.services.LocalPermissionService;
-import com.ulake.api.security.services.impl.UserDetailsImpl;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -72,20 +48,16 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 @RequestMapping("/api")
 public class FileController {
     @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
 	private FileRepository fileRepository;
     
     @Autowired
-	private GroupRepository groupRepository;
-    
+	private FolderRepository folderRepository;
+
     @Autowired
     private LocalPermissionService permissionService;
     
     @Autowired
     FilesStorageService storageService;
-    private Logger LOGGER = LoggerFactory.getLogger(FileController.class);
 
 	@Operation(summary = "Add a file", description = "This can only be done by logged in user having the file permissions.", 
 			security = { @SecurityRequirement(name = "bearer-key") },
@@ -96,7 +68,9 @@ public class FileController {
 	@PostMapping(value = "/files", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
     @PostAuthorize("hasPermission(returnObject, 'READ')")
-	public ResponseEntity<MessageResponse> uploadFile(@RequestParam("file") MultipartFile file) {
+	public ResponseEntity<MessageResponse> uploadFile(
+			@PathVariable("folderId") Long folderId, 
+			@RequestParam("file") MultipartFile file) {
 	    String message = "";
 	    try {
 	      storageService.save(file);
@@ -107,6 +81,17 @@ public class FileController {
 	      return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(new MessageResponse(message));
 	    }
 	}	  
+	
+//	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+//    @PostAuthorize("hasPermission(returnObject, 'READ')")
+//    @PostMapping("/folders/{folderId}/files")
+//    public File createFile(@PathVariable (value = "folderId") Long folderId,
+//    						@RequestParam("file") MultipartFile file) {
+//        return folderRepository.findById(folderId).map(folder -> {
+//            file.setFolder(folder);
+//            return storageService.save(file);
+//        }).orElseThrow(() -> new ResourceNotFoundException("Folder " + folderId + " not found"));
+//    }
 		
 	@Operation(summary = "Update a file by ID", description = "This can only be done by admin.", 
 			security = { @SecurityRequirement(name = "bearer-key") },
@@ -192,4 +177,13 @@ public class FileController {
 	        .body(fileInfo.getData());
 	}
 	
+//	@Operation(summary = "Get All Files by Folder Id", description = "This can only be done by logged in user and those who have read permssions of file.", 
+//			security = { @SecurityRequirement(name = "bearer-key") },
+//			tags = { "file" })
+//	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#file, 'READ')")
+//    @GetMapping("/folder/{folderId}/files")
+//    public Page<File> getAllFilesByFolderId(@PathVariable (value = "folderId") Long folderId,
+//                                                Pageable pageable) {
+//        return fileRepository.findByFolderId(folderId, pageable);
+//    }
 }

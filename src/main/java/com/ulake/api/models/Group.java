@@ -25,7 +25,6 @@ public class Group extends Auditable<String>{
 	@JoinTable(	name = "CLake_user_groups", 
 				joinColumns = @JoinColumn(name = "group_id"), 
 				inverseJoinColumns = @JoinColumn(name = "user_id"))
-
 	private Set<User> users = new HashSet<>();
 
 	public Group() {

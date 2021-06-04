@@ -171,7 +171,6 @@ public class GroupController {
 	  } else {
 	      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 	  }
-//		return ResponseEntity.ok(new MessageResponse("Add a user to a group successfully!"));
 	}
 	
 	@Operation(summary = "Get all groups", description = "This can only be done by logged in user.", 
