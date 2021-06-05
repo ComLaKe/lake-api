@@ -69,7 +69,6 @@ public class FileController {
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
     @PostAuthorize("hasPermission(returnObject, 'READ')")
 	public ResponseEntity<MessageResponse> uploadFile(
-			@PathVariable("folderId") Long folderId, 
 			@RequestParam("file") MultipartFile file) {
 	    String message = "";
 	    try {

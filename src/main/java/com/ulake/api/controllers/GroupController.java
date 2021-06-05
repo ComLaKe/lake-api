@@ -145,7 +145,7 @@ public class GroupController {
 			security = { @SecurityRequirement(name = "bearer-key") },
 			tags = { "group" })
 	@ApiResponses(value = @ApiResponse(description = "successful operation"))
-	@PutMapping("/groups/{name}")
+	@PutMapping("/groups/{name}/users")
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<?> addMember(@PathVariable("name") String name, @Valid @RequestBody AddMemberRequest addMemberRequest) {
 	  Optional<Group> groupData = groupRepository.findByName(name);

@@ -102,9 +102,6 @@ public class FolderController {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 	    UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 	    User folderCreator = userRepository.findByEmail(userDetails.getEmail());	        
-//		Folder _folder = folderRepository
-//	      .save(new Folder(folderCreator, folder.getName()));
-//	  	LOGGER.error("_folder", _folder);
 	  return folderRepository.save(new Folder(folderCreator, folder.getName()));
 	}
 	
@@ -167,10 +164,10 @@ public class FolderController {
 			security = { @SecurityRequirement(name = "bearer-key") },
 			tags = { "folder" })
 	@ApiResponses(value = @ApiResponse(description = "successful operation"))
-	@PutMapping("/folders/{name}")
+	@PutMapping("/folders/{id}/files")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
-	public ResponseEntity<?> addFile(@PathVariable("name") String name, @Valid @RequestBody AddFileRequest addFileRequest) {
-	  Optional<Folder> folderData = folderRepository.findByName(name);
+	public ResponseEntity<?> addFile(@PathVariable("id") Long id, @Valid @RequestBody AddFileRequest addFileRequest) {
+	  Optional<Folder> folderData = folderRepository.findById(id);
 	  if (folderData.isPresent()) {
 	    	Folder _folder = folderData.get();
 	    	
@@ -184,6 +181,7 @@ public class FolderController {
 					File folderFile = fileRepository.findByName(file);
 //							.orElseThrow(() -> new RuntimeException("Error: User is not found."));
 					files.add(folderFile);
+					LOGGER.error("files", files);
 				});
 			}
 			_folder.setFiles(files);
