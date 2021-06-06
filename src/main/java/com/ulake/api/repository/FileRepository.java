@@ -19,7 +19,7 @@ public interface FileRepository extends JpaRepository<File, Long> {
 	@PostFilter("hasPermission(filterObject, 'READ')")
 	List<File> findByNameContaining(String name);
 	
-	@PostFilter("hasPermission(filterObject, 'READ')")
+    @PreAuthorize("hasPermission(#id, 'com.ulake.api.models.File', 'READ')")
 	File findByName(String name);
 	
 	@PostFilter("hasPermission(filterObject, 'READ')")
@@ -30,10 +30,7 @@ public interface FileRepository extends JpaRepository<File, Long> {
     
     @PreAuthorize("hasPermission(#id, 'com.ulake.api.models.File', 'WRITE')")
     File removeById(Long id);
-    
-    @PreAuthorize("hasPermission(#id, 'com.ulake.api.models.File', 'READ')")
-    Optional<File> findByIdAndFolderId(Long id, Long folderId);
-    
+        
 //	@PostFilter("hasPermission(filterObject, 'READ')")
 //    Page<File> findByFolderId(Long folderId, Pageable pageable);
 

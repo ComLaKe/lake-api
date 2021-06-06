@@ -20,11 +20,9 @@ import org.springframework.util.FileSystemUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.ulake.api.controllers.FileController;
 import com.ulake.api.models.File;
 import com.ulake.api.models.User;
 import com.ulake.api.repository.FileRepository;
-import com.ulake.api.repository.GroupRepository;
 import com.ulake.api.repository.UserRepository;
 import com.ulake.api.security.services.FilesStorageService;
 import com.ulake.api.security.services.LocalPermissionService;
@@ -71,7 +69,6 @@ public class FilesStorageServiceImpl implements FilesStorageService {
 	  
 	  //	Save File Metadata in our db;
 	  fileRepository.save(fileInfo);
-	  LOGGER.error("fileInfo", fileInfo);
 	  
 	  //	Add ACL WRITE and READ Permission For Admin and File Owner
       permissionService.addPermissionForAuthority(fileInfo, BasePermission.READ, "ROLE_ADMIN");

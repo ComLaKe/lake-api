@@ -160,37 +160,37 @@ public class FolderController {
 		}
 	}
 	
-	@Operation(summary = "Add a file to a folder", description = "This can only be done by logged in user.", 
-			security = { @SecurityRequirement(name = "bearer-key") },
-			tags = { "folder" })
-	@ApiResponses(value = @ApiResponse(description = "successful operation"))
-	@PutMapping("/folders/{id}/files")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
-	public ResponseEntity<?> addFile(@PathVariable("id") Long id, @Valid @RequestBody AddFileRequest addFileRequest) {
-	  Optional<Folder> folderData = folderRepository.findById(id);
-	  if (folderData.isPresent()) {
-	    	Folder _folder = folderData.get();
-	    	
-			Set<String> strFiles = addFileRequest.getFile();
-			Set<File> files = new HashSet<>();
-			
-			if (strFiles == null) {
-			    return ResponseEntity.badRequest().body(new MessageResponse("Error: Please enter at least a file!"));
-			} else {
-				strFiles.forEach(file -> {
-					File folderFile = fileRepository.findByName(file);
-//							.orElseThrow(() -> new RuntimeException("Error: User is not found."));
-					files.add(folderFile);
-					LOGGER.error("files", files);
-				});
-			}
-			_folder.setFiles(files);
-			folderRepository.save(_folder);
-	      return new ResponseEntity<>(folderRepository.save(_folder), HttpStatus.OK);
-	  } else {
-	      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-	  }
-	}
+//	@Operation(summary = "Add a file to a folder", description = "This can only be done by logged in user.", 
+//			security = { @SecurityRequirement(name = "bearer-key") },
+//			tags = { "folder" })
+//	@ApiResponses(value = @ApiResponse(description = "successful operation"))
+//	@PutMapping("/folders/{id}/files")
+//    @PreAuthorize("(hasAnyRole('ADMIN','USER')) or (hasPermission(#id, 'com.ulake.api.models.File', 'READ'))")
+//	public ResponseEntity<?> addFile(@PathVariable("id") Long id, @Valid @RequestBody AddFileRequest addFileRequest) {
+//	  Optional<Folder> folderData = folderRepository.findById(id);
+//	  if (folderData.isPresent()) {
+//	    	Folder _folder = folderData.get();
+//	    	
+//			Set<String> strFiles = addFileRequest.getFile();
+//			Set<File> files = new HashSet<>();
+//			
+//			if (strFiles == null) {
+//			    return ResponseEntity.badRequest().body(new MessageResponse("Error: Please enter at least a file!"));
+//			} else {
+//				strFiles.forEach(file -> {
+//					File folderFile = fileRepository.findByName(file);
+//					LOGGER.error("folderFile", folderFile);
+//					files.add(folderFile);
+//					LOGGER.error("files", files);
+//				});
+//			}
+//			_folder.setFiles(files);
+//			folderRepository.save(_folder);
+//	      return new ResponseEntity<>(folderRepository.save(_folder), HttpStatus.OK);
+//	  } else {
+//	      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+//	  }
+//	}
 	
 	@Operation(summary = "Get all folders", description = "This can only be done by logged in user.", 
 			security = { @SecurityRequirement(name = "bearer-key") },

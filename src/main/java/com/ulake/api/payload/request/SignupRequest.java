@@ -53,7 +53,7 @@ public class SignupRequest {
     }
     
 	public String getFirstname() {
-		return username;
+		return firstname;
 	}
 	
 	public void setFirstname(String firstname) {

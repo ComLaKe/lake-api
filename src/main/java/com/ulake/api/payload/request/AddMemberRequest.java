@@ -2,8 +2,6 @@ package com.ulake.api.payload.request;
 
 import java.util.Set;
 
-import javax.validation.constraints.*;
-
 public class AddMemberRequest {
     private Set<String> user;
 

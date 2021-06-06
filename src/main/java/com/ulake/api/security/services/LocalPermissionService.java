@@ -5,7 +5,6 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.domain.GrantedAuthoritySid;
 import org.springframework.security.acls.domain.ObjectIdentityImpl;
 import org.springframework.security.acls.domain.PrincipalSid;
@@ -17,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import com.ulake.api.controllers.FileController;
 import com.ulake.api.models.File;
 import com.ulake.api.models.IEntity;
 
@@ -130,7 +128,7 @@ public class LocalPermissionService {
             protected void doInTransactionWithoutResult(TransactionStatus status) {
                 final ObjectIdentity oi = new ObjectIdentityImpl(targetObj.getClass(), targetObj.getId());
                 try {
-                    MutableAcl acl = (MutableAcl) aclService.readAclById(oi);
+                    aclService.readAclById(oi);
                     aclService.deleteAcl(oi, true);
                 } catch (NotFoundException ignore) {
                 }

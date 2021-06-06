@@ -30,6 +30,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.ulake.api.advice.ResourceNotFoundException;
 import com.ulake.api.models.File;
+import com.ulake.api.models.Folder;
 import com.ulake.api.payload.response.MessageResponse;
 import com.ulake.api.repository.FileRepository;
 import com.ulake.api.repository.FolderRepository;
@@ -59,7 +60,7 @@ public class FileController {
     @Autowired
     FilesStorageService storageService;
 
-	@Operation(summary = "Add a file", description = "This can only be done by logged in user having the file permissions.", 
+	@Operation(summary = "Upload a file", description = "This can only be done by logged in user having the file permissions.", 
 			security = { @SecurityRequirement(name = "bearer-key") },
 			tags = { "file" })
 	@ApiResponses(value = {
@@ -80,34 +81,36 @@ public class FileController {
 	      return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(new MessageResponse(message));
 	    }
 	}	  
-	
-//	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
-//    @PostAuthorize("hasPermission(returnObject, 'READ')")
-//    @PostMapping("/folders/{folderId}/files")
-//    public File createFile(@PathVariable (value = "folderId") Long folderId,
-//    						@RequestParam("file") MultipartFile file) {
-//        return folderRepository.findById(folderId).map(folder -> {
-//            file.setFolder(folder);
-//            return storageService.save(file);
-//        }).orElseThrow(() -> new ResourceNotFoundException("Folder " + folderId + " not found"));
-//    }
 		
-	@Operation(summary = "Update a file by ID", description = "This can only be done by admin.", 
+	@Operation(summary = "Update a file by ID", description = "This can only be done by user who has write permission to file.", 
 			security = { @SecurityRequirement(name = "bearer-key") },
 			tags = { "file" })
 	@ApiResponses(value = @ApiResponse(description = "successful operation"))
 	@PutMapping("/files/{id}")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#file, 'WRITE')")
 	public File updateFile(@PathVariable("id") Long id, @RequestBody File file) {
-	  Optional<File> fileData = fileRepository.findById(id);
 //	  TODO Will fail if not found
-	  File _file = fileData.get();	    	
+	  File _file = fileRepository.findById(id).get();	    	
 	  _file.setName(file.getName());
 	  _file.setCid(file.getCid());
-	  _file.setMimeType(file.getMimeType());
 	  _file.setSource(file.getSource());
 	  _file.setTopics(file.getTopics());
-	  _file.setSize(file.getSize());
+      return fileRepository.save(_file);
+	}
+	
+	@Operation(summary = "Add a file to a folder", description = "This can only be done by user who has write permission to file.", 
+			security = { @SecurityRequirement(name = "bearer-key") },
+			tags = { "folder" })
+	@ApiResponses(value = @ApiResponse(description = "successful operation"))
+	@PutMapping("/folders/{folderId}/files/{fileId}")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#file, 'WRITE')")
+	public File addFileToFolder(
+			@PathVariable("folderId") Long folderId, 
+			@PathVariable("fileId") Long fileId) {
+//		  TODO Will fail if not found		
+	  Folder folder = folderRepository.findById(folderId).get();
+	  File _file = fileRepository.findById(fileId).get();	    	
+	  _file.setFolder(folder);
       return fileRepository.save(_file);
 	}
 	
@@ -119,7 +122,7 @@ public class FileController {
 			@ApiResponse(responseCode = "400", description = "Invalid ID supplied", content = @Content),
 			@ApiResponse(responseCode = "404", description = "File not found", content = @Content) })
 	@GetMapping("/files/{id}")
-    @PreAuthorize("(hasRole('ADMIN')) or (hasPermission(#id, 'com.ulake.api.models.File', 'READ'))")
+    @PreAuthorize("(hasAnyRole('ADMIN','USER')) or (hasPermission(#id, 'com.ulake.api.models.File', 'READ'))")
 	public File getFileById(@PathVariable("id") Long id) {
 	  Optional<File> fileData = fileRepository.findById(id);
 	  File _file = fileData.get();

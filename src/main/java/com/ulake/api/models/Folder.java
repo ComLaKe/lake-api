@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -30,12 +31,14 @@ public class Folder extends Auditable<String> implements IEntity{
 	
 //	private Long parentId;
 
-//	@OneToMany(mappedBy = "folder")
-//	private List<File> files = new ArrayList<File>();	
-	@ManyToMany(fetch = FetchType.LAZY)
-	@JoinTable(	name = "CLake_file_folders", 
-				joinColumns = @JoinColumn(name = "folder_id"), 
-				inverseJoinColumns = @JoinColumn(name = "file_id"))
+//	private List<File> files = new ArrayList<File>();
+    @OneToMany(cascade = CascadeType.ALL,
+            fetch = FetchType.LAZY,
+            mappedBy = "folder")
+//	@ManyToMany(fetch = FetchType.LAZY)
+//	@JoinTable(	name = "CLake_file_folders", 
+//				joinColumns = @JoinColumn(name = "folder_id"), 
+//				inverseJoinColumns = @JoinColumn(name = "file_id"))
 	private Set<File> files = new HashSet<>();
 
 	private String cid;
@@ -104,8 +107,6 @@ public class Folder extends Auditable<String> implements IEntity{
 	
 	public void setFiles(Set<File> files) { this.files = files; }
 	
-	public void clearFiles() { files.clear(); }
-
 	public Long getSize() {
 		return size;
 	}

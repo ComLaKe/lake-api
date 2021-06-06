@@ -1,7 +1,6 @@
 package com.ulake.api.payload.response;
 
 import java.util.List;
-import java.util.List;
 
 public class JwtResponse {
 	private String token;
