@@ -66,7 +66,7 @@ public class UserController {
 	}
 
 	@Operation(summary = "Check if Username is available to use", description = "Check if Username is available to use", tags = {
-			"user" })
+			"Users" })
 	@GetMapping("/users/check_username")
 	ResponseEntity<?> username(@RequestParam("username") String username) {
 		if (userRepository.existsByUsername(username)) {
@@ -77,7 +77,7 @@ public class UserController {
 	}
 
 	@Operation(summary = "Check if Email is available to use", description = "Check if Email is available to use", tags = {
-			"user" })
+			"Users" })
 	@GetMapping("/users/check_email")
 	ResponseEntity<?> email(@RequestParam("email") String email) {
 		if (userRepository.existsByEmail(email)) {
@@ -88,7 +88,7 @@ public class UserController {
 	}
 
 	@Operation(summary = "Get a list of all users in the system", description = "This can only be done by admin.", security = {
-			@SecurityRequirement(name = "bearer-key") }, tags = { "user" })
+			@SecurityRequirement(name = "bearer-key") }, tags = { "Users" })
 	@GetMapping("/users")
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<List<User>> getAllUsers(@RequestParam(required = false) String email,
@@ -142,7 +142,7 @@ public class UserController {
 	}
 
 	@Operation(summary = "Get user by ID", description = "This can only be done by admin.", security = {
-			@SecurityRequirement(name = "bearer-key") }, tags = { "user" })
+			@SecurityRequirement(name = "bearer-key") }, tags = { "Users" })
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = User.class))),
 			@ApiResponse(responseCode = "400", description = "Invalid ID supplied", content = @Content),
@@ -159,7 +159,7 @@ public class UserController {
 	}
 
 	@Operation(summary = "Get user by user name", description = "This can only be done by admin.", security = {
-			@SecurityRequirement(name = "bearer-key") }, tags = { "user" })
+			@SecurityRequirement(name = "bearer-key") }, tags = { "Users" })
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = User.class))),
 			@ApiResponse(responseCode = "400", description = "Invalid username supplied", content = @Content),
@@ -176,7 +176,7 @@ public class UserController {
 	}
 
 	@Operation(summary = "Get the logged in's user profile", description = "This can only be done by the logged in user.", security = {
-			@SecurityRequirement(name = "bearer-key") }, tags = { "user" })
+			@SecurityRequirement(name = "bearer-key") }, tags = { "Users" })
 	@GetMapping("/users/my-profile")
 	public ResponseEntity<User> getCurrentProfile() {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -191,7 +191,7 @@ public class UserController {
 	}
 
 	@Operation(summary = "Update user ", description = "This can only be done by the logged in user.", security = {
-			@SecurityRequirement(name = "bearer-key") }, tags = { "user" })
+			@SecurityRequirement(name = "bearer-key") }, tags = { "Users" })
 	@ApiResponses(value = @ApiResponse(description = "successful operation"))
 	@PutMapping("/users/{id}")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
@@ -214,7 +214,7 @@ public class UserController {
 //	TODO Reset User's password
 //	@Operation(summary = "Update user's password", description = "This can only be done by the logged in user.", 
 //			security = { @SecurityRequirement(name = "bearer-key") },
-//			tags = { "user" })
+//			tags = { "Users" })
 //	@ApiResponses(value = @ApiResponse(description = "successful operation"))
 //	@PutMapping("/password/{id}")
 //	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
@@ -234,7 +234,7 @@ public class UserController {
 //	}
 
 	@Operation(summary = "Delete user", description = "This can only be done by admin.", security = {
-			@SecurityRequirement(name = "bearer-key") }, tags = { "user" })
+			@SecurityRequirement(name = "bearer-key") }, tags = { "Users" })
 	@ApiResponses(value = { @ApiResponse(responseCode = "400", description = "Invalid user ID supplied"),
 			@ApiResponse(responseCode = "404", description = "User not found") })
 	@DeleteMapping("/users/{id}")

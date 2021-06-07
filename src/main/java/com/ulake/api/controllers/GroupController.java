@@ -65,14 +65,13 @@ public class GroupController {
 	}
 
 	@Operation(summary = "Add an user group", description = "This can only be done by admin.", security = {
-			@SecurityRequirement(name = "bearer-key") }, tags = { "group" })
+			@SecurityRequirement(name = "bearer-key") }, tags = { "Groups" })
 	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Status OK") })
 	@PostMapping("/groups")
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<Group> createGroup(@RequestBody Group group) {
 		try {
 			Group _group = groupRepository.save(new Group(group.getName()));
-//	    	permissionService.createSidAuthority(group.getName());
 			return new ResponseEntity<>(_group, HttpStatus.CREATED);
 		} catch (Exception e) {
 			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -80,7 +79,7 @@ public class GroupController {
 	}
 
 	@Operation(summary = "Update a group name by ID", description = "This can only be done by admin.", security = {
-			@SecurityRequirement(name = "bearer-key") }, tags = { "group" })
+			@SecurityRequirement(name = "bearer-key") }, tags = { "Groups" })
 	@ApiResponses(value = @ApiResponse(description = "successful operation"))
 	@PutMapping("/groups/{id}")
 	@PreAuthorize("hasRole('ADMIN')")
@@ -96,7 +95,7 @@ public class GroupController {
 	}
 
 	@Operation(summary = "Get a group by ID", description = "This can only be done by logged in user.", security = {
-			@SecurityRequirement(name = "bearer-key") }, tags = { "group" })
+			@SecurityRequirement(name = "bearer-key") }, tags = { "Groups" })
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = Group.class))),
 			@ApiResponse(responseCode = "400", description = "Invalid ID supplied", content = @Content),
@@ -113,7 +112,7 @@ public class GroupController {
 	}
 
 	@Operation(summary = "Get a group by name", description = "This can only be done by logged in user.", security = {
-			@SecurityRequirement(name = "bearer-key") }, tags = { "group" })
+			@SecurityRequirement(name = "bearer-key") }, tags = { "Groups" })
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = Group.class))),
 			@ApiResponse(responseCode = "400", description = "Invalid name supplied", content = @Content),
@@ -130,7 +129,7 @@ public class GroupController {
 	}
 
 	@Operation(summary = "Add a user to a group", description = "This can only be done by admin.", security = {
-			@SecurityRequirement(name = "bearer-key") }, tags = { "group" })
+			@SecurityRequirement(name = "bearer-key") }, tags = { "Groups" })
 	@ApiResponses(value = @ApiResponse(description = "successful operation"))
 	@PutMapping("/groups/{name}/users")
 	@PreAuthorize("hasRole('ADMIN')")
@@ -162,7 +161,7 @@ public class GroupController {
 	}
 
 	@Operation(summary = "Get all groups", description = "This can only be done by logged in user.", security = {
-			@SecurityRequirement(name = "bearer-key") }, tags = { "group" })
+			@SecurityRequirement(name = "bearer-key") }, tags = { "Groups" })
 	@ApiResponses(value = @ApiResponse(description = "successful operation"))
 	@GetMapping("/groups")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
@@ -211,7 +210,7 @@ public class GroupController {
 	}
 
 	@Operation(summary = "Delete a group", description = "This can only be done by admin.", security = {
-			@SecurityRequirement(name = "bearer-key") }, tags = { "group" })
+			@SecurityRequirement(name = "bearer-key") }, tags = { "Groups" })
 	@ApiResponses(value = { @ApiResponse(responseCode = "400", description = "Invalid group ID supplied"),
 			@ApiResponse(responseCode = "404", description = "Group not found") })
 	@DeleteMapping("/groups/{id}")

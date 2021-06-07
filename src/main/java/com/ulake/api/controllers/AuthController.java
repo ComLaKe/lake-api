@@ -21,8 +21,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.ulake.api.constant.ERole;
 import com.ulake.api.exception.TokenRefreshException;
-import com.ulake.api.models.ERole;
 import com.ulake.api.models.RefreshToken;
 import com.ulake.api.models.Role;
 import com.ulake.api.models.User;
@@ -70,7 +70,7 @@ public class AuthController {
 	@Value("${app.jwtExpirationMs}")
 	Long jwtExpirationMs;
 
-	@Operation(summary = "Logs user into the system", tags = { "user" })
+	@Operation(summary = "Logs user into the system", tags = { "User Authentication" })
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = String.class))),
 			@ApiResponse(responseCode = "400", description = "Invalid username/password supplied", content = @Content) })
@@ -96,7 +96,7 @@ public class AuthController {
 				userDetails.getUsername(), userDetails.getEmail(), roles));
 	}
 
-	@Operation(summary = "Create user", description = "Create user.", tags = { "user" })
+	@Operation(summary = "Create user", description = "Create user.", tags = { "User Authentication" })
 	@ApiResponses(value = { @ApiResponse(description = "successful operation", content = {
 			@Content(mediaType = "application/json", schema = @Schema(implementation = User.class)) }) })
 	@PostMapping("/api/users")
@@ -144,7 +144,7 @@ public class AuthController {
 	}
 
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
-	@Operation(summary = "Refresh Token", description = "Refresh Token.", tags = { "user" })
+	@Operation(summary = "Refresh Token", description = "Refresh Token.", tags = { "User Authentication" })
 	@PostMapping("/api/auth/refresh-token")
 	public ResponseEntity<?> refreshtoken(@Valid @RequestBody TokenRefreshRequest request) {
 		String requestRefreshToken = request.getRefreshToken();
@@ -158,7 +158,7 @@ public class AuthController {
 	}
 
 	@Operation(summary = "Logout current user", description = "And delete Refresh Token in database.", security = {
-			@SecurityRequirement(name = "bearer-key") }, tags = { "user" })
+			@SecurityRequirement(name = "bearer-key") }, tags = { "User Authentication" })
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
 	@GetMapping("/logout")
 	public ResponseEntity<?> logoutUser() {

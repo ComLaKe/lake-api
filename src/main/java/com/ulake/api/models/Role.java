@@ -2,6 +2,8 @@ package com.ulake.api.models;
 
 import javax.persistence.*;
 
+import com.ulake.api.constant.ERole;
+
 @Entity
 @Table(name = "CLake_roles")
 public class Role {

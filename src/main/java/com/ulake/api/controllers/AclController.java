@@ -50,7 +50,7 @@ public class AclController {
 	private LocalPermissionService permissionService;
 
 	@Operation(summary = "Grant File Permission For User", description = "This can only by done by Admin or File Owner.", security = {
-			@SecurityRequirement(name = "bearer-key") }, tags = { "acl" })
+			@SecurityRequirement(name = "bearer-key") }, tags = { "ACL - Access Control" })
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = File.class))),
 			@ApiResponse(responseCode = "400", description = "Invalid ID supplied", content = @Content),
@@ -79,7 +79,7 @@ public class AclController {
 	}
 
 	@Operation(summary = "Grant File Permission For Group", description = "This can only by done by Admin or File Owner.", security = {
-			@SecurityRequirement(name = "bearer-key") }, tags = { "acl" })
+			@SecurityRequirement(name = "bearer-key") }, tags = { "ACL - Access Control" })
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = File.class))),
 			@ApiResponse(responseCode = "400", description = "Invalid ID supplied", content = @Content),
@@ -108,7 +108,7 @@ public class AclController {
 	}
 
 	@Operation(summary = "Remove ALL File Permission For User", description = "This can only by done by Admin or File Owner.", security = {
-			@SecurityRequirement(name = "bearer-key") }, tags = { "acl" })
+			@SecurityRequirement(name = "bearer-key") }, tags = { "ACL - Access Control" })
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = File.class))),
 			@ApiResponse(responseCode = "400", description = "Invalid ID supplied", content = @Content),
@@ -131,7 +131,7 @@ public class AclController {
 	}
 
 	@Operation(summary = "Remove ALL File Permission For Group", description = "This can only by done by Admin or File Owner.", security = {
-			@SecurityRequirement(name = "bearer-key") }, tags = { "acl" })
+			@SecurityRequirement(name = "bearer-key") }, tags = { "ACL - Access Control" })
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = File.class))),
 			@ApiResponse(responseCode = "400", description = "Invalid ID supplied", content = @Content),
@@ -154,7 +154,7 @@ public class AclController {
 	}
 
 	@Operation(summary = "Grant Folder Permission For User", description = "This can only by done by Admin or Folder Owner.", security = {
-			@SecurityRequirement(name = "bearer-key") }, tags = { "acl" })
+			@SecurityRequirement(name = "bearer-key") }, tags = { "ACL - Access Control" })
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = Folder.class))),
 			@ApiResponse(responseCode = "400", description = "Invalid ID supplied", content = @Content),
@@ -183,7 +183,7 @@ public class AclController {
 	}
 
 	@Operation(summary = "Grant Folder Permission For Group", description = "This can only by done by Admin or Folder Owner.", security = {
-			@SecurityRequirement(name = "bearer-key") }, tags = { "acl" })
+			@SecurityRequirement(name = "bearer-key") }, tags = { "ACL - Access Control" })
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = Folder.class))),
 			@ApiResponse(responseCode = "400", description = "Invalid ID supplied", content = @Content),
@@ -212,7 +212,7 @@ public class AclController {
 	}
 
 	@Operation(summary = "Remove ALL Folder Permission For User", description = "This can only by done by Admin or Folder Owner.", security = {
-			@SecurityRequirement(name = "bearer-key") }, tags = { "acl" })
+			@SecurityRequirement(name = "bearer-key") }, tags = { "ACL - Access Control" })
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = Folder.class))),
 			@ApiResponse(responseCode = "400", description = "Invalid ID supplied", content = @Content),
@@ -235,7 +235,7 @@ public class AclController {
 	}
 
 	@Operation(summary = "Remove ALL Folder Permission For Group", description = "This can only by done by Admin or Folder Owner.", security = {
-			@SecurityRequirement(name = "bearer-key") }, tags = { "acl" })
+			@SecurityRequirement(name = "bearer-key") }, tags = { "ACL - Access Control" })
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = Folder.class))),
 			@ApiResponse(responseCode = "400", description = "Invalid ID supplied", content = @Content),
