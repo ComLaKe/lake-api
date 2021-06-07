@@ -1,4 +1,5 @@
 package com.ulake.api.models;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -7,12 +8,9 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 
 @Entity
-@Table(	name = "CLake_groups", 
-		uniqueConstraints = { 
-			@UniqueConstraint(columnNames = "name") 
-		})
+@Table(name = "CLake_groups", uniqueConstraints = { @UniqueConstraint(columnNames = "name") })
 
-public class Group extends Auditable<String>{
+public class Group extends Auditable<String> {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
@@ -20,11 +18,9 @@ public class Group extends Auditable<String>{
 	@NotBlank
 	@Size(max = 36)
 	private String name;
-	
+
 	@ManyToMany(fetch = FetchType.LAZY)
-	@JoinTable(	name = "CLake_user_groups", 
-				joinColumns = @JoinColumn(name = "group_id"), 
-				inverseJoinColumns = @JoinColumn(name = "user_id"))
+	@JoinTable(name = "CLake_user_groups", joinColumns = @JoinColumn(name = "group_id"), inverseJoinColumns = @JoinColumn(name = "user_id"))
 	private Set<User> users = new HashSet<>();
 
 	public Group() {
@@ -33,7 +29,7 @@ public class Group extends Auditable<String>{
 	public Group(String name) {
 		this.name = name;
 	}
-	
+
 	public Long getId() {
 		return id;
 	}

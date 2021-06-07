@@ -29,83 +29,83 @@ import com.ulake.api.security.services.LocalPermissionService;
 
 @Service
 public class FilesStorageServiceImpl implements FilesStorageService {
-  private final Path root = Paths.get("uploads");
-  
-  @Autowired
-  private UserRepository userRepository;
+	private final Path root = Paths.get("uploads");
 
-  @Autowired
-  private FileRepository fileRepository;
+	@Autowired
+	private UserRepository userRepository;
 
-  @Autowired
-  private LocalPermissionService permissionService;
+	@Autowired
+	private FileRepository fileRepository;
 
-  @Override
-  public void init() {
-    try {
-      Files.createDirectory(root);
-    } catch (IOException e) {
-      throw new RuntimeException("Could not initialize folder for upload!");
-    }
-  }
+	@Autowired
+	private LocalPermissionService permissionService;
 
-  @Override
-  public void save(MultipartFile file) {
-    try {
-      Files.copy(file.getInputStream(), this.root.resolve(file.getOriginalFilename()));
-      
-      // Find out who is the current logged in user
-      Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-      UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-      
-      User fileOwner = userRepository.findByEmail(userDetails.getEmail());
-      String fileName = StringUtils.cleanPath(file.getOriginalFilename());
-      String fileMimeType =  file.getContentType();
-      Long fileSize = file.getSize();
-      byte[] fileData = file.getBytes();
-	  File fileInfo = new File(fileOwner, fileName, fileMimeType, fileSize, fileData);
-	  
-	  //	Save File Metadata in our db;
-	  fileRepository.save(fileInfo);
-	  
-	  //	Add ACL WRITE and READ Permission For Admin and File Owner
-      permissionService.addPermissionForAuthority(fileInfo, BasePermission.READ, "ROLE_ADMIN");
-      permissionService.addPermissionForAuthority(fileInfo, BasePermission.WRITE, "ROLE_ADMIN");
-      permissionService.addPermissionForUser(fileInfo, BasePermission.READ, authentication.getName());
-      permissionService.addPermissionForUser(fileInfo, BasePermission.WRITE, authentication.getName());
-      
-    } catch (Exception e) {
-      throw new RuntimeException("Could not store the file. Error: " + e.getMessage());
-    }
-  }
+	@Override
+	public void init() {
+		try {
+			Files.createDirectory(root);
+		} catch (IOException e) {
+			throw new RuntimeException("Could not initialize folder for upload!");
+		}
+	}
 
-  @Override
-  public Resource load(String filename) {
-    try {
-      Path file = root.resolve(filename);
-      Resource resource = new UrlResource(file.toUri());
+	@Override
+	public void save(MultipartFile file) {
+		try {
+			Files.copy(file.getInputStream(), this.root.resolve(file.getOriginalFilename()));
 
-      if (resource.exists() || resource.isReadable()) {
-        return resource;
-      } else {
-        throw new RuntimeException("Could not read the file!");
-      }
-    } catch (MalformedURLException e) {
-      throw new RuntimeException("Error: " + e.getMessage());
-    }
-  }
+			// Find out who is the current logged in user
+			Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+			UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 
-  @Override
-  public void deleteAll() {
-    FileSystemUtils.deleteRecursively(root.toFile());
-  }
+			User fileOwner = userRepository.findByEmail(userDetails.getEmail());
+			String fileName = StringUtils.cleanPath(file.getOriginalFilename());
+			String fileMimeType = file.getContentType();
+			Long fileSize = file.getSize();
+			byte[] fileData = file.getBytes();
+			File fileInfo = new File(fileOwner, fileName, fileMimeType, fileSize, fileData);
 
-  @Override
-  public Stream<Path> loadAll() {
-    try {
-      return Files.walk(this.root, 1).filter(path -> !path.equals(this.root)).map(this.root::relativize);
-    } catch (IOException e) {
-      throw new RuntimeException("Could not load the files!");
-    }
-  }
+			// Save File Metadata in our db;
+			fileRepository.save(fileInfo);
+
+			// Add ACL WRITE and READ Permission For Admin and File Owner
+			permissionService.addPermissionForAuthority(fileInfo, BasePermission.READ, "ROLE_ADMIN");
+			permissionService.addPermissionForAuthority(fileInfo, BasePermission.WRITE, "ROLE_ADMIN");
+			permissionService.addPermissionForUser(fileInfo, BasePermission.READ, authentication.getName());
+			permissionService.addPermissionForUser(fileInfo, BasePermission.WRITE, authentication.getName());
+
+		} catch (Exception e) {
+			throw new RuntimeException("Could not store the file. Error: " + e.getMessage());
+		}
+	}
+
+	@Override
+	public Resource load(String filename) {
+		try {
+			Path file = root.resolve(filename);
+			Resource resource = new UrlResource(file.toUri());
+
+			if (resource.exists() || resource.isReadable()) {
+				return resource;
+			} else {
+				throw new RuntimeException("Could not read the file!");
+			}
+		} catch (MalformedURLException e) {
+			throw new RuntimeException("Error: " + e.getMessage());
+		}
+	}
+
+	@Override
+	public void deleteAll() {
+		FileSystemUtils.deleteRecursively(root.toFile());
+	}
+
+	@Override
+	public Stream<Path> loadAll() {
+		try {
+			return Files.walk(this.root, 1).filter(path -> !path.equals(this.root)).map(this.root::relativize);
+		} catch (IOException e) {
+			throw new RuntimeException("Could not load the files!");
+		}
+	}
 }

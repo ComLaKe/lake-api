@@ -55,54 +55,48 @@ public class GroupController {
 	UserRepository userRepository;
 
 	private Sort.Direction getSortDirection(String direction) {
-	    if (direction.equals("ASC")) {
-	      return Sort.Direction.ASC;
-	    } else if (direction.equals("DESC")) {
-	      return Sort.Direction.DESC;
-	    }
+		if (direction.equals("ASC")) {
+			return Sort.Direction.ASC;
+		} else if (direction.equals("DESC")) {
+			return Sort.Direction.DESC;
+		}
 
-	    return Sort.Direction.ASC;
+		return Sort.Direction.ASC;
 	}
-	
-	@Operation(summary = "Add an user group", description = "This can only be done by admin.", 
-			security = { @SecurityRequirement(name = "bearer-key") },
-			tags = { "group" })
-	@ApiResponses(value = {
-			@ApiResponse(responseCode = "200", description = "Status OK")
-			})
+
+	@Operation(summary = "Add an user group", description = "This can only be done by admin.", security = {
+			@SecurityRequirement(name = "bearer-key") }, tags = { "group" })
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Status OK") })
 	@PostMapping("/groups")
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<Group> createGroup(@RequestBody Group group) {
-	    try {
-	    	Group _group = groupRepository
-	          .save(new Group(group.getName()));
+		try {
+			Group _group = groupRepository.save(new Group(group.getName()));
 //	    	permissionService.createSidAuthority(group.getName());
-	      return new ResponseEntity<>(_group, HttpStatus.CREATED);
-	    } catch (Exception e) {
-	      return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-	    }
+			return new ResponseEntity<>(_group, HttpStatus.CREATED);
+		} catch (Exception e) {
+			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 	}
-	
-	@Operation(summary = "Update a group name by ID", description = "This can only be done by admin.", 
-			security = { @SecurityRequirement(name = "bearer-key") },
-			tags = { "group" })
+
+	@Operation(summary = "Update a group name by ID", description = "This can only be done by admin.", security = {
+			@SecurityRequirement(name = "bearer-key") }, tags = { "group" })
 	@ApiResponses(value = @ApiResponse(description = "successful operation"))
 	@PutMapping("/groups/{id}")
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<Group> updateGroup(@PathVariable("id") long id, @RequestBody Group group) {
-	  Optional<Group> groupData = groupRepository.findById(id);
-	  if (groupData.isPresent()) {
-	    	Group _group = groupData.get();	    	
-		    _group.setName(group.getName());
-	      return new ResponseEntity<>(groupRepository.save(_group), HttpStatus.OK);
-	  } else {
-	      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-	  }
+		Optional<Group> groupData = groupRepository.findById(id);
+		if (groupData.isPresent()) {
+			Group _group = groupData.get();
+			_group.setName(group.getName());
+			return new ResponseEntity<>(groupRepository.save(_group), HttpStatus.OK);
+		} else {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
 	}
-	
-	@Operation(summary = "Get a group by ID", description = "This can only be done by logged in user.", 
-			security = { @SecurityRequirement(name = "bearer-key") },
-			tags = { "group" })
+
+	@Operation(summary = "Get a group by ID", description = "This can only be done by logged in user.", security = {
+			@SecurityRequirement(name = "bearer-key") }, tags = { "group" })
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = Group.class))),
 			@ApiResponse(responseCode = "400", description = "Invalid ID supplied", content = @Content),
@@ -110,49 +104,47 @@ public class GroupController {
 	@GetMapping("/groups/{id}")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
 	public ResponseEntity<Group> getGroupById(@PathVariable("id") long id) {
-	  Optional<Group> groupData = groupRepository.findById(id);
-	  if (groupData.isPresent()) {
-	      return new ResponseEntity<>(groupData.get(), HttpStatus.OK);
-	  } else {
-	      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-	  }
+		Optional<Group> groupData = groupRepository.findById(id);
+		if (groupData.isPresent()) {
+			return new ResponseEntity<>(groupData.get(), HttpStatus.OK);
+		} else {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
 	}
-	
-	@Operation(summary = "Get a group by name", description = "This can only be done by logged in user.", 
-			security = { @SecurityRequirement(name = "bearer-key") },
-			tags = { "group" })
+
+	@Operation(summary = "Get a group by name", description = "This can only be done by logged in user.", security = {
+			@SecurityRequirement(name = "bearer-key") }, tags = { "group" })
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = Group.class))),
 			@ApiResponse(responseCode = "400", description = "Invalid name supplied", content = @Content),
 			@ApiResponse(responseCode = "404", description = "Group not found", content = @Content) })
 	@GetMapping("/groups/find/{name}")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
-	public ResponseEntity<Group> getGroupByName(@PathVariable("name") String name){
+	public ResponseEntity<Group> getGroupByName(@PathVariable("name") String name) {
 		Optional<Group> group = groupRepository.findByName(name);
 		if (group != null) {
-			return new ResponseEntity<>(group.get(),HttpStatus.OK);
-		}
-		else {
+			return new ResponseEntity<>(group.get(), HttpStatus.OK);
+		} else {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
 	}
-	
-	@Operation(summary = "Add a user to a group", description = "This can only be done by admin.", 
-			security = { @SecurityRequirement(name = "bearer-key") },
-			tags = { "group" })
+
+	@Operation(summary = "Add a user to a group", description = "This can only be done by admin.", security = {
+			@SecurityRequirement(name = "bearer-key") }, tags = { "group" })
 	@ApiResponses(value = @ApiResponse(description = "successful operation"))
 	@PutMapping("/groups/{name}/users")
 	@PreAuthorize("hasRole('ADMIN')")
-	public ResponseEntity<?> addMember(@PathVariable("name") String name, @Valid @RequestBody AddMemberRequest addMemberRequest) {
-	  Optional<Group> groupData = groupRepository.findByName(name);
-	  if (groupData.isPresent()) {
-	    	Group _group = groupData.get();
-	    	
+	public ResponseEntity<?> addMember(@PathVariable("name") String name,
+			@Valid @RequestBody AddMemberRequest addMemberRequest) {
+		Optional<Group> groupData = groupRepository.findByName(name);
+		if (groupData.isPresent()) {
+			Group _group = groupData.get();
+
 			Set<String> strUsers = addMemberRequest.getUser();
 			Set<User> users = new HashSet<>();
-			
+
 			if (strUsers == null) {
-			    return ResponseEntity.badRequest().body(new MessageResponse("Error: Please enter at least a user!"));
+				return ResponseEntity.badRequest().body(new MessageResponse("Error: Please enter at least a user!"));
 			} else {
 				strUsers.forEach(user -> {
 					User groupUser = userRepository.findByUsername(user)
@@ -160,84 +152,75 @@ public class GroupController {
 					users.add(groupUser);
 				});
 			}
-			
+
 			_group.setUsers(users);
 			groupRepository.save(_group);
-	      return new ResponseEntity<>(groupRepository.save(_group), HttpStatus.OK);
-	  } else {
-	      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-	  }
+			return new ResponseEntity<>(groupRepository.save(_group), HttpStatus.OK);
+		} else {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
 	}
-	
-	@Operation(summary = "Get all groups", description = "This can only be done by logged in user.", 
-			security = { @SecurityRequirement(name = "bearer-key") },
-			tags = { "group" })
+
+	@Operation(summary = "Get all groups", description = "This can only be done by logged in user.", security = {
+			@SecurityRequirement(name = "bearer-key") }, tags = { "group" })
 	@ApiResponses(value = @ApiResponse(description = "successful operation"))
 	@GetMapping("/groups")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
-	public ResponseEntity<List<Group>> getAllGroups(
-			@RequestParam(required=false) String name,
-			@RequestParam(defaultValue = "0") int page,
-			@RequestParam(defaultValue = "10") int perPage,
-			@RequestParam(defaultValue = "id,asc") String[] sort
-			){
-	    try {
-	        List<Order> orders = new ArrayList<Order>();
+	public ResponseEntity<List<Group>> getAllGroups(@RequestParam(required = false) String name,
+			@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int perPage,
+			@RequestParam(defaultValue = "id,asc") String[] sort) {
+		try {
+			List<Order> orders = new ArrayList<Order>();
 
-	        if (sort[0].contains(",")) {
-	          // will sort more than 2 fields
-	          // sortOrder="field, direction"
-	          for (String sortOrder : sort) {
-	            String[] _sort = sortOrder.split(",");
-	            orders.add(new Order(getSortDirection(_sort[1]), _sort[0]));
-	          }
-	        } else {
-	          // sort=[field, direction]
-	          orders.add(new Order(getSortDirection(sort[1]), sort[0]));
-	        }
+			if (sort[0].contains(",")) {
+				// will sort more than 2 fields
+				// sortOrder="field, direction"
+				for (String sortOrder : sort) {
+					String[] _sort = sortOrder.split(",");
+					orders.add(new Order(getSortDirection(_sort[1]), _sort[0]));
+				}
+			} else {
+				// sort=[field, direction]
+				orders.add(new Order(getSortDirection(sort[1]), sort[0]));
+			}
 
-	        List<Group> groups = new ArrayList<Group>();
-	        Pageable pagingSort = PageRequest.of(page, perPage, Sort.by(orders));
+			List<Group> groups = new ArrayList<Group>();
+			Pageable pagingSort = PageRequest.of(page, perPage, Sort.by(orders));
 
-	        Page<Group> pageTuts;
-	        if (name == null)
-	          pageTuts = groupRepository.findAll(pagingSort);
-	        else
-	          pageTuts = groupRepository.findByNameContaining(name, pagingSort);
+			Page<Group> pageTuts;
+			if (name == null)
+				pageTuts = groupRepository.findAll(pagingSort);
+			else
+				pageTuts = groupRepository.findByNameContaining(name, pagingSort);
 
-	        groups = pageTuts.getContent();
+			groups = pageTuts.getContent();
 
-	        if (groups.isEmpty()) {
-	          return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-	        }
+			if (groups.isEmpty()) {
+				return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+			}
 
-	        HttpHeaders responseHeaders = new HttpHeaders();
-	        long l = pageTuts.getTotalElements();
-	        String total = String.valueOf(l);
-	        responseHeaders.set("x-total-count", total);
+			HttpHeaders responseHeaders = new HttpHeaders();
+			long l = pageTuts.getTotalElements();
+			String total = String.valueOf(l);
+			responseHeaders.set("x-total-count", total);
 
-	        return new ResponseEntity<>(groups, responseHeaders,HttpStatus.OK);
-	      } catch (Exception e) {
-	        return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-	      }
-	    }	
+			return new ResponseEntity<>(groups, responseHeaders, HttpStatus.OK);
+		} catch (Exception e) {
+			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
 
-	
-	@Operation(summary = "Delete a group", description = "This can only be done by admin.", 
-			security = { @SecurityRequirement(name = "bearer-key") },
-			tags = { "group" })
-	@ApiResponses(value = {
-			@ApiResponse(responseCode = "400", description = "Invalid group ID supplied"),
-			@ApiResponse(responseCode = "404", description = "Group not found")
-	})
+	@Operation(summary = "Delete a group", description = "This can only be done by admin.", security = {
+			@SecurityRequirement(name = "bearer-key") }, tags = { "group" })
+	@ApiResponses(value = { @ApiResponse(responseCode = "400", description = "Invalid group ID supplied"),
+			@ApiResponse(responseCode = "404", description = "Group not found") })
 	@DeleteMapping("/groups/{id}")
 	@PreAuthorize("hasRole('ADMIN')")
-	public ResponseEntity<Group> deleteGroupById(@PathVariable("id") long id){
+	public ResponseEntity<Group> deleteGroupById(@PathVariable("id") long id) {
 		try {
 			groupRepository.deleteById(id);
 			return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-		} 
-		catch (Exception e) {
+		} catch (Exception e) {
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}

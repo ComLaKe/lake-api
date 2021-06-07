@@ -11,8 +11,8 @@ import com.ulake.api.models.EntityAuditorAware;
 @EnableJpaAuditing
 public class AuditConfiguration {
 
-    @Bean
-    public AuditorAware<String> auditorAware() {
-        return new EntityAuditorAware();
-    }
+	@Bean
+	public AuditorAware<String> auditorAware() {
+		return new EntityAuditorAware();
+	}
 }

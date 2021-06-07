@@ -9,11 +9,8 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 
 @Entity
-@Table(	name = "CLake_users", 
-		uniqueConstraints = { 
-			@UniqueConstraint(columnNames = "username"),
-			@UniqueConstraint(columnNames = "email") 
-		})
+@Table(name = "CLake_users", uniqueConstraints = { @UniqueConstraint(columnNames = "username"),
+		@UniqueConstraint(columnNames = "email") })
 public class User {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,13 +19,13 @@ public class User {
 	@NotBlank
 	@Size(max = 20)
 	private String username;
-	
+
 	private String firstname;
-	
+
 	private String lastname;
-	
+
 	private String department;
-	
+
 	private String affiliation;
 
 	@NotBlank
@@ -41,15 +38,14 @@ public class User {
 	private String password;
 
 	@ManyToMany(fetch = FetchType.LAZY)
-	@JoinTable(	name = "CLake_user_roles", 
-				joinColumns = @JoinColumn(name = "user_id"), 
-				inverseJoinColumns = @JoinColumn(name = "role_id"))
+	@JoinTable(name = "CLake_user_roles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
 	private Set<Role> roles = new HashSet<>();
 
 	public User() {
 	}
 
-	public User(String username, String email, String password, String firstname, String lastname, String department, String affiliation) {
+	public User(String username, String email, String password, String firstname, String lastname, String department,
+			String affiliation) {
 		this.username = username;
 		this.email = email;
 		this.password = password;
@@ -58,7 +54,7 @@ public class User {
 		this.department = department;
 		this.affiliation = affiliation;
 	}
-	
+
 	public Long getId() {
 		return id;
 	}
@@ -90,7 +86,7 @@ public class User {
 	public void setPassword(String password) {
 		this.password = password;
 	}
-	
+
 	public String getFirstname() {
 		return firstname;
 	}
@@ -98,7 +94,7 @@ public class User {
 	public void setFirstname(String firstname) {
 		this.firstname = firstname;
 	}
-	
+
 	public String getLastname() {
 		return lastname;
 	}
@@ -106,11 +102,11 @@ public class User {
 	public void setLastname(String lastname) {
 		this.lastname = lastname;
 	}
-	
+
 	public String getDepartment() {
 		return department;
 	}
-	
+
 	public void setDepartment(String department) {
 		this.department = department;
 	}
@@ -118,10 +114,11 @@ public class User {
 	public String getAffiliation() {
 		return affiliation;
 	}
-	
+
 	public void setAffiliation(String affiliation) {
 		this.affiliation = affiliation;
 	}
+
 	public Set<Role> getRoles() {
 		return roles;
 	}

@@ -12,19 +12,19 @@ import javax.persistence.Table;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
-@Table(	name = "CLake_files")
-public class File  extends Auditable<String> implements IEntity{
+@Table(name = "CLake_files")
+public class File extends Auditable<String> implements IEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
-	
+
 	@ManyToOne
 	@JoinColumn(name = "owner_id", nullable = false)
-	private User owner; 
-	
+	private User owner;
+
 	@ManyToOne
 	@JoinColumn(name = "folder_id")
-    @JsonIgnore
+	@JsonIgnore
 	private Folder folder;
 
 	private String cid;
@@ -34,14 +34,14 @@ public class File  extends Auditable<String> implements IEntity{
 	private String mimeType;
 
 	private String source;
-	
+
 	private String topics;
-	
+
 	private Long size;
-	
+
 	@Lob
 	private byte[] data;
-	
+
 	public File() {
 	}
 
@@ -52,8 +52,8 @@ public class File  extends Auditable<String> implements IEntity{
 		this.size = size;
 		this.data = data;
 	}
-	
-    @Override
+
+	@Override
 	public Long getId() {
 		return id;
 	}
@@ -61,18 +61,22 @@ public class File  extends Auditable<String> implements IEntity{
 	public void setId(Long id) {
 		this.id = id;
 	}
-	
+
 	public User getOwner() {
 		return owner;
 	}
-	
+
 	public void setOwner(User owner) {
 		this.owner = owner;
 	}
-	
-	public Folder getFolder() { return folder; }
-	
-	public void setFolder(Folder folder) { this.folder = folder; }
+
+	public Folder getFolder() {
+		return folder;
+	}
+
+	public void setFolder(Folder folder) {
+		this.folder = folder;
+	}
 
 	public String getCid() {
 		return cid;
@@ -81,7 +85,7 @@ public class File  extends Auditable<String> implements IEntity{
 	public void setCid(String cid) {
 		this.cid = cid;
 	}
-	
+
 	public String getName() {
 		return name;
 	}
@@ -89,7 +93,7 @@ public class File  extends Auditable<String> implements IEntity{
 	public void setName(String name) {
 		this.name = name;
 	}
-	
+
 	public Long getSize() {
 		return size;
 	}
@@ -97,15 +101,15 @@ public class File  extends Auditable<String> implements IEntity{
 	public void setSize(Long size) {
 		this.size = size;
 	}
-	
+
 	public String getMimeType() {
 		return mimeType;
 	}
 
 	public void setMimeType(String mimeType) {
 		this.mimeType = mimeType;
-	}	
-	
+	}
+
 	public String getSource() {
 		return source;
 	}
@@ -113,7 +117,7 @@ public class File  extends Auditable<String> implements IEntity{
 	public void setSource(String source) {
 		this.source = source;
 	}
-	
+
 	public String getTopics() {
 		return topics;
 	}
@@ -121,12 +125,12 @@ public class File  extends Auditable<String> implements IEntity{
 	public void setTopics(String topics) {
 		this.topics = topics;
 	}
-	
+
 	public byte[] getData() {
-	    return data;
+		return data;
 	}
 
 	public void setData(byte[] data) {
-	    this.data = data;
+		this.data = data;
 	}
 }

@@ -12,11 +12,11 @@ import com.ulake.api.models.Group;
 @Repository
 public interface GroupRepository extends JpaRepository<Group, Long> {
 	Boolean existsByName(String name);
-	
+
 	Optional<Group> findByName(String name);
-	
+
 	Page<Group> findByNameContaining(String name, Pageable pageable);
-	
+
 	Page<Group> findByName(String name, Pageable pageable);
-	
+
 }

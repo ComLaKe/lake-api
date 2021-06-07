@@ -17,32 +17,29 @@ import io.swagger.v3.oas.models.info.License;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 
 @SpringBootApplication
-public class UlakeApiApplication implements CommandLineRunner{
+public class UlakeApiApplication implements CommandLineRunner {
 	@Resource
 	FilesStorageService storageService;
 
 	public static void main(String[] args) {
 		SpringApplication.run(UlakeApiApplication.class, args);
 	}
-	
+
 	@Override
 	public void run(String... arg) throws Exception {
-	    storageService.deleteAll();
-	    storageService.init();
+		storageService.deleteAll();
+		storageService.init();
 	}
-	
+
 	@Bean
 	public OpenAPI customOpenAPI(@Value("1.5.8") String appVersion) {
-        var securitySchemeName = "bearer-key";
+		var securitySchemeName = "bearer-key";
 		return new OpenAPI()
 				.components(new Components().addSecuritySchemes(securitySchemeName,
-						new SecurityScheme()
-								.name(securitySchemeName)
-								.type(SecurityScheme.Type.HTTP)
-								.scheme("bearer")
+						new SecurityScheme().name(securitySchemeName).type(SecurityScheme.Type.HTTP).scheme("bearer")
 								.bearerFormat("JWT")))
 				.info(new Info().title("Lake API").version(appVersion)
 						.license(new License().name("Apache 2.0").url("http://springdoc.org")));
 	}
-	
+
 }

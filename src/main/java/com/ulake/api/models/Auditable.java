@@ -10,49 +10,49 @@ import java.util.Date;
 @EntityListeners(AuditingEntityListener.class)
 public abstract class Auditable<T> {
 
-    @CreatedBy
-    protected T createdBy;
+	@CreatedBy
+	protected T createdBy;
 
-    @Temporal(TemporalType.TIMESTAMP)
-    @CreatedDate
-    protected Date createdDate;
+	@Temporal(TemporalType.TIMESTAMP)
+	@CreatedDate
+	protected Date createdDate;
 
-    @LastModifiedBy
-    protected T lastModifiedBy;
+	@LastModifiedBy
+	protected T lastModifiedBy;
 
-    @Temporal(TemporalType.TIMESTAMP)
-    @LastModifiedDate
-    protected Date lastModifiedDate;
+	@Temporal(TemporalType.TIMESTAMP)
+	@LastModifiedDate
+	protected Date lastModifiedDate;
 
-    public T getCreatedBy() {
-        return createdBy;
-    }
+	public T getCreatedBy() {
+		return createdBy;
+	}
 
-    public void setCreatedBy(T createdBy) {
-        this.createdBy = createdBy;
-    }
+	public void setCreatedBy(T createdBy) {
+		this.createdBy = createdBy;
+	}
 
-    public Date getCreatedDate() {
-        return createdDate;
-    }
+	public Date getCreatedDate() {
+		return createdDate;
+	}
 
-    public void setCreatedDate(Date createdDate) {
-        this.createdDate = createdDate;
-    }
+	public void setCreatedDate(Date createdDate) {
+		this.createdDate = createdDate;
+	}
 
-    public T getLastModifiedBy() {
-        return lastModifiedBy;
-    }
+	public T getLastModifiedBy() {
+		return lastModifiedBy;
+	}
 
-    public void setLastModifiedBy(T lastModifiedBy) {
-        this.lastModifiedBy = lastModifiedBy;
-    }
+	public void setLastModifiedBy(T lastModifiedBy) {
+		this.lastModifiedBy = lastModifiedBy;
+	}
 
-    public Date getLastModifiedDate() {
-        return lastModifiedDate;
-    }
+	public Date getLastModifiedDate() {
+		return lastModifiedDate;
+	}
 
-    public void setLastModifiedDate(Date lastModifiedDate) {
-        this.lastModifiedDate = lastModifiedDate;
-    }
+	public void setLastModifiedDate(Date lastModifiedDate) {
+		this.lastModifiedDate = lastModifiedDate;
+	}
 }

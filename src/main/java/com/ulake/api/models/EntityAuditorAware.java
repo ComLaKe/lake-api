@@ -9,9 +9,10 @@ import java.util.Optional;
 
 public class EntityAuditorAware implements AuditorAware<String> {
 
-    @Override
-    public Optional<String> getCurrentAuditor() {
-		UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+	@Override
+	public Optional<String> getCurrentAuditor() {
+		UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication()
+				.getPrincipal();
 		return Optional.of(userDetails.getUsername());
-    }
+	}
 }

@@ -15,21 +15,19 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 @Entity
-@Table(	name = "CLake_folders")
-public class Folder extends Auditable<String> implements IEntity{
+@Table(name = "CLake_folders")
+public class Folder extends Auditable<String> implements IEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
 	@ManyToOne
 	@JoinColumn(name = "creator_id", nullable = false)
-	private User creator; 
-	
+	private User creator;
+
 	private Long parentId;
 
-    @OneToMany(cascade = CascadeType.ALL,
-            fetch = FetchType.LAZY,
-            mappedBy = "folder")
+	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "folder")
 	private Set<File> files = new HashSet<>();
 
 	private String cid;
@@ -41,19 +39,19 @@ public class Folder extends Auditable<String> implements IEntity{
 //	private String source;
 //	
 //	private String topics;
-	
+
 	private Long size;
-	
+
 	public Folder() {
-		
+
 	}
-	
+
 	public Folder(User creator, String name) {
 		this.creator = creator;
 		this.name = name;
 	}
-	
-    @Override
+
+	@Override
 	public Long getId() {
 		return id;
 	}
@@ -61,7 +59,7 @@ public class Folder extends Auditable<String> implements IEntity{
 	public void setId(Long id) {
 		this.id = id;
 	}
-	
+
 	public Long getParentId() {
 		return parentId;
 	}
@@ -73,11 +71,11 @@ public class Folder extends Auditable<String> implements IEntity{
 	public User getCreator() {
 		return creator;
 	}
-	
+
 	public void setCreator(User creator) {
 		this.creator = creator;
 	}
-	
+
 	public String getCid() {
 		return cid;
 	}
@@ -85,7 +83,7 @@ public class Folder extends Auditable<String> implements IEntity{
 	public void setCid(String cid) {
 		this.cid = cid;
 	}
-	
+
 	public String getName() {
 		return name;
 	}
@@ -93,11 +91,15 @@ public class Folder extends Auditable<String> implements IEntity{
 	public void setName(String name) {
 		this.name = name;
 	}
-	
-	public Set<File> getFiles() { return files; }
-	
-	public void setFiles(Set<File> files) { this.files = files; }
-	
+
+	public Set<File> getFiles() {
+		return files;
+	}
+
+	public void setFiles(Set<File> files) {
+		this.files = files;
+	}
+
 	public Long getSize() {
 		return size;
 	}
@@ -105,7 +107,7 @@ public class Folder extends Auditable<String> implements IEntity{
 	public void setSize(Long size) {
 		this.size = size;
 	}
-	
+
 //	public String getSource() {
 //		return source;
 //	}

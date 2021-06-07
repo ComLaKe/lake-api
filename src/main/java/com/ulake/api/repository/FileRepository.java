@@ -13,27 +13,27 @@ import com.ulake.api.models.File;
 
 public interface FileRepository extends JpaRepository<File, Long> {
 	Boolean existsByName(String name);
-		
+
 	@PostFilter("hasPermission(filterObject, 'READ')")
 	List<File> findByNameContaining(String name);
-		
+
 	@PostFilter("hasPermission(filterObject, 'READ')")
 	Page<File> findByNameContaining(String name, Pageable pageable);
-	
+
 	@PostFilter("hasPermission(filterObject, 'READ')")
 	List<File> findAll();
-	
-    @PreAuthorize("hasPermission(#id, 'com.ulake.api.models.File', 'READ')")
-    File findByName(String name);
 
-    @PreAuthorize("hasPermission(#id, 'com.ulake.api.models.File', 'READ')")
-    Optional<File> findById(Long id);
-    
-    @PreAuthorize("hasPermission(#id, 'com.ulake.api.models.File', 'WRITE')")
-    File removeById(Long id);
-        
+	@PreAuthorize("hasPermission(#id, 'com.ulake.api.models.File', 'READ')")
+	File findByName(String name);
+
+	@PreAuthorize("hasPermission(#id, 'com.ulake.api.models.File', 'READ')")
+	Optional<File> findById(Long id);
+
+	@PreAuthorize("hasPermission(#id, 'com.ulake.api.models.File', 'WRITE')")
+	File removeById(Long id);
+
 	@PostFilter("hasPermission(filterObject, 'READ')")
-    List<File> findByFolderId(Long folderId);
+	List<File> findByFolderId(Long folderId);
 
 //    @PreAuthorize("hasPermission(#id, 'com.ulake.api.models.File', 'READ')")
 //    Optional<File> findByIdAndFolderId(Long id, Long folderId);
@@ -41,6 +41,4 @@ public interface FileRepository extends JpaRepository<File, Long> {
 //    @SuppressWarnings("unchecked")
 //    @PreAuthorize("hasPermission(#file, 'WRITE') or hasPermission(returnObject, 'ADMINISTRATION')")
 //    File save(@Param("file")File file);
-}	
-
-
+}
