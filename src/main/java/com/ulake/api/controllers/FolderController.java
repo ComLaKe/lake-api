@@ -1,12 +1,8 @@
 package com.ulake.api.controllers;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
-
-import javax.validation.Valid;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,11 +42,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
-import com.ulake.api.models.File;
 import com.ulake.api.models.Folder;
 import com.ulake.api.models.User;
-import com.ulake.api.payload.request.AddFileRequest;
-import com.ulake.api.payload.response.MessageResponse;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -93,7 +86,7 @@ public class FolderController {
 	}
 	
 	
-	@Operation(summary = "Update a folder name by ID", description = "This can only be done by users who has write permission for folders.", 
+	@Operation(summary = "Update a folder by ID", description = "Only name and parentId could be updated .This can only be done by users who has write permission for folders.", 
 			security = { @SecurityRequirement(name = "bearer-key") },
 			tags = { "folder" })
 	@ApiResponses(value = @ApiResponse(description = "successful operation"))

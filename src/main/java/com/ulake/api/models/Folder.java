@@ -14,6 +14,8 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @Table(	name = "CLake_folders")
 public class Folder extends Auditable<String> implements IEntity{
@@ -25,16 +27,17 @@ public class Folder extends Auditable<String> implements IEntity{
 	@JoinColumn(name = "creator_id", nullable = false)
 	private User creator; 
 	
-	private Long parentId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Folder folder;
 
-//	private List<File> files = new ArrayList<File>();
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "folder")
+    private Set<Folder> subfolders;
+	
+//	private Long parentId;
+
     @OneToMany(cascade = CascadeType.ALL,
             fetch = FetchType.LAZY,
             mappedBy = "folder")
-//	@ManyToMany(fetch = FetchType.LAZY)
-//	@JoinTable(	name = "CLake_file_folders", 
-//				joinColumns = @JoinColumn(name = "folder_id"), 
-//				inverseJoinColumns = @JoinColumn(name = "file_id"))
 	private Set<File> files = new HashSet<>();
 
 	private String cid;
@@ -67,13 +70,18 @@ public class Folder extends Auditable<String> implements IEntity{
 		this.id = id;
 	}
 	
-	public Long getParentId() {
-		return parentId;
-	}
-
-	public void setParentId(Long parentId) {
-		this.parentId = parentId;
-	}
+//	public Long getParentId() {
+//		return parentId;
+//	}
+//
+//	public void setParentId(Long parentId) {
+//		this.parentId = parentId;
+//	}
+	
+    @JsonIgnore
+    public Set<Folder> getSubfolders() {
+        return subfolders;
+    }
 
 	public User getCreator() {
 		return creator;
