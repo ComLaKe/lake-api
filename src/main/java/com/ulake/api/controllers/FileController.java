@@ -5,8 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import javax.validation.Valid;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -28,7 +26,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.ulake.api.advice.ResourceNotFoundException;
 import com.ulake.api.models.File;
 import com.ulake.api.models.Folder;
 import com.ulake.api.payload.response.MessageResponse;
@@ -179,13 +176,12 @@ public class FileController {
 	        .body(fileInfo.getData());
 	}
 	
-//	@Operation(summary = "Get All Files by Folder Id", description = "This can only be done by logged in user and those who have read permssions of file.", 
-//			security = { @SecurityRequirement(name = "bearer-key") },
-//			tags = { "file" })
-//	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#file, 'READ')")
-//    @GetMapping("/folder/{folderId}/files")
-//    public Page<File> getAllFilesByFolderId(@PathVariable (value = "folderId") Long folderId,
-//                                                Pageable pageable) {
-//        return fileRepository.findByFolderId(folderId, pageable);
-//    }
+	@Operation(summary = "Get All Files by Folder Id", description = "This can only be done by logged in user and those who have read permssions of file.", 
+			security = { @SecurityRequirement(name = "bearer-key") },
+			tags = { "file" })
+	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#file, 'READ')")
+    @GetMapping("/folder/{folderId}/files")
+    public List<File> getAllFilesByFolderId(@PathVariable (value = "folderId") Long folderId) {
+        return fileRepository.findByFolderId(folderId);
+    }
 }

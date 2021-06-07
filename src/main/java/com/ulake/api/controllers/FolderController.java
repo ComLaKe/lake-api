@@ -102,7 +102,7 @@ public class FolderController {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 	    UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 	    User folderCreator = userRepository.findByEmail(userDetails.getEmail());	        
-	  return folderRepository.save(new Folder(folderCreator, folder.getName()));
+	  return folderRepository.save(new Folder(folderCreator, folder.getName(), folder.getParentId()));
 	}
 	
 	

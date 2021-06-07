@@ -1,8 +1,6 @@
 package com.ulake.api.models;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import javax.persistence.CascadeType;
@@ -12,8 +10,6 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
@@ -29,7 +25,7 @@ public class Folder extends Auditable<String> implements IEntity{
 	@JoinColumn(name = "creator_id", nullable = false)
 	private User creator; 
 	
-//	private Long parentId;
+	private Long parentId;
 
 //	private List<File> files = new ArrayList<File>();
     @OneToMany(cascade = CascadeType.ALL,
@@ -57,9 +53,10 @@ public class Folder extends Auditable<String> implements IEntity{
 		
 	}
 	
-	public Folder(User creator, String name) {
+	public Folder(User creator, String name, Long parentId) {
 		this.creator = creator;
 		this.name = name;
+		this.parentId = parentId;
 	}
 	
     @Override
@@ -71,13 +68,13 @@ public class Folder extends Auditable<String> implements IEntity{
 		this.id = id;
 	}
 	
-//	public Long getParentId() {
-//		return parentId;
-//	}
-//
-//	public void setParentId(Long parentId) {
-//		this.parentId = parentId;
-//	}
+	public Long getParentId() {
+		return parentId;
+	}
+
+	public void setParentId(Long parentId) {
+		this.parentId = parentId;
+	}
 
 	public User getCreator() {
 		return creator;
@@ -114,5 +111,21 @@ public class Folder extends Auditable<String> implements IEntity{
 	public void setSize(Long size) {
 		this.size = size;
 	}
+	
+//	public String getSource() {
+//		return source;
+//	}
+//
+//	public void setSource(String source) {
+//		this.source = source;
+//	}
+//	
+//	public String getTopics() {
+//		return topics;
+//	}
+//
+//	public void setTopics(String topics) {
+//		this.topics = topics;
+//	}
 
 }
