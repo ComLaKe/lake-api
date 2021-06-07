@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -32,7 +30,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.ulake.api.repository.FileRepository;
 import com.ulake.api.repository.FolderRepository;
 import com.ulake.api.repository.UserRepository;
-import com.ulake.api.security.services.FilesStorageService;
 import com.ulake.api.security.services.impl.UserDetailsImpl;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -57,8 +54,6 @@ public class FolderController {
 
 	@Autowired
 	FileRepository fileRepository;
-
-	private Logger LOGGER = LoggerFactory.getLogger(FilesStorageService.class);
 
 	private Sort.Direction getSortDirection(String direction) {
 	    if (direction.equals("ASC")) {
