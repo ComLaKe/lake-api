@@ -10,23 +10,22 @@ import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import com.ulake.api.models.File;
-import com.ulake.api.models.Group;
 
 public interface FileRepository extends JpaRepository<File, Long> {
 	Boolean existsByName(String name);
 		
 	@PostFilter("hasPermission(filterObject, 'READ')")
 	List<File> findByNameContaining(String name);
-	
-    @PreAuthorize("hasPermission(#id, 'com.ulake.api.models.File', 'READ')")
-    File findByName(String name);
-	
+		
 	@PostFilter("hasPermission(filterObject, 'READ')")
 	Page<File> findByNameContaining(String name, Pageable pageable);
 	
 	@PostFilter("hasPermission(filterObject, 'READ')")
 	List<File> findAll();
 	
+    @PreAuthorize("hasPermission(#id, 'com.ulake.api.models.File', 'READ')")
+    File findByName(String name);
+
     @PreAuthorize("hasPermission(#id, 'com.ulake.api.models.File', 'READ')")
     Optional<File> findById(Long id);
     
@@ -36,8 +35,8 @@ public interface FileRepository extends JpaRepository<File, Long> {
 	@PostFilter("hasPermission(filterObject, 'READ')")
     List<File> findByFolderId(Long folderId);
 
-    @PreAuthorize("hasPermission(#id, 'com.ulake.api.models.File', 'READ')")
-    Optional<File> findByIdAndFolderId(Long id, Long folderId);
+//    @PreAuthorize("hasPermission(#id, 'com.ulake.api.models.File', 'READ')")
+//    Optional<File> findByIdAndFolderId(Long id, Long folderId);
 
 //    @SuppressWarnings("unchecked")
 //    @PreAuthorize("hasPermission(#file, 'WRITE') or hasPermission(returnObject, 'ADMINISTRATION')")

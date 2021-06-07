@@ -31,8 +31,6 @@ import com.ulake.api.security.services.LocalPermissionService;
 public class FilesStorageServiceImpl implements FilesStorageService {
   private final Path root = Paths.get("uploads");
   
-  private Logger LOGGER = LoggerFactory.getLogger(FilesStorageService.class);
-
   @Autowired
   private UserRepository userRepository;
 

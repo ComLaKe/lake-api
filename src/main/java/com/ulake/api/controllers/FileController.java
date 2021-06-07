@@ -6,11 +6,6 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.domain.Sort.Order;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -60,15 +55,15 @@ public class FileController {
     @Autowired
     FilesStorageService storageService;
     
-	private Sort.Direction getSortDirection(String direction) {
-	    if (direction.equals("ASC")) {
-	      return Sort.Direction.ASC;
-	    } else if (direction.equals("DESC")) {
-	      return Sort.Direction.DESC;
-	    }
-
-	    return Sort.Direction.ASC;
-	}
+//	private Sort.Direction getSortDirection(String direction) {
+//	    if (direction.equals("ASC")) {
+//	      return Sort.Direction.ASC;
+//	    } else if (direction.equals("DESC")) {
+//	      return Sort.Direction.DESC;
+//	    }
+//
+//	    return Sort.Direction.ASC;
+//	}
 	
 	@Operation(summary = "Upload a file", description = "This can only be done by logged in user having the file permissions.", 
 			security = { @SecurityRequirement(name = "bearer-key") },
@@ -150,8 +145,7 @@ public class FileController {
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#file, 'WRITE')")
 	public ResponseEntity<File> deleteFileById(@PathVariable("id") long id){
 		try {
-			Optional<File> fileData = fileRepository.findById(id);
-			File file = fileData.get();
+			File file = fileRepository.findById(id).get();
 			fileRepository.deleteById(id);
 			permissionService.removeAcl(file);	
 			return new ResponseEntity<>(HttpStatus.OK);
@@ -165,56 +159,16 @@ public class FileController {
 			security = { @SecurityRequirement(name = "bearer-key") },
 			tags = { "file" })
 	@ApiResponses(value = @ApiResponse(description = "successful operation"))
-	@GetMapping("/files/all")
-    @PreAuthorize("(hasAnyRole('ADMIN','USER')) or (hasPermission(#id, 'com.ulake.api.models.File', 'READ'))")
-	public ResponseEntity<List<File>> getAllFiles(
-			@RequestParam(required=false) String name,
-			@RequestParam(defaultValue = "0") int page,
-			@RequestParam(defaultValue = "10") int perPage,
-			@RequestParam(defaultValue = "id,asc") String[] sort
-			){
-	    try {
-	        List<Order> orders = new ArrayList<Order>();
-	
-	        if (sort[0].contains(",")) {
-	          // will sort more than 2 fields
-	          // sortOrder="field, direction"
-	          for (String sortOrder : sort) {
-	            String[] _sort = sortOrder.split(",");
-	            orders.add(new Order(getSortDirection(_sort[1]), _sort[0]));
-	          }
-	        } else {
-	          // sort=[field, direction]
-	          orders.add(new Order(getSortDirection(sort[1]), sort[0]));
-	        }
-	
-	        List<File> files = new ArrayList<File>();
-	        Pageable pagingSort = PageRequest.of(page, perPage, Sort.by(orders));
-	
-	        Page<File> pageTuts;
-	        
-	        if (name == null)
-	          pageTuts = fileRepository.findAll(pagingSort);
-	        else
-	          pageTuts = fileRepository.findByNameContaining(name, pagingSort);
-	
-	        files = pageTuts.getContent();
-	
-	        if (files.isEmpty()) {
-	          return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-	        }
-	
-	        HttpHeaders responseHeaders = new HttpHeaders();
-	        long l = pageTuts.getTotalElements();
-	        String total = String.valueOf(l);
-	        responseHeaders.set("x-total-count", total);
-	
-	        return new ResponseEntity<>(files, responseHeaders,HttpStatus.OK);
-	      } catch (Exception e) {
-	        return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-      }
-	}	
-
+	@GetMapping("/files")
+    @PreAuthorize("(hasAnyRole('ADMIN','USER')) or (hasPermission(#file, 'READ'))")
+	public List<File> getAllFiles(@RequestParam(required=false) String name){
+		List<File> files = new ArrayList<File>();
+		if (name == null)
+			fileRepository.findAll().forEach(files::add);
+		else
+			fileRepository.findByNameContaining(name).forEach(files::add);
+		return files;
+	}
 	
 	@Operation(summary = "Get File Data", description = "This can only be done by logged in user and those who have read permssions of file.", 
 			security = { @SecurityRequirement(name = "bearer-key") },
@@ -223,7 +177,6 @@ public class FileController {
 	@GetMapping("/files/data/{id}")
 	public ResponseEntity<byte[]> getFileData(@PathVariable Long id) {
 	    File fileInfo = fileRepository.findById(id).get();
-
 	    return ResponseEntity.ok()
 	        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileInfo.getName() + "\"")
 	        .body(fileInfo.getData());
