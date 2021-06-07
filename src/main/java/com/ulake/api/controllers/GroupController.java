@@ -44,7 +44,7 @@ import com.ulake.api.models.User;
 import com.ulake.api.payload.request.AddMemberRequest;
 import com.ulake.api.payload.response.MessageResponse;
 
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api")
 public class GroupController {

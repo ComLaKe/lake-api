@@ -52,7 +52,7 @@ import com.ulake.api.models.User;
 import com.ulake.api.payload.request.AddFileRequest;
 import com.ulake.api.payload.response.MessageResponse;
 
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api")
 public class FolderController {
@@ -85,28 +85,15 @@ public class FolderController {
 			})
 	@PostMapping("/folders")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
-//	public ResponseEntity<Folder> createFolder(@RequestBody Folder folder) {
-//	    try {
-//	    	Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//	        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-//	        User folderCreator = userRepository.findByEmail(userDetails.getEmail());	        
-//	    	Folder _folder = folderRepository
-//	          .save(new Folder(folderCreator, folder.getName()));
-//	  	  	LOGGER.error("_folder", _folder);
-//	      return new ResponseEntity<>(_folder, HttpStatus.CREATED);
-//	    } catch (Exception e) {
-//	      return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-//	    }
-//	}
 	public Folder createFolder(@RequestBody Folder folder) {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 	    UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 	    User folderCreator = userRepository.findByEmail(userDetails.getEmail());	        
-	  return folderRepository.save(new Folder(folderCreator, folder.getName(), folder.getParentId()));
+	  return folderRepository.save(new Folder(folderCreator, folder.getName()));
 	}
 	
 	
-	@Operation(summary = "Update a folder name by ID", description = "This can only be done by admin.", 
+	@Operation(summary = "Update a folder name by ID", description = "This can only be done by users who has write permission for folders.", 
 			security = { @SecurityRequirement(name = "bearer-key") },
 			tags = { "folder" })
 	@ApiResponses(value = @ApiResponse(description = "successful operation"))
@@ -117,13 +104,35 @@ public class FolderController {
 	  if (folderData.isPresent()) {
 	    	Folder _folder = folderData.get();	    	
 		    _folder.setName(folder.getName());
+		    _folder.setParentId(folder.getParentId());
 	      return new ResponseEntity<>(folderRepository.save(_folder), HttpStatus.OK);
 	  } else {
 	      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 	  }
 	}
 	
-	@Operation(summary = "Get a folder by ID", description = "This can only be done by logged in user.", 
+	@Operation(summary = "Add a subfolder name to folder", description = "This can only be done by users who has write permission for folders.", 
+			security = { @SecurityRequirement(name = "bearer-key") },
+			tags = { "folder" })
+	@ApiResponses(value = @ApiResponse(description = "successful operation"))
+	@PutMapping("/folders/{folderId}/subfolders/{subfolderId}")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+	public ResponseEntity<Folder> addSubfolder(
+			@PathVariable("folderId") Long folderId, 
+			@PathVariable("subfolderId") Long subfolderId
+			) {
+	  Optional<Folder> subfolderData = folderRepository.findById(subfolderId);
+	  Optional<Folder> folderData = folderRepository.findById(folderId);
+	  if (subfolderData.isPresent() && folderData.isPresent()) {
+	    	Folder _subfolder = subfolderData.get();
+	    	_subfolder.setParentId(folderData.get().getId());
+	      return new ResponseEntity<>(folderRepository.save(_subfolder), HttpStatus.OK);
+	  } else {
+	      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+	  }
+	}
+	
+	@Operation(summary = "Get a folder by ID", description = "This can only be done by users who has read permission for folders.", 
 			security = { @SecurityRequirement(name = "bearer-key") },
 			tags = { "folder" })
 	@ApiResponses(value = {
@@ -141,7 +150,7 @@ public class FolderController {
 	  }
 	}
 	
-	@Operation(summary = "Get a folder by name", description = "This can only be done by logged in user.", 
+	@Operation(summary = "Get a folder by name", description = "This can only be done by users who has read permission for folders.", 
 			security = { @SecurityRequirement(name = "bearer-key") },
 			tags = { "folder" })
 	@ApiResponses(value = {
@@ -160,39 +169,7 @@ public class FolderController {
 		}
 	}
 	
-//	@Operation(summary = "Add a file to a folder", description = "This can only be done by logged in user.", 
-//			security = { @SecurityRequirement(name = "bearer-key") },
-//			tags = { "folder" })
-//	@ApiResponses(value = @ApiResponse(description = "successful operation"))
-//	@PutMapping("/folders/{id}/files")
-//    @PreAuthorize("(hasAnyRole('ADMIN','USER')) or (hasPermission(#id, 'com.ulake.api.models.File', 'READ'))")
-//	public ResponseEntity<?> addFile(@PathVariable("id") Long id, @Valid @RequestBody AddFileRequest addFileRequest) {
-//	  Optional<Folder> folderData = folderRepository.findById(id);
-//	  if (folderData.isPresent()) {
-//	    	Folder _folder = folderData.get();
-//	    	
-//			Set<String> strFiles = addFileRequest.getFile();
-//			Set<File> files = new HashSet<>();
-//			
-//			if (strFiles == null) {
-//			    return ResponseEntity.badRequest().body(new MessageResponse("Error: Please enter at least a file!"));
-//			} else {
-//				strFiles.forEach(file -> {
-//					File folderFile = fileRepository.findByName(file);
-//					LOGGER.error("folderFile", folderFile);
-//					files.add(folderFile);
-//					LOGGER.error("files", files);
-//				});
-//			}
-//			_folder.setFiles(files);
-//			folderRepository.save(_folder);
-//	      return new ResponseEntity<>(folderRepository.save(_folder), HttpStatus.OK);
-//	  } else {
-//	      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-//	  }
-//	}
-	
-	@Operation(summary = "Get all folders", description = "This can only be done by logged in user.", 
+	@Operation(summary = "Get all folders", description = "This can only be done by users who has read permission for folders.", 
 			security = { @SecurityRequirement(name = "bearer-key") },
 			tags = { "folder" })
 	@ApiResponses(value = @ApiResponse(description = "successful operation"))
@@ -246,7 +223,7 @@ public class FolderController {
 	    }	
 
 	
-	@Operation(summary = "Delete a folder", description = "This can only be done by admin.", 
+	@Operation(summary = "Delete a folder", description = "This can only be done by users who has write permission for folders.", 
 			security = { @SecurityRequirement(name = "bearer-key") },
 			tags = { "folder" })
 	@ApiResponses(value = {

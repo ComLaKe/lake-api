@@ -9,6 +9,8 @@ import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @Table(	name = "CLake_files")
 public class File  extends Auditable<String> implements IEntity{
@@ -22,6 +24,7 @@ public class File  extends Auditable<String> implements IEntity{
 	
 	@ManyToOne
 	@JoinColumn(name = "folder_id")
+    @JsonIgnore
 	private Folder folder;
 
 	private String cid;

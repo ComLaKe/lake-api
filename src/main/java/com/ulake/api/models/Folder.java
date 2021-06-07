@@ -53,10 +53,9 @@ public class Folder extends Auditable<String> implements IEntity{
 		
 	}
 	
-	public Folder(User creator, String name, Long parentId) {
+	public Folder(User creator, String name) {
 		this.creator = creator;
 		this.name = name;
-		this.parentId = parentId;
 	}
 	
     @Override
