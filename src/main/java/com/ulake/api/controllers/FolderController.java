@@ -36,6 +36,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
+import com.ulake.api.constant.AclSourceType;
+import com.ulake.api.constant.AclTargetType;
+import com.ulake.api.constant.PermType;
+import com.ulake.api.models.Acl;
 import com.ulake.api.models.Folder;
 import com.ulake.api.models.User;
 
@@ -56,7 +60,7 @@ public class FolderController {
 	private LocalPermissionService permissionService;
 
 	@Operation(summary = "Add a folder", description = "This can only be done by logged in user.", security = {
-			@SecurityRequirement(name = "bearer-key") }, tags = { "folder" })
+			@SecurityRequirement(name = "bearer-key") }, tags = { "Folder" })
 	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Status OK") })
 	@PostMapping("/folders")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
@@ -70,16 +74,23 @@ public class FolderController {
 		Folder _folder = new Folder(folderCreator, folder.getName());
 		// Save to Repository
 		folderRepository.save(_folder);
+
 		// Add ACL permissions
 		permissionService.addPermissionForAuthority(_folder, BasePermission.READ, "ROLE_ADMIN");
 		permissionService.addPermissionForAuthority(_folder, BasePermission.WRITE, "ROLE_ADMIN");
 		permissionService.addPermissionForUser(_folder, BasePermission.READ, authentication.getName());
 		permissionService.addPermissionForUser(_folder, BasePermission.WRITE, authentication.getName());
+
+		// Create Acl
+		aclRepository.save(new Acl(_folder.getId(), folderCreator.getId(), AclSourceType.FOLDER, AclTargetType.USER,
+				PermType.READ));
+		aclRepository.save(new Acl(_folder.getId(), folderCreator.getId(), AclSourceType.FOLDER, AclTargetType.USER,
+				PermType.WRITE));
 		return _folder;
 	}
 
 	@Operation(summary = "Update a folder by ID", description = "Only name and parentId could be updated .This can only be done by users who has write permission for folders.", security = {
-			@SecurityRequirement(name = "bearer-key") }, tags = { "folder" })
+			@SecurityRequirement(name = "bearer-key") }, tags = { "Folder" })
 	@ApiResponses(value = @ApiResponse(description = "successful operation"))
 	@PutMapping("/folders/{id}")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#folder, 'WRITE')")
@@ -96,7 +107,7 @@ public class FolderController {
 	}
 
 	@Operation(summary = "Add a subfolder name to folder", description = "This can only be done by users who has write permission for folders.", security = {
-			@SecurityRequirement(name = "bearer-key") }, tags = { "folder" })
+			@SecurityRequirement(name = "bearer-key") }, tags = { "Folder" })
 	@ApiResponses(value = @ApiResponse(description = "successful operation"))
 	@PutMapping("/folders/{folderId}/subfolders/{subfolderId}")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#folder, 'WRITE')")
@@ -114,7 +125,7 @@ public class FolderController {
 	}
 
 	@Operation(summary = "Get a folder by ID", description = "This can only be done by users who has read permission for folders.", security = {
-			@SecurityRequirement(name = "bearer-key") }, tags = { "folder" })
+			@SecurityRequirement(name = "bearer-key") }, tags = { "Folder" })
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = Folder.class))),
 			@ApiResponse(responseCode = "400", description = "Invalid ID supplied", content = @Content),
@@ -131,7 +142,7 @@ public class FolderController {
 	}
 
 	@Operation(summary = "Get all folders", description = "This can only be done by users who has read permission for folders.", security = {
-			@SecurityRequirement(name = "bearer-key") }, tags = { "folder" })
+			@SecurityRequirement(name = "bearer-key") }, tags = { "Folder" })
 	@ApiResponses(value = @ApiResponse(description = "successful operation"))
 	@GetMapping("/folders")
 	@PreAuthorize("(hasAnyRole('ADMIN','USER')) or (hasPermission(#folder, 'READ'))")
@@ -145,7 +156,7 @@ public class FolderController {
 	}
 
 	@Operation(summary = "Delete a folder", description = "This can only be done by users who has write permission for folders.", security = {
-			@SecurityRequirement(name = "bearer-key") }, tags = { "folder" })
+			@SecurityRequirement(name = "bearer-key") }, tags = { "Folder" })
 	@ApiResponses(value = { @ApiResponse(responseCode = "400", description = "Invalid folder ID supplied"),
 			@ApiResponse(responseCode = "404", description = "Folder not found") })
 	@DeleteMapping("/folders/{id}")

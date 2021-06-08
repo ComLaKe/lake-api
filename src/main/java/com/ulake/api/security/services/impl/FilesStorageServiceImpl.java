@@ -18,8 +18,13 @@ import org.springframework.util.FileSystemUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.ulake.api.constant.AclSourceType;
+import com.ulake.api.constant.AclTargetType;
+import com.ulake.api.constant.PermType;
+import com.ulake.api.models.Acl;
 import com.ulake.api.models.File;
 import com.ulake.api.models.User;
+import com.ulake.api.repository.AclRepository;
 import com.ulake.api.repository.FileRepository;
 import com.ulake.api.repository.UserRepository;
 import com.ulake.api.security.services.FilesStorageService;
@@ -34,6 +39,9 @@ public class FilesStorageServiceImpl implements FilesStorageService {
 
 	@Autowired
 	private FileRepository fileRepository;
+
+	@Autowired
+	private AclRepository aclRepository;
 
 	@Autowired
 	private LocalPermissionService permissionService;
@@ -71,6 +79,9 @@ public class FilesStorageServiceImpl implements FilesStorageService {
 			permissionService.addPermissionForAuthority(fileInfo, BasePermission.WRITE, "ROLE_ADMIN");
 			permissionService.addPermissionForUser(fileInfo, BasePermission.READ, authentication.getName());
 			permissionService.addPermissionForUser(fileInfo, BasePermission.WRITE, authentication.getName());
+			
+			aclRepository.save(new Acl(fileInfo.getId(), fileOwner.getId(), AclSourceType.FILE, AclTargetType.USER, PermType.READ));
+			aclRepository.save(new Acl(fileInfo.getId(), fileOwner.getId(), AclSourceType.FILE, AclTargetType.USER, PermType.WRITE));
 
 		} catch (Exception e) {
 			throw new RuntimeException("Could not store the file. Error: " + e.getMessage());

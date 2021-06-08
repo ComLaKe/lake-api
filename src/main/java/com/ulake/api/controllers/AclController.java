@@ -12,11 +12,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.ulake.api.constant.AclSourceType;
+import com.ulake.api.constant.AclTargetType;
+import com.ulake.api.constant.PermType;
+import com.ulake.api.models.Acl;
 import com.ulake.api.models.File;
 import com.ulake.api.models.Folder;
 import com.ulake.api.models.Group;
 import com.ulake.api.models.User;
 import com.ulake.api.payload.response.MessageResponse;
+import com.ulake.api.repository.AclRepository;
 import com.ulake.api.repository.FileRepository;
 import com.ulake.api.repository.FolderRepository;
 import com.ulake.api.repository.GroupRepository;
@@ -47,6 +52,9 @@ public class AclController {
 	private GroupRepository groupRepository;
 
 	@Autowired
+	private AclRepository aclRepository;
+
+	@Autowired
 	private LocalPermissionService permissionService;
 
 	@Operation(summary = "Grant File Permission For User", description = "This can only by done by Admin or File Owner.", security = {
@@ -72,8 +80,12 @@ public class AclController {
 		switch (perm) {
 		case "WRITE":
 			permissionService.addPermissionForUser(file, BasePermission.WRITE, user.getUsername());
+			aclRepository
+					.save(new Acl(file.getId(), user.getId(), AclSourceType.FILE, AclTargetType.USER, PermType.WRITE));
 		case "READ":
 			permissionService.addPermissionForUser(file, BasePermission.READ, user.getUsername());
+			aclRepository
+					.save(new Acl(file.getId(), user.getId(), AclSourceType.FILE, AclTargetType.USER, PermType.READ));
 		}
 		return ResponseEntity.ok(new MessageResponse("Grant Permssion for User successful!"));
 	}
@@ -101,8 +113,12 @@ public class AclController {
 		switch (perm) {
 		case "WRITE":
 			permissionService.addPermissionForAuthority(file, BasePermission.WRITE, group.getName());
+			aclRepository.save(
+					new Acl(file.getId(), group.getId(), AclSourceType.FILE, AclTargetType.GROUP, PermType.WRITE));
 		case "READ":
 			permissionService.addPermissionForAuthority(file, BasePermission.READ, group.getName());
+			aclRepository
+					.save(new Acl(file.getId(), group.getId(), AclSourceType.FILE, AclTargetType.GROUP, PermType.READ));
 		}
 		return ResponseEntity.ok(new MessageResponse("Grant Permssion for Group successful!"));
 	}
@@ -115,7 +131,7 @@ public class AclController {
 			@ApiResponse(responseCode = "404", description = "User not found", content = @Content) })
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#file, 'WRITE')")
 	@PostMapping("/acl/files/remove/user")
-	public ResponseEntity<?> removeFilePermissionForUser(@RequestParam Long fileId, @RequestParam Long userId) {
+	public ResponseEntity<?> removeAllFilePermissionForUser(@RequestParam Long fileId, @RequestParam Long userId) {
 		Optional<File> fileData = fileRepository.findById(fileId);
 		File file = fileData.get();
 		if (!fileData.isPresent()) {
@@ -138,7 +154,7 @@ public class AclController {
 			@ApiResponse(responseCode = "404", description = "User not found", content = @Content) })
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#file, 'WRITE')")
 	@PostMapping("/acl/files/remove/group")
-	public ResponseEntity<?> removeFilePermissionForGroup(@RequestParam Long fileId, @RequestParam Long groupId) {
+	public ResponseEntity<?> removeAllFilePermissionForGroup(@RequestParam Long fileId, @RequestParam Long groupId) {
 		Optional<File> fileData = fileRepository.findById(fileId);
 		File file = fileData.get();
 		if (!fileData.isPresent()) {
@@ -176,8 +192,12 @@ public class AclController {
 		switch (perm) {
 		case "WRITE":
 			permissionService.addPermissionForUser(folder, BasePermission.WRITE, user.getUsername());
+			aclRepository.save(
+					new Acl(folder.getId(), user.getId(), AclSourceType.FOLDER, AclTargetType.USER, PermType.WRITE));
 		case "READ":
 			permissionService.addPermissionForUser(folder, BasePermission.READ, user.getUsername());
+			aclRepository.save(
+					new Acl(folder.getId(), user.getId(), AclSourceType.FOLDER, AclTargetType.USER, PermType.READ));
 		}
 		return ResponseEntity.ok(new MessageResponse("Grant Permssion for User successful!"));
 	}
@@ -205,8 +225,12 @@ public class AclController {
 		switch (perm) {
 		case "WRITE":
 			permissionService.addPermissionForAuthority(folder, BasePermission.WRITE, group.getName());
+			aclRepository.save(
+					new Acl(folder.getId(), group.getId(), AclSourceType.FOLDER, AclTargetType.GROUP, PermType.WRITE));
 		case "READ":
 			permissionService.addPermissionForAuthority(folder, BasePermission.READ, group.getName());
+			aclRepository.save(
+					new Acl(folder.getId(), group.getId(), AclSourceType.FOLDER, AclTargetType.GROUP, PermType.READ));
 		}
 		return ResponseEntity.ok(new MessageResponse("Grant Permssion for Group successful!"));
 	}
@@ -219,7 +243,7 @@ public class AclController {
 			@ApiResponse(responseCode = "404", description = "User not found", content = @Content) })
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#folder, 'WRITE')")
 	@PostMapping("/acl/folders/remove/user")
-	public ResponseEntity<?> removeFolderPermissionForUser(@RequestParam Long folderId, @RequestParam Long userId) {
+	public ResponseEntity<?> removeAllFolderPermissionForUser(@RequestParam Long folderId, @RequestParam Long userId) {
 		Optional<Folder> folderData = folderRepository.findById(folderId);
 		Folder folder = folderData.get();
 		if (!folderData.isPresent()) {
@@ -242,7 +266,7 @@ public class AclController {
 			@ApiResponse(responseCode = "404", description = "User not found", content = @Content) })
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#folder, 'WRITE')")
 	@PostMapping("/acl/folders/remove/group")
-	public ResponseEntity<?> removeFolderPermissionForGroup(@RequestParam Long folderId, @RequestParam Long groupId) {
+	public ResponseEntity<?> removeAllFolderPermissionForGroup(@RequestParam Long folderId, @RequestParam Long groupId) {
 		Optional<Folder> folderData = folderRepository.findById(folderId);
 		Folder folder = folderData.get();
 		if (!folderData.isPresent()) {

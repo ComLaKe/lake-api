@@ -65,7 +65,7 @@ public class FileController {
 //	}
 
 	@Operation(summary = "Upload a file", description = "This can only be done by logged in user having the file permissions.", security = {
-			@SecurityRequirement(name = "bearer-key") }, tags = { "file" })
+			@SecurityRequirement(name = "bearer-key") }, tags = { "File" })
 	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Status OK") })
 	@PostMapping(value = "/files", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
@@ -83,7 +83,7 @@ public class FileController {
 	}
 
 	@Operation(summary = "Update a file by ID", description = "This can only be done by user who has write permission to file.", security = {
-			@SecurityRequirement(name = "bearer-key") }, tags = { "file" })
+			@SecurityRequirement(name = "bearer-key") }, tags = { "File" })
 	@ApiResponses(value = @ApiResponse(description = "successful operation"))
 	@PutMapping("/files/{id}")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#file, 'WRITE')")
@@ -111,7 +111,7 @@ public class FileController {
 	}
 
 	@Operation(summary = "Get a file by ID", description = "This can only be done by logged in user.", security = {
-			@SecurityRequirement(name = "bearer-key") }, tags = { "file" })
+			@SecurityRequirement(name = "bearer-key") }, tags = { "File" })
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = File.class))),
 			@ApiResponse(responseCode = "400", description = "Invalid ID supplied", content = @Content),
@@ -125,7 +125,7 @@ public class FileController {
 	}
 
 	@Operation(summary = "Delete a file by ID", description = "This can only be done by logged in user.", security = {
-			@SecurityRequirement(name = "bearer-key") }, tags = { "file" })
+			@SecurityRequirement(name = "bearer-key") }, tags = { "File" })
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = File.class))),
 			@ApiResponse(responseCode = "400", description = "Invalid ID supplied", content = @Content),
@@ -144,7 +144,7 @@ public class FileController {
 	}
 
 	@Operation(summary = "Get all files", description = "This can only be done by logged in user with file permissions.", security = {
-			@SecurityRequirement(name = "bearer-key") }, tags = { "file" })
+			@SecurityRequirement(name = "bearer-key") }, tags = { "File" })
 	@ApiResponses(value = @ApiResponse(description = "successful operation"))
 	@GetMapping("/files")
 	@PreAuthorize("(hasAnyRole('ADMIN','USER')) or (hasPermission(#file, 'READ'))")
@@ -158,7 +158,7 @@ public class FileController {
 	}
 
 	@Operation(summary = "Get File Data", description = "This can only be done by logged in user and those who have read permssions of file.", security = {
-			@SecurityRequirement(name = "bearer-key") }, tags = { "file" })
+			@SecurityRequirement(name = "bearer-key") }, tags = { "File" })
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#file, 'READ')")
 	@GetMapping("/files/data/{id}")
 	public ResponseEntity<byte[]> getFileData(@PathVariable Long id) {
@@ -169,7 +169,7 @@ public class FileController {
 	}
 
 	@Operation(summary = "Get All Files by Folder Id", description = "This can only be done by logged in user and those who have read permssions of file.", security = {
-			@SecurityRequirement(name = "bearer-key") }, tags = { "file" })
+			@SecurityRequirement(name = "bearer-key") }, tags = { "File" })
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#file, 'READ')")
 	@GetMapping("/folder/{folderId}/files")
 	public List<File> getAllFilesByFolderId(@PathVariable(value = "folderId") Long folderId) {
