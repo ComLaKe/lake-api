@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.ulake.api.exception.TokenRefreshException;
+import com.ulake.api.advice.TokenRefreshException;
 import com.ulake.api.models.RefreshToken;
 import com.ulake.api.repository.RefreshTokenRepository;
 import com.ulake.api.repository.UserRepository;

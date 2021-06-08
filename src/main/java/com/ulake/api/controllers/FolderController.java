@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.ulake.api.repository.AclRepository;
 import com.ulake.api.repository.FolderRepository;
 import com.ulake.api.repository.UserRepository;
 import com.ulake.api.security.services.LocalPermissionService;
@@ -49,17 +50,10 @@ public class FolderController {
 	UserRepository userRepository;
 
 	@Autowired
-	private LocalPermissionService permissionService;
+	AclRepository aclRepository;
 
-//	private Sort.Direction getSortDirection(String direction) {
-//	    if (direction.equals("ASC")) {
-//	      return Sort.Direction.ASC;
-//	    } else if (direction.equals("DESC")) {
-//	      return Sort.Direction.DESC;
-//	    }
-//
-//	    return Sort.Direction.ASC;
-//	}
+	@Autowired
+	private LocalPermissionService permissionService;
 
 	@Operation(summary = "Add a folder", description = "This can only be done by logged in user.", security = {
 			@SecurityRequirement(name = "bearer-key") }, tags = { "folder" })

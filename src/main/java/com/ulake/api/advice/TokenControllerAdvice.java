@@ -8,8 +8,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 
-import com.ulake.api.exception.TokenRefreshException;
-
 @RestControllerAdvice
 public class TokenControllerAdvice {
 

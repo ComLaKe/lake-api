@@ -21,8 +21,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.ulake.api.advice.TokenRefreshException;
 import com.ulake.api.constant.ERole;
-import com.ulake.api.exception.TokenRefreshException;
 import com.ulake.api.models.RefreshToken;
 import com.ulake.api.models.Role;
 import com.ulake.api.models.User;
