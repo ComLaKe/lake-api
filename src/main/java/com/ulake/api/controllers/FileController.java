@@ -1,5 +1,6 @@
 package com.ulake.api.controllers;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -11,6 +12,10 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.acls.domain.BasePermission;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,13 +28,19 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.ulake.api.constant.AclSourceType;
+import com.ulake.api.constant.AclTargetType;
+import com.ulake.api.constant.PermType;
+import com.ulake.api.models.Acl;
 import com.ulake.api.models.File;
 import com.ulake.api.models.Folder;
-import com.ulake.api.payload.response.MessageResponse;
+import com.ulake.api.models.User;
+import com.ulake.api.repository.AclRepository;
 import com.ulake.api.repository.FileRepository;
 import com.ulake.api.repository.FolderRepository;
-import com.ulake.api.security.services.FilesStorageService;
+import com.ulake.api.repository.UserRepository;
 import com.ulake.api.security.services.LocalPermissionService;
+import com.ulake.api.security.services.impl.UserDetailsImpl;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -49,10 +60,13 @@ public class FileController {
 	private FolderRepository folderRepository;
 
 	@Autowired
-	private LocalPermissionService permissionService;
+	private UserRepository userRepository;
 
 	@Autowired
-	FilesStorageService storageService;
+	private AclRepository aclRepository;
+
+	@Autowired
+	private LocalPermissionService permissionService;
 
 //	private Sort.Direction getSortDirection(String direction) {
 //	    if (direction.equals("ASC")) {
@@ -70,18 +84,35 @@ public class FileController {
 	@PostMapping(value = "/files", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
 	@PostAuthorize("hasPermission(returnObject, 'READ')")
-	public ResponseEntity<MessageResponse> uploadFile(@RequestParam("file") MultipartFile file) {
-		String message = "";
-		try {
-			storageService.store(file);
-			message = "Uploaded the file successfully: " + file.getOriginalFilename();
-			return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse(message));
-		} catch (Exception e) {
-			message = "Could not upload the file: " + file.getOriginalFilename() + "!";
-			return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(new MessageResponse(message));
-		}
-	}
+	public File uploadFile(@RequestParam("file") MultipartFile file) throws IOException {
+		// Find out who is the current logged in user
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 
+		User fileOwner = userRepository.findByEmail(userDetails.getEmail());
+		String fileName = StringUtils.cleanPath(file.getOriginalFilename());
+		String fileMimeType = file.getContentType();
+		Long fileSize = file.getSize();
+		byte[] fileData = file.getBytes();
+		File fileInfo = new File(fileOwner, fileName, fileMimeType, fileSize, fileData);
+
+		// Save File Metadata in our db;
+		fileRepository.save(fileInfo);
+
+		// Add ACL WRITE and READ Permission For Admin and File Owner
+		permissionService.addPermissionForAuthority(fileInfo, BasePermission.READ, "ROLE_ADMIN");
+		permissionService.addPermissionForAuthority(fileInfo, BasePermission.WRITE, "ROLE_ADMIN");
+		permissionService.addPermissionForUser(fileInfo, BasePermission.READ, authentication.getName());
+		permissionService.addPermissionForUser(fileInfo, BasePermission.WRITE, authentication.getName());
+
+		aclRepository.save(
+				new Acl(fileInfo.getId(), fileOwner.getId(), AclSourceType.FILE, AclTargetType.USER, PermType.READ));
+		aclRepository.save(
+				new Acl(fileInfo.getId(), fileOwner.getId(), AclSourceType.FILE, AclTargetType.USER, PermType.WRITE));
+
+		return fileInfo;
+	}
+	
 	@Operation(summary = "Update a file by ID", description = "This can only be done by user who has write permission to file.", security = {
 			@SecurityRequirement(name = "bearer-key") }, tags = { "File" })
 	@ApiResponses(value = @ApiResponse(description = "successful operation"))
@@ -98,7 +129,7 @@ public class FileController {
 	}
 
 	@Operation(summary = "Add a file to a folder", description = "This can only be done by user who has write permission to file.", security = {
-			@SecurityRequirement(name = "bearer-key") }, tags = { "folder" })
+			@SecurityRequirement(name = "bearer-key") }, tags = { "Folder" })
 	@ApiResponses(value = @ApiResponse(description = "successful operation"))
 	@PutMapping("/folders/{folderId}/files/{fileId}")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#file, 'WRITE')")
@@ -119,9 +150,7 @@ public class FileController {
 	@GetMapping("/files/{id}")
 	@PreAuthorize("(hasAnyRole('ADMIN','USER')) or (hasPermission(#id, 'com.ulake.api.models.File', 'READ'))")
 	public File getFileById(@PathVariable("id") Long id) {
-		Optional<File> fileData = fileRepository.findById(id);
-		File _file = fileData.get();
-		return _file;
+		return fileRepository.findById(id).get();
 	}
 
 	@Operation(summary = "Delete a file by ID", description = "This can only be done by logged in user.", security = {
@@ -136,7 +165,7 @@ public class FileController {
 		try {
 			File file = fileRepository.findById(id).get();
 			fileRepository.deleteById(id);
-//			aclRepository.deleteAllBySourceId(id)
+			aclRepository.deleteAllBySourceIdAndSourceType(id, "File");
 			permissionService.removeAcl(file);
 			return new ResponseEntity<>(HttpStatus.OK);
 		} catch (Exception e) {
