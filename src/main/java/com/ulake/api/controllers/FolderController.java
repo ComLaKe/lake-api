@@ -166,6 +166,7 @@ public class FolderController {
 			Folder folder = folderRepository.findById(id).get();
 			folderRepository.deleteById(id);
 			permissionService.removeAcl(folder);
+			aclRepository.removeBySourceIdAndSourceType(id, AclSourceType.FOLDER);
 			return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 		} catch (Exception e) {
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);

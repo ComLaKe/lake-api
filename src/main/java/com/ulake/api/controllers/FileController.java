@@ -164,7 +164,7 @@ public class FileController {
 		try {
 			File file = fileRepository.findById(id).get();
 			fileRepository.deleteById(id);
-//			aclRepository.deleteAllBySourceIdAndSourceType(id, "File");
+			aclRepository.removeBySourceIdAndSourceType(id, AclSourceType.FILE);
 			permissionService.removeAcl(file);
 			return new ResponseEntity<>(HttpStatus.OK);
 		} catch (Exception e) {

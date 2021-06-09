@@ -2,7 +2,6 @@ package com.ulake.api.controllers;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -85,21 +84,6 @@ public class AclController {
 		return acls;
 	}
 
-	@Operation(summary = "Delete All Permissions", description = "This can only by done by Admin.", security = {
-			@SecurityRequirement(name = "bearer-key") }, tags = { "Internal" })
-	@ApiResponses(value = {
-			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = File.class))),
-			@ApiResponse(responseCode = "400", description = "Invalid ID supplied", content = @Content),
-			@ApiResponse(responseCode = "404", description = "User not found", content = @Content) })
-	@PreAuthorize("hasRole('ADMIN')")
-	@DeleteMapping("/config")
-	public ResponseEntity<?> deleteAll() {
-		aclRepository.deleteAll();
-		fileRepository.deleteAll();
-		folderRepository.deleteAll();
-		return ResponseEntity.ok(new MessageResponse("Delete all ACL, File, Folder successful!"));
-	}
-
 	@Operation(summary = "Grant File Permission For User", description = "This can only by done by Admin or File Owner.", security = {
 			@SecurityRequirement(name = "bearer-key") }, tags = { "ACL - Access Control" })
 	@ApiResponses(value = {
@@ -107,7 +91,7 @@ public class AclController {
 			@ApiResponse(responseCode = "400", description = "Invalid ID supplied", content = @Content),
 			@ApiResponse(responseCode = "404", description = "User not found", content = @Content) })
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#file, 'WRITE')")
-	@PostMapping("/acl/files/grant_permssion/user")
+	@PostMapping("/acl/grant/file/user")
 	public ResponseEntity<?> grantFilePermissionForUser(@RequestParam Long fileId, @RequestParam Long userId,
 			@RequestParam String perm) {
 		File file = fileRepository.findById(fileId).get();
@@ -162,6 +146,8 @@ public class AclController {
 		File file = fileRepository.findById(fileId).get();
 		User user = userRepository.findById(userId).get();
 		permissionService.removeAllPermissionForUser(file, user.getUsername());
+		aclRepository.removeBySourceIdAndTargetIdAndSourceTypeAndTargetType(fileId, userId, AclSourceType.FILE,
+				AclTargetType.USER);
 		return ResponseEntity.ok(new MessageResponse("Remove all Permssions for User successful!"));
 	}
 
@@ -177,6 +163,8 @@ public class AclController {
 		File file = fileRepository.findById(fileId).get();
 		Group group = groupRepository.findById(groupId).get();
 		permissionService.removeAllPermissionForAuthority(file, group.getName());
+		aclRepository.removeBySourceIdAndTargetIdAndSourceTypeAndTargetType(fileId, groupId, AclSourceType.FILE,
+				AclTargetType.GROUP);
 		return ResponseEntity.ok(new MessageResponse("Remove All Permissions for Group successful!"));
 	}
 
@@ -242,6 +230,8 @@ public class AclController {
 		Folder folder = folderRepository.findById(folderId).get();
 		User user = userRepository.findById(userId).get();
 		permissionService.removeAllPermissionForUser(folder, user.getUsername());
+		aclRepository.removeBySourceIdAndTargetIdAndSourceTypeAndTargetType(folderId, userId, AclSourceType.FOLDER,
+				AclTargetType.USER);
 		return ResponseEntity.ok(new MessageResponse("Remove all Permssions for User successful!"));
 	}
 
@@ -258,6 +248,8 @@ public class AclController {
 		Folder folder = folderRepository.findById(folderId).get();
 		Group group = groupRepository.findById(groupId).get();
 		permissionService.removeAllPermissionForAuthority(folder, group.getName());
+		aclRepository.removeBySourceIdAndTargetIdAndSourceTypeAndTargetType(folderId, groupId, AclSourceType.FOLDER,
+				AclTargetType.GROUP);
 		return ResponseEntity.ok(new MessageResponse("Remove All Permissions for Group successful!"));
 	}
 }
