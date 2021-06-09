@@ -1,19 +1,14 @@
 package com.ulake.api.security.services;
 
-import java.nio.file.Path;
+import java.io.IOException;
 import java.util.stream.Stream;
 
-import org.springframework.core.io.Resource;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.ulake.api.models.File;
+
 public interface FilesStorageService {
-	public void init();
+	public Stream<File> getAllFiles();
 
-	public void save(MultipartFile file);
-
-	public Resource load(String filename);
-
-	public void deleteAll();
-
-	public Stream<Path> loadAll();
+	File store(MultipartFile file) throws IOException;
 }

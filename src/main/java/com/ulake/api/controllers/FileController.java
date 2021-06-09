@@ -73,7 +73,7 @@ public class FileController {
 	public ResponseEntity<MessageResponse> uploadFile(@RequestParam("file") MultipartFile file) {
 		String message = "";
 		try {
-			storageService.save(file);
+			storageService.store(file);
 			message = "Uploaded the file successfully: " + file.getOriginalFilename();
 			return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse(message));
 		} catch (Exception e) {
@@ -136,6 +136,7 @@ public class FileController {
 		try {
 			File file = fileRepository.findById(id).get();
 			fileRepository.deleteById(id);
+//			aclRepository.deleteAllBySourceId(id)
 			permissionService.removeAcl(file);
 			return new ResponseEntity<>(HttpStatus.OK);
 		} catch (Exception e) {

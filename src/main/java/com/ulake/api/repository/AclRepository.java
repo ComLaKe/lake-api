@@ -5,5 +5,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import com.ulake.api.models.Acl;
 
 public interface AclRepository extends JpaRepository<Acl, Long>{
-
+	void deleteAllBySourceId(Long sourceId);
 }
