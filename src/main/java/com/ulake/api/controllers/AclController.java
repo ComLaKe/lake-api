@@ -68,18 +68,18 @@ public class AclController {
 			@ApiResponse(responseCode = "404", description = "User not found", content = @Content) })
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
 	@GetMapping("/acl/perm")
-	public List<Acl> getAllPermission(@RequestParam(required = false) Long user,
-			@RequestParam(required = false) Long group) {
+	public List<Acl> getAllPermission(@RequestParam(required = false) String user,
+			@RequestParam(required = false) String group) {
 		List<Acl> acls = new ArrayList<Acl>();
 		if ((user == null) & (group == null))
 			aclRepository.findAll().forEach(acls::add);
 		else if (user != null) {
-			aclRepository.findByTargetTypeAndTargetId(AclTargetType.USER, user).forEach(acls::add);
+			aclRepository.findByTargetTypeAndTargetName(AclTargetType.USER, user).forEach(acls::add);
 		} else if (group != null) {
-			aclRepository.findByTargetTypeAndTargetId(AclTargetType.GROUP, group).forEach(acls::add);
+			aclRepository.findByTargetTypeAndTargetName(AclTargetType.GROUP, group).forEach(acls::add);
 		} else {
-			aclRepository.findByTargetTypeAndTargetId(AclTargetType.GROUP, group).forEach(acls::add);
-			aclRepository.findByTargetTypeAndTargetId(AclTargetType.USER, user).forEach(acls::add);
+			aclRepository.findByTargetTypeAndTargetName(AclTargetType.GROUP, group).forEach(acls::add);
+			aclRepository.findByTargetTypeAndTargetName(AclTargetType.USER, user).forEach(acls::add);
 		}
 		return acls;
 	}
@@ -99,12 +99,14 @@ public class AclController {
 		switch (perm) {
 		case "WRITE":
 			permissionService.addPermissionForUser(file, BasePermission.WRITE, user.getUsername());
-			aclRepository
-					.save(new Acl(file.getId(), user.getId(), AclSourceType.FILE, AclTargetType.USER, PermType.WRITE));
+			aclRepository.save(new Acl(file.getName(), user.getUsername(), AclSourceType.FILE, AclTargetType.USER,
+					PermType.WRITE));
+			break;
 		case "READ":
 			permissionService.addPermissionForUser(file, BasePermission.READ, user.getUsername());
-			aclRepository
-					.save(new Acl(file.getId(), user.getId(), AclSourceType.FILE, AclTargetType.USER, PermType.READ));
+			aclRepository.save(
+					new Acl(file.getName(), user.getUsername(), AclSourceType.FILE, AclTargetType.USER, PermType.READ));
+			break;
 		}
 		return ResponseEntity.ok(new MessageResponse("Grant Permssion for User successful!"));
 	}
@@ -125,11 +127,11 @@ public class AclController {
 		case "WRITE":
 			permissionService.addPermissionForAuthority(file, BasePermission.WRITE, group.getName());
 			aclRepository.save(
-					new Acl(file.getId(), group.getId(), AclSourceType.FILE, AclTargetType.GROUP, PermType.WRITE));
+					new Acl(file.getName(), group.getName(), AclSourceType.FILE, AclTargetType.GROUP, PermType.WRITE));
 		case "READ":
 			permissionService.addPermissionForAuthority(file, BasePermission.READ, group.getName());
-			aclRepository
-					.save(new Acl(file.getId(), group.getId(), AclSourceType.FILE, AclTargetType.GROUP, PermType.READ));
+			aclRepository.save(
+					new Acl(file.getName(), group.getName(), AclSourceType.FILE, AclTargetType.GROUP, PermType.READ));
 		}
 		return ResponseEntity.ok(new MessageResponse("Grant Permssion for Group successful!"));
 	}
@@ -146,8 +148,8 @@ public class AclController {
 		File file = fileRepository.findById(fileId).get();
 		User user = userRepository.findById(userId).get();
 		permissionService.removeAllPermissionForUser(file, user.getUsername());
-		aclRepository.removeBySourceIdAndTargetIdAndSourceTypeAndTargetType(fileId, userId, AclSourceType.FILE,
-				AclTargetType.USER);
+		aclRepository.removeBySourceNameAndTargetNameAndSourceTypeAndTargetType(file.getName(), user.getUsername(),
+				AclSourceType.FILE, AclTargetType.USER);
 		return ResponseEntity.ok(new MessageResponse("Remove all Permssions for User successful!"));
 	}
 
@@ -163,8 +165,8 @@ public class AclController {
 		File file = fileRepository.findById(fileId).get();
 		Group group = groupRepository.findById(groupId).get();
 		permissionService.removeAllPermissionForAuthority(file, group.getName());
-		aclRepository.removeBySourceIdAndTargetIdAndSourceTypeAndTargetType(fileId, groupId, AclSourceType.FILE,
-				AclTargetType.GROUP);
+		aclRepository.removeBySourceNameAndTargetNameAndSourceTypeAndTargetType(file.getName(), group.getName(),
+				AclSourceType.FILE, AclTargetType.GROUP);
 		return ResponseEntity.ok(new MessageResponse("Remove All Permissions for Group successful!"));
 	}
 
@@ -183,12 +185,12 @@ public class AclController {
 		switch (perm) {
 		case "WRITE":
 			permissionService.addPermissionForUser(folder, BasePermission.WRITE, user.getUsername());
-			aclRepository.save(
-					new Acl(folder.getId(), user.getId(), AclSourceType.FOLDER, AclTargetType.USER, PermType.WRITE));
+			aclRepository.save(new Acl(folder.getName(), user.getUsername(), AclSourceType.FOLDER, AclTargetType.USER,
+					PermType.WRITE));
 		case "READ":
 			permissionService.addPermissionForUser(folder, BasePermission.READ, user.getUsername());
-			aclRepository.save(
-					new Acl(folder.getId(), user.getId(), AclSourceType.FOLDER, AclTargetType.USER, PermType.READ));
+			aclRepository.save(new Acl(folder.getName(), user.getUsername(), AclSourceType.FOLDER, AclTargetType.USER,
+					PermType.READ));
 		}
 		return ResponseEntity.ok(new MessageResponse("Grant Permssion for User successful!"));
 	}
@@ -208,12 +210,12 @@ public class AclController {
 		switch (perm) {
 		case "WRITE":
 			permissionService.addPermissionForAuthority(folder, BasePermission.WRITE, group.getName());
-			aclRepository.save(
-					new Acl(folder.getId(), group.getId(), AclSourceType.FOLDER, AclTargetType.GROUP, PermType.WRITE));
+			aclRepository.save(new Acl(folder.getName(), group.getName(), AclSourceType.FOLDER, AclTargetType.GROUP,
+					PermType.WRITE));
 		case "READ":
 			permissionService.addPermissionForAuthority(folder, BasePermission.READ, group.getName());
-			aclRepository.save(
-					new Acl(folder.getId(), group.getId(), AclSourceType.FOLDER, AclTargetType.GROUP, PermType.READ));
+			aclRepository.save(new Acl(folder.getName(), group.getName(), AclSourceType.FOLDER, AclTargetType.GROUP,
+					PermType.READ));
 		}
 		return ResponseEntity.ok(new MessageResponse("Grant Permssion for Group successful!"));
 	}
@@ -230,8 +232,8 @@ public class AclController {
 		Folder folder = folderRepository.findById(folderId).get();
 		User user = userRepository.findById(userId).get();
 		permissionService.removeAllPermissionForUser(folder, user.getUsername());
-		aclRepository.removeBySourceIdAndTargetIdAndSourceTypeAndTargetType(folderId, userId, AclSourceType.FOLDER,
-				AclTargetType.USER);
+		aclRepository.removeBySourceNameAndTargetNameAndSourceTypeAndTargetType(folder.getName(), user.getUsername(),
+				AclSourceType.FOLDER, AclTargetType.USER);
 		return ResponseEntity.ok(new MessageResponse("Remove all Permssions for User successful!"));
 	}
 
@@ -248,8 +250,8 @@ public class AclController {
 		Folder folder = folderRepository.findById(folderId).get();
 		Group group = groupRepository.findById(groupId).get();
 		permissionService.removeAllPermissionForAuthority(folder, group.getName());
-		aclRepository.removeBySourceIdAndTargetIdAndSourceTypeAndTargetType(folderId, groupId, AclSourceType.FOLDER,
-				AclTargetType.GROUP);
+		aclRepository.removeBySourceNameAndTargetNameAndSourceTypeAndTargetType(folder.getName(), group.getName(),
+				AclSourceType.FOLDER, AclTargetType.GROUP);
 		return ResponseEntity.ok(new MessageResponse("Remove All Permissions for Group successful!"));
 	}
 }

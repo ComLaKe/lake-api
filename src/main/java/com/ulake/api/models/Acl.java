@@ -21,10 +21,10 @@ public class Acl extends Auditable<String> {
 	private Long id;
 
 	@Column(length = 36, nullable = false)
-	private Long sourceId;
+	private String sourceName;
 
 	@Column(length = 36, nullable = false)
-	private Long targetId;
+	private String targetName;
 
 	@Enumerated(EnumType.STRING)
 	@Column(length = 30, nullable = false)
@@ -42,9 +42,9 @@ public class Acl extends Auditable<String> {
 
 	}
 
-	public Acl(Long sourceId, Long targetId, AclSourceType sourceType, AclTargetType targetType, PermType perm) {
-		this.sourceId = sourceId;
-		this.targetId = targetId;
+	public Acl(String sourceName, String targetName, AclSourceType sourceType, AclTargetType targetType, PermType perm) {
+		this.sourceName = sourceName;
+		this.targetName = targetName;
 		this.sourceType = sourceType;
 		this.targetType = targetType;
 		this.perm = perm;
@@ -66,20 +66,20 @@ public class Acl extends Auditable<String> {
 		this.perm = perm;
 	}
 
-	public Long getSourceId() {
-		return sourceId;
+	public String getSourceId() {
+		return sourceName;
 	}
 
-	public void setSourceId(Long sourceId) {
-		this.sourceId = sourceId;
+	public void setSourceId(String sourceName) {
+		this.sourceName = sourceName;
 	}
 
-	public Long getTargetId() {
-		return targetId;
+	public String getTargetId() {
+		return targetName;
 	}
 
-	public void setTargetId(Long targetId) {
-		this.targetId = targetId;
+	public void setTargetId(String targetName) {
+		this.targetName = targetName;
 	}
 
 	public AclTargetType getTargetType() {
