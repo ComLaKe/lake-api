@@ -3,7 +3,6 @@ package com.ulake.api.controllers;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -165,7 +164,7 @@ public class FileController {
 		try {
 			File file = fileRepository.findById(id).get();
 			fileRepository.deleteById(id);
-			aclRepository.deleteAllBySourceIdAndSourceType(id, "File");
+//			aclRepository.deleteAllBySourceIdAndSourceType(id, "File");
 			permissionService.removeAcl(file);
 			return new ResponseEntity<>(HttpStatus.OK);
 		} catch (Exception e) {
