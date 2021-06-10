@@ -91,7 +91,7 @@ public class AclController {
 			@ApiResponse(responseCode = "400", description = "Invalid ID supplied", content = @Content),
 			@ApiResponse(responseCode = "404", description = "User not found", content = @Content) })
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#file, 'WRITE')")
-	@PutMapping("/acl/files/user")
+	@PutMapping("/acl/file/user")
 	public ResponseEntity<?> grantFilePermissionForUser(@RequestParam Long fileId, @RequestParam Long userId,
 			@RequestParam String perm) {
 		File file = fileRepository.findById(fileId).get();
@@ -199,7 +199,7 @@ public class AclController {
 			@ApiResponse(responseCode = "400", description = "Invalid ID supplied", content = @Content),
 			@ApiResponse(responseCode = "404", description = "User not found", content = @Content) })
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#file, 'WRITE')")
-	@DeleteMapping("/acl/files/user")
+	@DeleteMapping("/acl/file/user")
 	public ResponseEntity<?> removeFilePermissionForUser(@RequestParam Long fileId, @RequestParam Long userId,
 			@RequestParam String permStr) {
 		File file = fileRepository.findById(fileId).get();
@@ -227,7 +227,7 @@ public class AclController {
 			@ApiResponse(responseCode = "400", description = "Invalid ID supplied", content = @Content),
 			@ApiResponse(responseCode = "404", description = "User not found", content = @Content) })
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#file, 'WRITE')")
-	@DeleteMapping("/acl/files/group")
+	@DeleteMapping("/acl/file/group")
 	public ResponseEntity<?> removeFilePermissionForGroup(@RequestParam Long fileId, @RequestParam Long groupId,
 			@RequestParam String permStr) {
 		File file = fileRepository.findById(fileId).get();
@@ -235,12 +235,12 @@ public class AclController {
 		PermType perm = PermType.valueOf(permStr);
 		switch (perm) {
 		case READ:
-			permissionService.removePermissionForUser(file, BasePermission.READ, group.getName());
+			permissionService.removePermissionForAuthority(file, BasePermission.READ, group.getName());
 			aclRepository.removeBySourceIdAndTargetIdAndSourceTypeAndTargetTypeAndPerm(fileId, groupId,
 					AclSourceType.FILE, AclTargetType.GROUP, PermType.READ);
 			break;
 		case WRITE:
-			permissionService.removePermissionForUser(file, BasePermission.WRITE, group.getName());
+			permissionService.removePermissionForAuthority(file, BasePermission.WRITE, group.getName());
 			aclRepository.removeBySourceIdAndTargetIdAndSourceTypeAndTargetTypeAndPerm(fileId, groupId,
 					AclSourceType.FILE, AclTargetType.GROUP, PermType.WRITE);
 			break;
@@ -264,12 +264,12 @@ public class AclController {
 		PermType perm = PermType.valueOf(permStr);
 		switch (perm) {
 		case READ:
-			permissionService.removePermissionForUser(folder, BasePermission.READ, group.getName());
+			permissionService.removePermissionForAuthority(folder, BasePermission.READ, group.getName());
 			aclRepository.removeBySourceIdAndTargetIdAndSourceTypeAndTargetTypeAndPerm(folderId, groupId,
 					AclSourceType.FOLDER, AclTargetType.GROUP, PermType.READ);
 			break;
 		case WRITE:
-			permissionService.removePermissionForUser(folder, BasePermission.WRITE, group.getName());
+			permissionService.removePermissionForAuthority(folder, BasePermission.WRITE, group.getName());
 			aclRepository.removeBySourceIdAndTargetIdAndSourceTypeAndTargetTypeAndPerm(folderId, groupId,
 					AclSourceType.FOLDER, AclTargetType.GROUP, PermType.WRITE);
 			break;
@@ -347,7 +347,7 @@ public class AclController {
 			@ApiResponse(responseCode = "400", description = "Invalid ID supplied", content = @Content),
 			@ApiResponse(responseCode = "404", description = "User not found", content = @Content) })
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#file, 'WRITE')")
-	@DeleteMapping("/acl/files/user/all")
+	@DeleteMapping("/acl/file/user/all")
 	public ResponseEntity<?> removeAllFilePermissionForUser(@RequestParam Long fileId, @RequestParam Long userId) {
 		File file = fileRepository.findById(fileId).get();
 		User user = userRepository.findById(userId).get();
@@ -364,7 +364,7 @@ public class AclController {
 			@ApiResponse(responseCode = "400", description = "Invalid ID supplied", content = @Content),
 			@ApiResponse(responseCode = "404", description = "User not found", content = @Content) })
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#file, 'WRITE')")
-	@DeleteMapping("/acl/files/group/all")
+	@DeleteMapping("/acl/file/group/all")
 	public ResponseEntity<?> removeAllFilePermissionForGroup(@RequestParam Long fileId, @RequestParam Long groupId) {
 		File file = fileRepository.findById(fileId).get();
 		Group group = groupRepository.findById(groupId).get();
