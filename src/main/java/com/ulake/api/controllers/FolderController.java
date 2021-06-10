@@ -65,13 +65,13 @@ public class FolderController {
 	@PostMapping("/folders")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
 	@PostAuthorize("hasPermission(returnObject, 'READ')")
-	public Folder createFolder(@RequestBody Folder folder) {
+	public Folder createFolder(@RequestParam String name) {
 		// Get current principal
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 		User folderCreator = userRepository.findByEmail(userDetails.getEmail());
 		// Create Folder
-		Folder _folder = new Folder(folderCreator, folder.getName());
+		Folder _folder = new Folder(folderCreator, name);
 		// Save to Repository
 		folderRepository.save(_folder);
 
@@ -94,12 +94,13 @@ public class FolderController {
 	@ApiResponses(value = @ApiResponse(description = "successful operation"))
 	@PutMapping("/folders/{id}")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#folder, 'WRITE')")
-	public ResponseEntity<Folder> updateFolder(@PathVariable("id") long id, @RequestBody Folder folder) {
+	public ResponseEntity<Folder> updateFolder(@PathVariable("id") long id, @RequestParam String name,
+			@RequestParam(required = false) Long parentId ) {
 		Optional<Folder> folderData = folderRepository.findById(id);
 		if (folderData.isPresent()) {
 			Folder _folder = folderData.get();
-			_folder.setName(folder.getName());
-			_folder.setParentId(folder.getParentId());
+			_folder.setName(name);
+			_folder.setParentId(parentId);
 			return new ResponseEntity<>(folderRepository.save(_folder), HttpStatus.OK);
 		} else {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -166,6 +167,7 @@ public class FolderController {
 			Folder folder = folderRepository.findById(id).get();
 			folderRepository.deleteById(id);
 			permissionService.removeAcl(folder);
+			aclRepository.removeBySourceIdAndSourceType(id, AclSourceType.FOLDER);
 			return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 		} catch (Exception e) {
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);

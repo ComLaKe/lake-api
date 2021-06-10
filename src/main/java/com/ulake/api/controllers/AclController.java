@@ -2,7 +2,6 @@ package com.ulake.api.controllers;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -85,21 +84,6 @@ public class AclController {
 		return acls;
 	}
 
-	@Operation(summary = "Delete All Permissions", description = "This can only by done by Admin.", security = {
-			@SecurityRequirement(name = "bearer-key") }, tags = { "Internal" })
-	@ApiResponses(value = {
-			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = File.class))),
-			@ApiResponse(responseCode = "400", description = "Invalid ID supplied", content = @Content),
-			@ApiResponse(responseCode = "404", description = "User not found", content = @Content) })
-	@PreAuthorize("hasRole('ADMIN')")
-	@DeleteMapping("/config")
-	public ResponseEntity<?> deleteAll() {
-		aclRepository.deleteAll();
-		fileRepository.deleteAll();
-		folderRepository.deleteAll();
-		return ResponseEntity.ok(new MessageResponse("Delete all ACL, File, Folder successful!"));
-	}
-
 	@Operation(summary = "Grant File Permission For User", description = "This can only by done by Admin or File Owner.", security = {
 			@SecurityRequirement(name = "bearer-key") }, tags = { "ACL - Access Control" })
 	@ApiResponses(value = {
@@ -117,10 +101,12 @@ public class AclController {
 			permissionService.addPermissionForUser(file, BasePermission.WRITE, user.getUsername());
 			aclRepository
 					.save(new Acl(file.getId(), user.getId(), AclSourceType.FILE, AclTargetType.USER, PermType.WRITE));
+			break;
 		case "READ":
 			permissionService.addPermissionForUser(file, BasePermission.READ, user.getUsername());
 			aclRepository
 					.save(new Acl(file.getId(), user.getId(), AclSourceType.FILE, AclTargetType.USER, PermType.READ));
+			break;
 		}
 		return ResponseEntity.ok(new MessageResponse("Grant Permssion for User successful!"));
 	}
@@ -142,10 +128,12 @@ public class AclController {
 			permissionService.addPermissionForAuthority(file, BasePermission.WRITE, group.getName());
 			aclRepository.save(
 					new Acl(file.getId(), group.getId(), AclSourceType.FILE, AclTargetType.GROUP, PermType.WRITE));
+			break;
 		case "READ":
 			permissionService.addPermissionForAuthority(file, BasePermission.READ, group.getName());
 			aclRepository
 					.save(new Acl(file.getId(), group.getId(), AclSourceType.FILE, AclTargetType.GROUP, PermType.READ));
+			break;
 		}
 		return ResponseEntity.ok(new MessageResponse("Grant Permssion for Group successful!"));
 	}
@@ -197,10 +185,12 @@ public class AclController {
 			permissionService.addPermissionForUser(folder, BasePermission.WRITE, user.getUsername());
 			aclRepository.save(
 					new Acl(folder.getId(), user.getId(), AclSourceType.FOLDER, AclTargetType.USER, PermType.WRITE));
+			break;
 		case "READ":
 			permissionService.addPermissionForUser(folder, BasePermission.READ, user.getUsername());
 			aclRepository.save(
 					new Acl(folder.getId(), user.getId(), AclSourceType.FOLDER, AclTargetType.USER, PermType.READ));
+			break;
 		}
 		return ResponseEntity.ok(new MessageResponse("Grant Permssion for User successful!"));
 	}
@@ -222,10 +212,12 @@ public class AclController {
 			permissionService.addPermissionForAuthority(folder, BasePermission.WRITE, group.getName());
 			aclRepository.save(
 					new Acl(folder.getId(), group.getId(), AclSourceType.FOLDER, AclTargetType.GROUP, PermType.WRITE));
+			break;
 		case "READ":
 			permissionService.addPermissionForAuthority(folder, BasePermission.READ, group.getName());
 			aclRepository.save(
 					new Acl(folder.getId(), group.getId(), AclSourceType.FOLDER, AclTargetType.GROUP, PermType.READ));
+			break;
 		}
 		return ResponseEntity.ok(new MessageResponse("Grant Permssion for Group successful!"));
 	}

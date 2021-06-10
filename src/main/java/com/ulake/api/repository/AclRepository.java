@@ -2,16 +2,26 @@ package com.ulake.api.repository;
 
 import java.util.List;
 
+import javax.transaction.Transactional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 import com.ulake.api.constant.AclSourceType;
 import com.ulake.api.constant.AclTargetType;
 import com.ulake.api.models.Acl;
 
-public interface AclRepository extends JpaRepository<Acl, Long>{
-	void deleteAllBySourceIdAndSourceType(Long sourceId, AclSourceType sourceType);
-	
-	void deleteBySourceIdAndSourceType(Long sourceId, AclSourceType sourceType);
-	
+@Repository
+@Transactional
+public interface AclRepository extends JpaRepository<Acl, Long> {
+	void removeBySourceIdAndTargetIdAndSourceTypeAndTargetType(Long sourceId, Long targetId, AclSourceType sourceType,
+			AclTargetType targetType);
+
+	void removeBySourceIdAndSourceType(Long sourceId, AclSourceType sourceType);
+
 	List<Acl> findByTargetTypeAndTargetId(AclTargetType targetType, Long targetId);
+
+	List<Acl> findBySourceIdAndTargetIdAndSourceTypeAndTargetType(Long sourceId, Long targetId,
+			AclSourceType sourceType, AclTargetType targetType);
+
 }

@@ -69,9 +69,9 @@ public class GroupController {
 	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Status OK") })
 	@PostMapping("/groups")
 	@PreAuthorize("hasRole('ADMIN')")
-	public ResponseEntity<Group> createGroup(@RequestBody Group group) {
+	public ResponseEntity<Group> createGroup(@RequestParam String name) {
 		try {
-			Group _group = groupRepository.save(new Group(group.getName()));
+			Group _group = groupRepository.save(new Group(name));
 			return new ResponseEntity<>(_group, HttpStatus.CREATED);
 		} catch (Exception e) {
 			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -83,11 +83,11 @@ public class GroupController {
 	@ApiResponses(value = @ApiResponse(description = "successful operation"))
 	@PutMapping("/groups/{id}")
 	@PreAuthorize("hasRole('ADMIN')")
-	public ResponseEntity<Group> updateGroup(@PathVariable("id") long id, @RequestBody Group group) {
+	public ResponseEntity<Group> updateGroup(@PathVariable("id") long id, @RequestParam String name) {
 		Optional<Group> groupData = groupRepository.findById(id);
 		if (groupData.isPresent()) {
 			Group _group = groupData.get();
-			_group.setName(group.getName());
+			_group.setName(name);
 			return new ResponseEntity<>(groupRepository.save(_group), HttpStatus.OK);
 		} else {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);

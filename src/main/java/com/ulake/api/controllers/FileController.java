@@ -118,7 +118,6 @@ public class FileController {
 	@PutMapping("/files/{id}")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#file, 'WRITE')")
 	public File updateFile(@PathVariable("id") Long id, @RequestBody File file) {
-//	  TODO Will fail if not found
 		File _file = fileRepository.findById(id).get();
 		_file.setName(file.getName());
 		_file.setCid(file.getCid());
@@ -164,7 +163,7 @@ public class FileController {
 		try {
 			File file = fileRepository.findById(id).get();
 			fileRepository.deleteById(id);
-//			aclRepository.deleteAllBySourceIdAndSourceType(id, "File");
+			aclRepository.removeBySourceIdAndSourceType(id, AclSourceType.FILE);
 			permissionService.removeAcl(file);
 			return new ResponseEntity<>(HttpStatus.OK);
 		} catch (Exception e) {

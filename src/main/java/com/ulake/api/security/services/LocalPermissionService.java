@@ -142,7 +142,7 @@ public class LocalPermissionService {
 			}
 		});
 	}
-
+	
 	private void deleteAllPermissionForSid(IEntity targetObj, Sid sid) {
 		final TransactionTemplate tt = new TransactionTemplate(transactionManager);
 
