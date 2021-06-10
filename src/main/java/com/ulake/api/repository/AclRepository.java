@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import com.ulake.api.constant.AclSourceType;
 import com.ulake.api.constant.AclTargetType;
+import com.ulake.api.constant.PermType;
 import com.ulake.api.models.Acl;
 
 @Repository
@@ -16,6 +17,9 @@ import com.ulake.api.models.Acl;
 public interface AclRepository extends JpaRepository<Acl, Long> {
 	void removeBySourceIdAndTargetIdAndSourceTypeAndTargetType(Long sourceId, Long targetId, AclSourceType sourceType,
 			AclTargetType targetType);
+
+	void removeBySourceIdAndTargetIdAndSourceTypeAndTargetTypeAndPerm(Long sourceId, Long targetId,
+			AclSourceType sourceType, AclTargetType targetType, PermType perm);
 
 	void removeBySourceIdAndSourceType(Long sourceId, AclSourceType sourceType);
 
