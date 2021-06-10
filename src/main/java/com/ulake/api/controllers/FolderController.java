@@ -82,9 +82,9 @@ public class FolderController {
 		permissionService.addPermissionForUser(_folder, BasePermission.WRITE, authentication.getName());
 
 		// Create Acl
-		aclRepository.save(new Acl(_folder.getName(), folderCreator.getUsername(), AclSourceType.FOLDER, AclTargetType.USER,
+		aclRepository.save(new Acl(_folder.getId(), folderCreator.getId(), AclSourceType.FOLDER, AclTargetType.USER,
 				PermType.READ));
-		aclRepository.save(new Acl(_folder.getName(), folderCreator.getUsername(), AclSourceType.FOLDER, AclTargetType.USER,
+		aclRepository.save(new Acl(_folder.getId(), folderCreator.getId(), AclSourceType.FOLDER, AclTargetType.USER,
 				PermType.WRITE));
 		return _folder;
 	}
@@ -166,7 +166,6 @@ public class FolderController {
 			Folder folder = folderRepository.findById(id).get();
 			folderRepository.deleteById(id);
 			permissionService.removeAcl(folder);
-			aclRepository.removeBySourceNameAndSourceType(folder.getName(), AclSourceType.FOLDER);
 			return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 		} catch (Exception e) {
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);

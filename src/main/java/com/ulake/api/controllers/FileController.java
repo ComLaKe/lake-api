@@ -105,9 +105,9 @@ public class FileController {
 		permissionService.addPermissionForUser(fileInfo, BasePermission.WRITE, authentication.getName());
 
 		aclRepository.save(
-				new Acl(fileInfo.getName(), fileOwner.getUsername(), AclSourceType.FILE, AclTargetType.USER, PermType.READ));
+				new Acl(fileInfo.getId(), fileOwner.getId(), AclSourceType.FILE, AclTargetType.USER, PermType.READ));
 		aclRepository.save(
-				new Acl(fileInfo.getName(), fileOwner.getUsername(), AclSourceType.FILE, AclTargetType.USER, PermType.WRITE));
+				new Acl(fileInfo.getId(), fileOwner.getId(), AclSourceType.FILE, AclTargetType.USER, PermType.WRITE));
 
 		return fileInfo;
 	}
@@ -164,7 +164,7 @@ public class FileController {
 		try {
 			File file = fileRepository.findById(id).get();
 			fileRepository.deleteById(id);
-			aclRepository.removeBySourceNameAndSourceType(file.getName(), AclSourceType.FILE);
+//			aclRepository.deleteAllBySourceIdAndSourceType(id, "File");
 			permissionService.removeAcl(file);
 			return new ResponseEntity<>(HttpStatus.OK);
 		} catch (Exception e) {
