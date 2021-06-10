@@ -36,7 +36,27 @@ public class LocalPermissionService {
 		addPermissionForSid(targetObj, permission, sid);
 		LOGGER.error("Grant {} permission to principal {} on Object {}", permission, username, targetObj);
 	}
-
+	
+//	public void addPermission(IEntity targetObj, Permission permission, String name, boolean principal) {
+//		if (principal == true) {
+//			Sid sid = new PrincipalSid(name);
+//			addPermissionForSid(targetObj, permission, sid);
+//		} else if (principal == false) {
+//			Sid sid = new GrantedAuthoritySid(name);
+//			addPermissionForSid(targetObj, permission, sid);
+//		}
+//		else {
+//			LOGGER.error("Error");
+//		}
+//		LOGGER.error("Grant {} permission to principal {} on Object {}", permission, name, targetObj);
+//	}
+	
+	public void removePermissionForUser(IEntity targetObj, Permission permission, String username) {
+		final Sid sid = new PrincipalSid(username);
+		deletePermissionForSid(targetObj, permission, sid);
+		LOGGER.error("Remove {} permissions to principal {} on Object {}", permission, username, targetObj);
+	}
+	
 	public void removeAllPermissionForUser(IEntity targetObj, String username) {
 		final Sid sid = new PrincipalSid(username);
 		deleteAllPermissionForSid(targetObj, sid);
@@ -49,6 +69,12 @@ public class LocalPermissionService {
 		LOGGER.error("Grant {} permission to principal {} on Object {}", permission, authority, targetObj);
 	}
 
+	public void removePermissionForAuthority(IEntity targetObj, Permission permission, String authority) {
+		final Sid sid = new GrantedAuthoritySid(authority);
+		deletePermissionForSid(targetObj, permission, sid);
+		LOGGER.error("Remove {} permissions to principal {} on Object {}", permission, authority, targetObj);
+	}
+	
 	public void removeAllPermissionForAuthority(IEntity targetObj, String authority) {
 		final Sid sid = new GrantedAuthoritySid(authority);
 		deleteAllPermissionForSid(targetObj, sid);
@@ -87,6 +113,32 @@ public class LocalPermissionService {
 				acl.insertAce(acl.getEntries().size(), permission, sid, true);
 
 				aclService.updateAcl(acl);
+			}
+		});
+	}
+	
+	private void deletePermissionForSid(IEntity targetObj, Permission permission, Sid sid) {
+		final TransactionTemplate tt = new TransactionTemplate(transactionManager);
+
+		tt.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			protected void doInTransactionWithoutResult(TransactionStatus status) {
+				final ObjectIdentity oi = new ObjectIdentityImpl(targetObj.getClass(), targetObj.getId());
+				try {
+					MutableAcl acl = (MutableAcl) aclService.readAclById(oi);
+					List<AccessControlEntry> aclEntries = acl.getEntries();
+					for (int i = aclEntries.size() - 1; i >= 0; i--) {
+						AccessControlEntry ace = aclEntries.get(i);
+						if ((ace.getSid().equals(sid)) && (ace.getPermission().equals(permission))) {
+							acl.deleteAce(i);
+						}
+					}
+					if (acl.getEntries().isEmpty()) {
+						aclService.deleteAcl(oi, true);
+					}
+					aclService.updateAcl(acl);
+				} catch (NotFoundException ignore) {
+				}
 			}
 		});
 	}

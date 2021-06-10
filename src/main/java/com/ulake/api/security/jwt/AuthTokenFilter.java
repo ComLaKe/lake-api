@@ -18,6 +18,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.ulake.api.security.services.impl.UserDetailsServiceImpl;
+import com.ulake.api.ulti.JwtUtils;
 
 public class AuthTokenFilter extends OncePerRequestFilter {
 	@Autowired

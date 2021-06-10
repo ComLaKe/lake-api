@@ -34,9 +34,10 @@ import com.ulake.api.payload.response.MessageResponse;
 import com.ulake.api.payload.response.TokenRefreshResponse;
 import com.ulake.api.repository.RoleRepository;
 import com.ulake.api.repository.UserRepository;
-import com.ulake.api.security.jwt.JwtUtils;
 import com.ulake.api.security.services.RefreshTokenService;
 import com.ulake.api.security.services.impl.UserDetailsImpl;
+import com.ulake.api.ulti.JwtUtils;
+
 import org.springframework.web.bind.annotation.GetMapping;
 
 import io.swagger.v3.oas.annotations.Operation;

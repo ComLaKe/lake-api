@@ -66,19 +66,19 @@ public class Acl extends Auditable<String> {
 		this.perm = perm;
 	}
 
-	public String getSourceId() {
+	public String getSourceName() {
 		return sourceName;
 	}
 
-	public void setSourceId(String sourceName) {
+	public void setSourceName(String sourceName) {
 		this.sourceName = sourceName;
 	}
 
-	public String getTargetId() {
+	public String getTargetName() {
 		return targetName;
 	}
 
-	public void setTargetId(String targetName) {
+	public void setTargetName(String targetName) {
 		this.targetName = targetName;
 	}
 
