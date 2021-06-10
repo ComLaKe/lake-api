@@ -69,17 +69,24 @@ public class AclController {
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
 	@GetMapping("/acl/perm")
 	public List<Acl> getAllPermission(@RequestParam(required = false) Long user,
-			@RequestParam(required = false) Long group) {
+			@RequestParam(required = false) Long group, @RequestParam(required = false) Long file,
+			@RequestParam(required = false) Long folder) {
 		List<Acl> acls = new ArrayList<Acl>();
-		if ((user == null) & (group == null))
+		if ((user == null) & (group == null) & (file == null) & (folder == null))
 			aclRepository.findAll().forEach(acls::add);
 		else if (user != null) {
 			aclRepository.findByTargetTypeAndTargetId(AclTargetType.USER, user).forEach(acls::add);
 		} else if (group != null) {
 			aclRepository.findByTargetTypeAndTargetId(AclTargetType.GROUP, group).forEach(acls::add);
+		} else if (file != null) {
+			aclRepository.findBySourceTypeAndSourceId(AclSourceType.FILE, file).forEach(acls::add);
+		} else if (folder != null) {
+			aclRepository.findBySourceTypeAndSourceId(AclSourceType.FOLDER, folder).forEach(acls::add);
 		} else {
 			aclRepository.findByTargetTypeAndTargetId(AclTargetType.GROUP, group).forEach(acls::add);
 			aclRepository.findByTargetTypeAndTargetId(AclTargetType.USER, user).forEach(acls::add);
+			aclRepository.findBySourceTypeAndSourceId(AclSourceType.FILE, file).forEach(acls::add);
+			aclRepository.findBySourceTypeAndSourceId(AclSourceType.FOLDER, folder).forEach(acls::add);
 		}
 		return acls;
 	}
@@ -248,7 +255,6 @@ public class AclController {
 		return ResponseEntity.ok(new MessageResponse("Remove File Permssions for Group successful!"));
 	}
 
-	
 	@Operation(summary = "Remove a Folder Permission For Group", description = "This can only by done by Admin or File Owner.", security = {
 			@SecurityRequirement(name = "bearer-key") }, tags = { "ACL - Access Control" })
 	@ApiResponses(value = {
@@ -276,7 +282,7 @@ public class AclController {
 		}
 		return ResponseEntity.ok(new MessageResponse("Remove Folder Permssions for Group successful!"));
 	}
-	
+
 	@Operation(summary = "Remove a File Permission For User", description = "This can only by done by Admin or File Owner.", security = {
 			@SecurityRequirement(name = "bearer-key") }, tags = { "ACL - Access Control" })
 	@ApiResponses(value = {
