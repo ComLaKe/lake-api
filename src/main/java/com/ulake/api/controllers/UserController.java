@@ -166,13 +166,9 @@ public class UserController {
 			@ApiResponse(responseCode = "404", description = "User not found", content = @Content) })
 	@GetMapping("/users/find/{username}")
 	@PreAuthorize("hasRole('ADMIN')")
-	public ResponseEntity<User> getUserByUsername(@PathVariable("username") String username) {
-		Optional<User> user = userRepository.findByUsername(username);
-		if (user != null) {
-			return new ResponseEntity<>(user.get(), HttpStatus.OK);
-		} else {
-			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-		}
+	public List<User> getUserByUsername(@PathVariable("username") String username) {
+		List<User> user = userRepository.findByUsernameContaining(username);
+		return user;
 	}
 
 	@Operation(summary = "Get the logged in's user profile", description = "This can only be done by the logged in user.", security = {
