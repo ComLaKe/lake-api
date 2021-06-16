@@ -161,7 +161,7 @@ public class AuthController {
 	@Operation(summary = "Logout current user", description = "And delete Refresh Token in database.", security = {
 			@SecurityRequirement(name = "bearer-key") }, tags = { "User Authentication" })
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
-	@GetMapping("/logout")
+	@GetMapping("/api/auth/logout")
 	public ResponseEntity<?> logoutUser() {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
