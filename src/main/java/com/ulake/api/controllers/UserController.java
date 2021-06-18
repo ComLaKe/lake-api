@@ -173,6 +173,7 @@ public class UserController {
 
 	@Operation(summary = "Get the logged in's user profile", description = "This can only be done by the logged in user.", security = {
 			@SecurityRequirement(name = "bearer-key") }, tags = { "Users" })
+	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
 	@GetMapping("/users/my-profile")
 	public ResponseEntity<User> getCurrentProfile() {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

@@ -42,6 +42,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import com.ulake.api.models.Group;
 import com.ulake.api.models.User;
 import com.ulake.api.payload.request.AddMemberRequest;
+import com.ulake.api.payload.request.CreateGroupRequest;
 import com.ulake.api.payload.response.MessageResponse;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -69,8 +70,9 @@ public class GroupController {
 	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Status OK") })
 	@PostMapping("/groups")
 	@PreAuthorize("hasRole('ADMIN')")
-	public ResponseEntity<Group> createGroup(@RequestParam String name) {
+	public ResponseEntity<Group> createGroup(@RequestBody CreateGroupRequest createGroupRequest) {
 		try {
+			String name = createGroupRequest.getName();
 			Group _group = groupRepository.save(new Group(name));
 			return new ResponseEntity<>(_group, HttpStatus.CREATED);
 		} catch (Exception e) {
@@ -83,10 +85,11 @@ public class GroupController {
 	@ApiResponses(value = @ApiResponse(description = "successful operation"))
 	@PutMapping("/groups/{id}")
 	@PreAuthorize("hasRole('ADMIN')")
-	public ResponseEntity<Group> updateGroup(@PathVariable("id") long id, @RequestParam String name) {
+	public ResponseEntity<Group> updateGroup(@PathVariable("id") long id, @RequestBody CreateGroupRequest createGroupRequest) {
 		Optional<Group> groupData = groupRepository.findById(id);
 		if (groupData.isPresent()) {
 			Group _group = groupData.get();
+			String name = createGroupRequest.getName();
 			_group.setName(name);
 			return new ResponseEntity<>(groupRepository.save(_group), HttpStatus.OK);
 		} else {
