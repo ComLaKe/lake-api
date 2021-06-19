@@ -41,7 +41,6 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 import com.ulake.api.models.Group;
 import com.ulake.api.models.User;
-import com.ulake.api.payload.request.AddMemberRequest;
 import com.ulake.api.payload.request.CreateGroupRequest;
 import com.ulake.api.payload.response.MessageResponse;
 
@@ -134,30 +133,17 @@ public class GroupController {
 	@Operation(summary = "Add a user to a group", description = "This can only be done by admin.", security = {
 			@SecurityRequirement(name = "bearer-key") }, tags = { "Groups" })
 	@ApiResponses(value = @ApiResponse(description = "successful operation"))
-	@PutMapping("/groups/{name}/users")
+	@PutMapping("/groups/{groupId}/users/{userName}")
 	@PreAuthorize("hasRole('ADMIN')")
-	public ResponseEntity<?> addMember(@PathVariable("name") String name,
-			@Valid @RequestBody AddMemberRequest addMemberRequest) {
-		Optional<Group> groupData = groupRepository.findByName(name);
+	public ResponseEntity<?> addMember(@PathVariable("userName") String userName,
+			@PathVariable("groupId") Long groupId) {
+		Optional<Group> groupData = groupRepository.findById(groupId);
 		if (groupData.isPresent()) {
 			Group _group = groupData.get();
-
-			Set<String> strUsers = addMemberRequest.getUser();
-			Set<User> users = new HashSet<>();
-
-			if (strUsers == null) {
-				return ResponseEntity.badRequest().body(new MessageResponse("Error: Please enter at least a user!"));
-			} else {
-				strUsers.forEach(user -> {
-					User groupUser = userRepository.findByUsername(user)
-							.orElseThrow(() -> new RuntimeException("Error: User is not found."));
-					users.add(groupUser);
-				});
-			}
-
-			_group.setUsers(users);
+			User user = userRepository.findByUsername(userName).get();
+			_group.getUsers().add(user);
 			groupRepository.save(_group);
-			return new ResponseEntity<>(groupRepository.save(_group), HttpStatus.OK);
+			return new ResponseEntity<>(_group, HttpStatus.OK);
 		} else {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
