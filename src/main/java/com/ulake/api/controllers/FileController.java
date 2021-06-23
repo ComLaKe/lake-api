@@ -88,12 +88,12 @@ public class FileController {
 			@RequestParam("file") MultipartFile file,
 			@RequestHeader(required = false, value = "topics") String topics,
 			@RequestHeader(required = false, value = "language") String language,
-			@RequestHeader(required = false, value = "source") String source
+			@RequestHeader(required = false, value = "source") String source,
+			@RequestHeader(required = false, value = "folderId") Long folderId
 			) throws IOException {
 		// Find out who is the current logged in user
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-//		@RequestHeader(required = false, value = "folderName", defaultValue = "root") String folderName
 		User fileOwner = userRepository.findByEmail(userDetails.getEmail());
 		String fileName = StringUtils.cleanPath(file.getOriginalFilename());
 		String fileMimeType = file.getContentType();
@@ -102,9 +102,8 @@ public class FileController {
 		
 		File fileInfo = new File(fileOwner, fileName, fileMimeType, fileSize, fileData);
 		
-		// Default upload to root folder
-//		Folder folder = folderRepository.findByName(folderName);
-//		fileInfo.setFolder(folder);
+		Folder folder = folderRepository.findById(folderId).get();			
+		fileInfo.setFolder(folder);
 		
 		// Append optional metadata to file 
 		fileInfo.setTopics(topics);
@@ -117,6 +116,10 @@ public class FileController {
 		// Add ACL WRITE and READ Permission For Admin and File Owner
 		permissionService.addPermissionForAuthority(fileInfo, BasePermission.READ, "ROLE_ADMIN");
 		permissionService.addPermissionForAuthority(fileInfo, BasePermission.WRITE, "ROLE_ADMIN");
+
+//		permissionService.addPermissionForAuthority(folder, BasePermission.READ, "ROLE_USER");
+//		permissionService.addPermissionForAuthority(folder, BasePermission.WRITE, "ROLE_USER");
+
 		permissionService.addPermissionForUser(fileInfo, BasePermission.READ, authentication.getName());
 		permissionService.addPermissionForUser(fileInfo, BasePermission.WRITE, authentication.getName());
 
