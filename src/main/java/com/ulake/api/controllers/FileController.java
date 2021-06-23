@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -83,7 +84,12 @@ public class FileController {
 	@PostMapping(value = "/files", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
 	@PostAuthorize("hasPermission(returnObject, 'READ')")
-	public File uploadFile(@RequestParam("file") MultipartFile file) throws IOException {
+	public File uploadFile(
+			@RequestParam("file") MultipartFile file,
+			@RequestHeader(required = false, value = "topics") String topics,
+			@RequestHeader(required = false, value = "language") String language,
+			@RequestHeader(required = false, value = "source") String source
+			) throws IOException {
 		// Find out who is the current logged in user
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
@@ -94,7 +100,12 @@ public class FileController {
 		Long fileSize = file.getSize();
 		byte[] fileData = file.getBytes();
 		File fileInfo = new File(fileOwner, fileName, fileMimeType, fileSize, fileData);
-
+		
+		// Append optional metadata to file 
+		fileInfo.setTopics(topics);
+		fileInfo.setLanguage(language);
+		fileInfo.setSource(source);
+		
 		// Save File Metadata in our db;
 		fileRepository.save(fileInfo);
 
@@ -122,6 +133,7 @@ public class FileController {
 		_file.setName(file.getName());
 		_file.setCid(file.getCid());
 		_file.setSource(file.getSource());
+		_file.setLanguage(file.getLanguage());
 		_file.setTopics(file.getTopics());
 		return fileRepository.save(_file);
 	}

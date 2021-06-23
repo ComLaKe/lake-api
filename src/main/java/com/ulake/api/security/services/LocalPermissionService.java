@@ -16,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import com.ulake.api.models.File;
 import com.ulake.api.models.IEntity;
 
 @Service
@@ -84,15 +83,6 @@ public class LocalPermissionService {
 	public void removeAcl(IEntity targetObj) {
 		deleteAcl(targetObj);
 		LOGGER.error("Remove ACL on Object {}", targetObj);
-	}
-
-	public class CustomFileObjectIdentityRetrievalStrategy implements ObjectIdentityRetrievalStrategy {
-		public ObjectIdentity getObjectIdentity(Object domainObject) {
-//            if (File.class.equals(domainObject.getClass())) {
-//                return new ObjectIdentityImpl(File.class, ((File)domainObject).getId());
-//            }
-			return new ObjectIdentityImpl(File.class, ((File) domainObject).getId());
-		}
 	}
 
 	private void addPermissionForSid(IEntity targetObj, Permission permission, Sid sid) {

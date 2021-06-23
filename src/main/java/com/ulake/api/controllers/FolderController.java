@@ -18,11 +18,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ulake.api.repository.AclRepository;
+import com.ulake.api.repository.FileRepository;
 import com.ulake.api.repository.FolderRepository;
 import com.ulake.api.repository.UserRepository;
 import com.ulake.api.security.services.LocalPermissionService;
@@ -39,8 +41,10 @@ import com.ulake.api.constant.AclSourceType;
 import com.ulake.api.constant.AclTargetType;
 import com.ulake.api.constant.PermType;
 import com.ulake.api.models.Acl;
+import com.ulake.api.models.File;
 import com.ulake.api.models.Folder;
 import com.ulake.api.models.User;
+import com.ulake.api.payload.request.UpdateFolderRequest;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -49,6 +53,9 @@ public class FolderController {
 	@Autowired
 	FolderRepository folderRepository;
 
+	@Autowired
+	FileRepository fileRepository;
+	
 	@Autowired
 	UserRepository userRepository;
 
@@ -93,13 +100,16 @@ public class FolderController {
 	@ApiResponses(value = @ApiResponse(description = "successful operation"))
 	@PutMapping("/folders/{id}")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#folder, 'WRITE')")
-	public ResponseEntity<Folder> updateFolder(@PathVariable("id") long id, @RequestParam String name,
-			@RequestParam(required = false) Long parentId ) {
+	public ResponseEntity<Folder> updateFolder(@PathVariable("id") long id, 
+			@RequestBody UpdateFolderRequest updateFolderRequest) {
 		Optional<Folder> folderData = folderRepository.findById(id);
 		if (folderData.isPresent()) {
 			Folder _folder = folderData.get();
-			_folder.setName(name);
-			_folder.setParentId(parentId);
+			_folder.setName(updateFolderRequest.getName());
+			_folder.setParentId(updateFolderRequest.getParentId());
+			_folder.setSource(updateFolderRequest.getSource());
+			_folder.setCid(updateFolderRequest.getCid());
+			_folder.setTopics(updateFolderRequest.getTopics());
 			return new ResponseEntity<>(folderRepository.save(_folder), HttpStatus.OK);
 		} else {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -140,6 +150,19 @@ public class FolderController {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
 	}
+	
+	@Operation(summary = "Get all folders by parent id", description = "This can only be done by users who has read permission for folders.", security = {
+			@SecurityRequirement(name = "bearer-key") }, tags = { "Folder" })
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = Folder.class))),
+			@ApiResponse(responseCode = "400", description = "Invalid ID supplied", content = @Content),
+			@ApiResponse(responseCode = "404", description = "Folder not found", content = @Content) })
+	@GetMapping("/folders/find/{parentId}")
+	@PreAuthorize("(hasAnyRole('ADMIN','USER')) or (hasPermission(#id, 'com.ulake.api.models.Folder', 'READ'))")
+	public List<Folder> getFoldersByParentId(@PathVariable("parentId") Long parentId) {
+		List<Folder> folderData = folderRepository.findByParentId(parentId);
+		return folderData;
+	}
 
 	@Operation(summary = "Get all folders", description = "This can only be done by users who has read permission for folders.", security = {
 			@SecurityRequirement(name = "bearer-key") }, tags = { "Folder" })
@@ -154,7 +177,7 @@ public class FolderController {
 			folderRepository.findByNameContaining(name).forEach(folders::add);
 		return folders;
 	}
-
+	
 	@Operation(summary = "Delete a folder", description = "This can only be done by users who has write permission for folders.", security = {
 			@SecurityRequirement(name = "bearer-key") }, tags = { "Folder" })
 	@ApiResponses(value = { @ApiResponse(responseCode = "400", description = "Invalid folder ID supplied"),

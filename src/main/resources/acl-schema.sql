@@ -4,18 +4,21 @@ use ulakedb;
 -- ACL tables
 -- ============================================================================
 
+SET FOREIGN_KEY_CHECKS=0;
+drop table if exists acl_class;
+create table acl_class (
+    id smallint unsigned not null auto_increment primary key,
+    class varchar(100) unique not null
+) engine = InnoDb;
+drop table acl_sid;
+
 create table acl_sid (
     id int unsigned not null auto_increment primary key,
     principal boolean not null,
     sid varchar(100) not null,
     unique index acl_sid_idx_1 (sid, principal)
 ) engine = InnoDb;
-
-create table acl_class (
-    id smallint unsigned not null auto_increment primary key,
-    class varchar(100) unique not null
-) engine = InnoDb;
-
+drop table if exists acl_object_identity;
 create table acl_object_identity (
     id int unsigned not null auto_increment primary key,
     object_id_class smallint unsigned not null,
@@ -28,7 +31,7 @@ create table acl_object_identity (
     foreign key (parent_object) references acl_object_identity (id),
     foreign key (owner_sid) references acl_sid (id)
 ) engine = InnoDb;
-
+drop table if exists acl_entry;
 create table acl_entry (
     id int unsigned not null auto_increment primary key,
     acl_object_identity int unsigned not null,
@@ -42,3 +45,4 @@ create table acl_entry (
     foreign key (acl_object_identity) references acl_object_identity (id),
     foreign key (sid) references acl_sid (id)
 ) engine = InnoDb;
+SET FOREIGN_KEY_CHECKS=1;

@@ -33,4 +33,7 @@ public interface FolderRepository extends JpaRepository<Folder, Long> {
 
 	@PreAuthorize("hasPermission(#id, 'com.ulake.api.models.Folder', 'WRITE')")
 	Folder removeById(Long id);
+
+	@PreAuthorize("hasPermission(#id, 'com.ulake.api.models.Folder', 'READ')")
+	List<Folder> findByParentId(Long parentId);
 }

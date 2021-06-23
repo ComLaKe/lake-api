@@ -34,13 +34,9 @@ public class Folder extends Auditable<String> implements IEntity {
 
 	private String name;
 
-//	private String mimeType;
-//
-//	private String source;
-//	
-//	private String topics;
-
-	private Long size;
+	private String source;
+	
+	private String topics;
 
 	public Folder() {
 
@@ -100,28 +96,19 @@ public class Folder extends Auditable<String> implements IEntity {
 		this.files = files;
 	}
 
-	public Long getSize() {
-		return size;
+	public String getSource() {
+		return source;
 	}
 
-	public void setSize(Long size) {
-		this.size = size;
+	public void setSource(String source) {
+		this.source = source;
+	}
+	
+	public String getTopics() {
+		return topics;
 	}
 
-//	public String getSource() {
-//		return source;
-//	}
-//
-//	public void setSource(String source) {
-//		this.source = source;
-//	}
-//	
-//	public String getTopics() {
-//		return topics;
-//	}
-//
-//	public void setTopics(String topics) {
-//		this.topics = topics;
-//	}
-
+	public void setTopics(String topics) {
+		this.topics = topics;
+	}
 }
