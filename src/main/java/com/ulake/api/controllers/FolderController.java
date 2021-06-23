@@ -41,7 +41,6 @@ import com.ulake.api.constant.AclSourceType;
 import com.ulake.api.constant.AclTargetType;
 import com.ulake.api.constant.PermType;
 import com.ulake.api.models.Acl;
-import com.ulake.api.models.File;
 import com.ulake.api.models.Folder;
 import com.ulake.api.models.User;
 import com.ulake.api.payload.request.UpdateFolderRequest;
@@ -71,13 +70,16 @@ public class FolderController {
 	@PostMapping("/folders")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
 	@PostAuthorize("hasPermission(returnObject, 'READ')")
-	public Folder createFolder(@RequestParam String name) {
+	public Folder createFolder(@RequestParam String name, @RequestParam(required = false) Long parentId) {
 		// Get current principal
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 		User folderCreator = userRepository.findByEmail(userDetails.getEmail());
+		// Find parent folder
+		Folder _parent =  folderRepository.findById(parentId).get();
 		// Create Folder
 		Folder _folder = new Folder(folderCreator, name);
+		_folder.setParent(_parent);
 		// Save to Repository
 		folderRepository.save(_folder);
 
@@ -106,7 +108,6 @@ public class FolderController {
 		if (folderData.isPresent()) {
 			Folder _folder = folderData.get();
 			_folder.setName(updateFolderRequest.getName());
-			_folder.setParentId(updateFolderRequest.getParentId());
 			_folder.setSource(updateFolderRequest.getSource());
 			_folder.setCid(updateFolderRequest.getCid());
 			_folder.setTopics(updateFolderRequest.getTopics());
@@ -126,9 +127,10 @@ public class FolderController {
 		Optional<Folder> subfolderData = folderRepository.findById(subfolderId);
 		Optional<Folder> folderData = folderRepository.findById(folderId);
 		if (subfolderData.isPresent() && folderData.isPresent()) {
+			Folder _folder = folderData.get();
 			Folder _subfolder = subfolderData.get();
-			_subfolder.setParentId(folderData.get().getId());
-			return new ResponseEntity<>(folderRepository.save(_subfolder), HttpStatus.OK);
+			_folder.addSubfolder(_subfolder);
+			return new ResponseEntity<>(folderRepository.save(_folder), HttpStatus.OK);
 		} else {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
@@ -149,19 +151,6 @@ public class FolderController {
 		} else {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
-	}
-	
-	@Operation(summary = "Get all folders by parent id", description = "This can only be done by users who has read permission for folders.", security = {
-			@SecurityRequirement(name = "bearer-key") }, tags = { "Folder" })
-	@ApiResponses(value = {
-			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = Folder.class))),
-			@ApiResponse(responseCode = "400", description = "Invalid ID supplied", content = @Content),
-			@ApiResponse(responseCode = "404", description = "Folder not found", content = @Content) })
-	@GetMapping("/folders/find/{parentId}")
-	@PreAuthorize("(hasAnyRole('ADMIN','USER')) or (hasPermission(#id, 'com.ulake.api.models.Folder', 'READ'))")
-	public List<Folder> getFoldersByParentId(@PathVariable("parentId") Long parentId) {
-		List<Folder> folderData = folderRepository.findByParentId(parentId);
-		return folderData;
 	}
 
 	@Operation(summary = "Get all folders", description = "This can only be done by users who has read permission for folders.", security = {

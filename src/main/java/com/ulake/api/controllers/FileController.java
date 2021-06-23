@@ -93,19 +93,24 @@ public class FileController {
 		// Find out who is the current logged in user
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-
+//		@RequestHeader(required = false, value = "folderName", defaultValue = "root") String folderName
 		User fileOwner = userRepository.findByEmail(userDetails.getEmail());
 		String fileName = StringUtils.cleanPath(file.getOriginalFilename());
 		String fileMimeType = file.getContentType();
 		Long fileSize = file.getSize();
 		byte[] fileData = file.getBytes();
+		
 		File fileInfo = new File(fileOwner, fileName, fileMimeType, fileSize, fileData);
+		
+		// Default upload to root folder
+//		Folder folder = folderRepository.findByName(folderName);
+//		fileInfo.setFolder(folder);
 		
 		// Append optional metadata to file 
 		fileInfo.setTopics(topics);
 		fileInfo.setLanguage(language);
 		fileInfo.setSource(source);
-		
+
 		// Save File Metadata in our db;
 		fileRepository.save(fileInfo);
 
