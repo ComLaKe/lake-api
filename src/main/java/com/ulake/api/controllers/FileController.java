@@ -117,9 +117,6 @@ public class FileController {
 		permissionService.addPermissionForAuthority(fileInfo, BasePermission.READ, "ROLE_ADMIN");
 		permissionService.addPermissionForAuthority(fileInfo, BasePermission.WRITE, "ROLE_ADMIN");
 
-//		permissionService.addPermissionForAuthority(folder, BasePermission.READ, "ROLE_USER");
-//		permissionService.addPermissionForAuthority(folder, BasePermission.WRITE, "ROLE_USER");
-
 		permissionService.addPermissionForUser(fileInfo, BasePermission.READ, authentication.getName());
 		permissionService.addPermissionForUser(fileInfo, BasePermission.WRITE, authentication.getName());
 

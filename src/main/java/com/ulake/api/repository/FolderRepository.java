@@ -24,7 +24,7 @@ public interface FolderRepository extends JpaRepository<Folder, Long> {
 	List<Folder> findAll();
 
 	@PreAuthorize("hasPermission(#id, 'com.ulake.api.models.Folder', 'READ')")
-	Folder findByName(String name);
+	Optional<Folder> findByName(String name);
 
 	@PreAuthorize("hasPermission(#id, 'com.ulake.api.models.Folder', 'READ')")
 	Optional<Folder> findById(Long id);

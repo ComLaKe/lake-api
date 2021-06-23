@@ -70,16 +70,19 @@ public class FolderController {
 	@PostMapping("/folders")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
 	@PostAuthorize("hasPermission(returnObject, 'READ')")
-	public Folder createFolder(@RequestParam String name, @RequestParam(required = false) Long parentId) {
+	public Folder createFolder(@RequestParam String name, @RequestParam(required = false) String parentId) {
 		// Get current principal
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 		User folderCreator = userRepository.findByEmail(userDetails.getEmail());
-		// Find parent folder
-		Folder _parent =  folderRepository.findById(parentId).get();
+
 		// Create Folder
 		Folder _folder = new Folder(folderCreator, name);
-		_folder.setParent(_parent);
+		
+		if (parentId != null) {
+			Folder _parent =  folderRepository.findById(Long.valueOf(parentId)).get();
+			_folder.setParent(_parent);
+		}
 		// Save to Repository
 		folderRepository.save(_folder);
 
@@ -151,24 +154,7 @@ public class FolderController {
 		} else {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
-	}
-	
-	@Operation(summary = "Get root folder", description = "This can only be done by users who has read permission for folders.", security = {
-			@SecurityRequirement(name = "bearer-key") }, tags = { "Folder" })
-	@ApiResponses(value = {
-			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = Folder.class))),
-			@ApiResponse(responseCode = "400", description = "Invalid ID supplied", content = @Content),
-			@ApiResponse(responseCode = "404", description = "Folder not found", content = @Content) })
-	@GetMapping("/root/folders")
-	@PreAuthorize("(hasAnyRole('ADMIN','USER')) or (hasPermission(#id, 'com.ulake.api.models.Folder', 'READ'))")
-	public ResponseEntity<Folder> getRootFolder() {
-		Optional<Folder> folderData = folderRepository.findById((long) 1);
-		if (folderData.isPresent()) {
-			return new ResponseEntity<>(folderData.get(), HttpStatus.OK);
-		} else {
-			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-		}
-	}
+	}	
 
 	@Operation(summary = "Get all folders", description = "This can only be done by users who has read permission for folders.", security = {
 			@SecurityRequirement(name = "bearer-key") }, tags = { "Folder" })
