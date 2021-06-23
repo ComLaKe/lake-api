@@ -29,13 +29,13 @@ public class Folder extends Auditable<String> implements IEntity {
 	private User creator;
 
 	@OneToOne
-    @JoinColumn(name = "parent_id")
+	@JoinColumn(name = "parent_id")
 	@JsonIgnore
-    private Folder parent;
+	private Folder parent;
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "parent")
-    private Set<Folder> subfolders = new HashSet<>();
-    
+	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "parent")
+	private Set<Folder> subfolders = new HashSet<>();
+
 	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "folder")
 	private Set<File> files = new HashSet<>();
 
@@ -44,7 +44,7 @@ public class Folder extends Auditable<String> implements IEntity {
 	private String name;
 
 	private String source;
-	
+
 	private String topics;
 
 	public Folder() {
@@ -72,7 +72,7 @@ public class Folder extends Auditable<String> implements IEntity {
 	public void setCreator(User creator) {
 		this.creator = creator;
 	}
-	
+
 	public Folder getParent() {
 		return parent;
 	}
@@ -88,11 +88,11 @@ public class Folder extends Auditable<String> implements IEntity {
 	public void setSubfolders(Set<Folder> subfolders) {
 		this.subfolders = subfolders;
 	}
-	
-    public void addSubfolder(Folder subfolders) {
-        this.subfolders.add(subfolders);
-    }
-	
+
+	public void addSubfolder(Folder subfolders) {
+		this.subfolders.add(subfolders);
+	}
+
 	public String getCid() {
 		return cid;
 	}
@@ -124,7 +124,7 @@ public class Folder extends Auditable<String> implements IEntity {
 	public void setSource(String source) {
 		this.source = source;
 	}
-	
+
 	public String getTopics() {
 		return topics;
 	}

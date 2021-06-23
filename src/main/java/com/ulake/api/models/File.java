@@ -34,9 +34,9 @@ public class File extends Auditable<String> implements IEntity {
 	private String mimeType;
 
 	private String source;
-	
+
 	private String language;
-	
+
 	private String topics;
 
 	private Long size;
@@ -120,7 +120,7 @@ public class File extends Auditable<String> implements IEntity {
 	public void setSource(String source) {
 		this.source = source;
 	}
-	
+
 	public String getLanguage() {
 		return language;
 	}

@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PostAuthorize;
@@ -54,7 +55,7 @@ public class FolderController {
 
 	@Autowired
 	FileRepository fileRepository;
-	
+
 	@Autowired
 	UserRepository userRepository;
 
@@ -63,6 +64,9 @@ public class FolderController {
 
 	@Autowired
 	private LocalPermissionService permissionService;
+
+	@Value("${app.coreBasePath}")
+	private String coreBasePath;
 
 	@Operation(summary = "Add a folder", description = "This can only be done by logged in user.", security = {
 			@SecurityRequirement(name = "bearer-key") }, tags = { "Folder" })
@@ -78,9 +82,9 @@ public class FolderController {
 
 		// Create Folder
 		Folder _folder = new Folder(folderCreator, name);
-		
+
 		if (parentId != null) {
-			Folder _parent =  folderRepository.findById(Long.valueOf(parentId)).get();
+			Folder _parent = folderRepository.findById(Long.valueOf(parentId)).get();
 			_folder.setParent(_parent);
 		}
 		// Save to Repository
@@ -105,7 +109,7 @@ public class FolderController {
 	@ApiResponses(value = @ApiResponse(description = "successful operation"))
 	@PutMapping("/folders/{id}")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#folder, 'WRITE')")
-	public ResponseEntity<Folder> updateFolder(@PathVariable("id") long id, 
+	public ResponseEntity<Folder> updateFolder(@PathVariable("id") long id,
 			@RequestBody UpdateFolderRequest updateFolderRequest) {
 		Optional<Folder> folderData = folderRepository.findById(id);
 		if (folderData.isPresent()) {
@@ -154,7 +158,7 @@ public class FolderController {
 		} else {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
-	}	
+	}
 
 	@Operation(summary = "Get all folders", description = "This can only be done by users who has read permission for folders.", security = {
 			@SecurityRequirement(name = "bearer-key") }, tags = { "Folder" })
@@ -169,7 +173,7 @@ public class FolderController {
 			folderRepository.findByNameContaining(name).forEach(folders::add);
 		return folders;
 	}
-	
+
 	@Operation(summary = "Delete a folder", description = "This can only be done by users who has write permission for folders.", security = {
 			@SecurityRequirement(name = "bearer-key") }, tags = { "Folder" })
 	@ApiResponses(value = { @ApiResponse(responseCode = "400", description = "Invalid folder ID supplied"),
