@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 
 import com.ulake.api.repository.AclRepository;
 import com.ulake.api.repository.FileRepository;
@@ -38,12 +39,17 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ulake.api.constant.AclSourceType;
 import com.ulake.api.constant.AclTargetType;
 import com.ulake.api.constant.PermType;
 import com.ulake.api.models.Acl;
 import com.ulake.api.models.Folder;
 import com.ulake.api.models.User;
+import com.ulake.api.payload.request.CreateFolderRequest;
 import com.ulake.api.payload.request.UpdateFolderRequest;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -64,29 +70,45 @@ public class FolderController {
 
 	@Autowired
 	private LocalPermissionService permissionService;
-
+	
 	@Value("${app.coreBasePath}")
 	private String coreBasePath;
 
+	private RestTemplate restTemplate = new RestTemplate();
+    
 	@Operation(summary = "Add a folder", description = "This can only be done by logged in user.", security = {
 			@SecurityRequirement(name = "bearer-key") }, tags = { "Folder" })
 	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Status OK") })
 	@PostMapping("/folders")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
 	@PostAuthorize("hasPermission(returnObject, 'READ')")
-	public Folder createFolder(@RequestParam String name, @RequestParam(required = false) String parentId) {
+	public Folder createFolder(@RequestBody CreateFolderRequest createFolderRequest,  @RequestParam(required = false) String parentId){
 		// Get current principal
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 		User folderCreator = userRepository.findByEmail(userDetails.getEmail());
 
 		// Create Folder
-		Folder _folder = new Folder(folderCreator, name);
+		Folder _folder = new Folder(folderCreator, createFolderRequest.getName());
 
 		if (parentId != null) {
 			Folder _parent = folderRepository.findById(Long.valueOf(parentId)).get();
 			_folder.setParent(_parent);
 		}
+		
+		_folder.setSource(createFolderRequest.getSource());
+		_folder.setTopics(createFolderRequest.getTopics());
+		
+		// Request to core
+//		String url = coreBasePath + "/dir";
+//	
+//		ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+//		
+//		ObjectMapper mapper = new ObjectMapper();
+//		JsonNode root = mapper.readTree(response.getBody());
+//		String cid = root.path("cid").asText();
+//		_folder.setCid(cid);
+		
 		// Save to Repository
 		folderRepository.save(_folder);
 
@@ -101,6 +123,7 @@ public class FolderController {
 				PermType.READ));
 		aclRepository.save(new Acl(_folder.getId(), folderCreator.getId(), AclSourceType.FOLDER, AclTargetType.USER,
 				PermType.WRITE));
+		
 		return _folder;
 	}
 
