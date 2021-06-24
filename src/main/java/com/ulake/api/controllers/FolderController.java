@@ -70,19 +70,19 @@ public class FolderController {
 
 	@Autowired
 	private LocalPermissionService permissionService;
-	
+
 	@Value("${app.coreBasePath}")
 	private String coreBasePath;
 
 	private RestTemplate restTemplate = new RestTemplate();
-    
+
 	@Operation(summary = "Add a folder", description = "This can only be done by logged in user.", security = {
 			@SecurityRequirement(name = "bearer-key") }, tags = { "Folder" })
 	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Status OK") })
 	@PostMapping("/folders")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
 	@PostAuthorize("hasPermission(returnObject, 'READ')")
-	public Folder createFolder(@RequestBody CreateFolderRequest createFolderRequest,  @RequestParam(required = false) String parentId){
+	public Folder createFolder(@RequestBody CreateFolderRequest createFolderRequest) throws JsonMappingException, JsonProcessingException {
 		// Get current principal
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
@@ -91,24 +91,21 @@ public class FolderController {
 		// Create Folder
 		Folder _folder = new Folder(folderCreator, createFolderRequest.getName());
 
-		if (parentId != null) {
-			Folder _parent = folderRepository.findById(Long.valueOf(parentId)).get();
-			_folder.setParent(_parent);
-		}
-		
+		// Optional metadata
 		_folder.setSource(createFolderRequest.getSource());
 		_folder.setTopics(createFolderRequest.getTopics());
-		
+
 		// Request to core
-//		String url = coreBasePath + "/dir";
-//	
-//		ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
-//		
-//		ObjectMapper mapper = new ObjectMapper();
-//		JsonNode root = mapper.readTree(response.getBody());
-//		String cid = root.path("cid").asText();
-//		_folder.setCid(cid);
+		ResponseEntity<String> response = restTemplate.postForEntity(coreBasePath + "/dir", null, String.class);
 		
+		ObjectMapper mapper = new ObjectMapper();
+		JsonNode root = mapper.readTree(response.getBody());
+		System.out.print(response);
+		String cid = root.path("cid").asText();
+		_folder.setCid(cid);
+
+//		ResponseEntity<String> responseDataset = restTemplate.postForEntity(coreBasePath + "/add", null, String.class);
+
 		// Save to Repository
 		folderRepository.save(_folder);
 
@@ -123,7 +120,7 @@ public class FolderController {
 				PermType.READ));
 		aclRepository.save(new Acl(_folder.getId(), folderCreator.getId(), AclSourceType.FOLDER, AclTargetType.USER,
 				PermType.WRITE));
-		
+
 		return _folder;
 	}
 

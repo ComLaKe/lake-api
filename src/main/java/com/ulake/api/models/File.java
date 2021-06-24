@@ -29,6 +29,8 @@ public class File extends Auditable<String> implements IEntity {
 
 	private String cid;
 
+	private String datasetId;
+
 	private String name;
 
 	private String mimeType;
@@ -81,6 +83,14 @@ public class File extends Auditable<String> implements IEntity {
 		this.folder = folder;
 	}
 
+	public String getDatasetId() {
+		return datasetId;
+	}
+
+	public void setDatasetId(String datasetId) {
+		this.datasetId = datasetId;
+	}
+	
 	public String getCid() {
 		return cid;
 	}
