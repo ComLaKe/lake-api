@@ -105,7 +105,6 @@ public class FolderController {
 		_folder.setSource(createFolderRequest.getSource());
 
 		String topicsStr = String.join(",", createFolderRequest.getTopics());
-		log.error("topicsStr: " + topicsStr);
 		_folder.setTopics(topicsStr);
 
 		// Request to core
@@ -171,19 +170,36 @@ public class FolderController {
 		}
 	}
 
-	@Operation(summary = "Add a subfolder name to folder", description = "This can only be done by users who has write permission for folders.", security = {
+	@Operation(summary = "Add a subfolder to folder", description = "This can only be done by users who has write permission for folders.", security = {
 			@SecurityRequirement(name = "bearer-key") }, tags = { "Folder" })
 	@ApiResponses(value = @ApiResponse(description = "successful operation"))
 	@PutMapping("/folders/{folderId}/subfolders/{subfolderId}")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#folder, 'WRITE')")
 	public ResponseEntity<Folder> addSubfolder(@PathVariable("folderId") Long folderId,
-			@PathVariable("subfolderId") Long subfolderId) {
+			@PathVariable("subfolderId") Long subfolderId) throws JsonMappingException, JsonProcessingException {
 		Optional<Folder> subfolderData = folderRepository.findById(subfolderId);
 		Optional<Folder> folderData = folderRepository.findById(folderId);
 		if (subfolderData.isPresent() && folderData.isPresent()) {
 			Folder _folder = folderData.get();
 			Folder _subfolder = subfolderData.get();
 			_folder.addSubfolder(_subfolder);
+			
+			HttpHeaders headers = new HttpHeaders();
+			headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+
+			JSONObject dataset = new JSONObject();
+			dataset.put("src", _folder.getCid());
+			dataset.put("dest", _subfolder.getCid());
+			dataset.put("path", _subfolder.getName());
+
+			HttpEntity<String> requestCp = new HttpEntity<String>(dataset.toString(), headers);
+			ResponseEntity<String> responseCp = restTemplate.postForEntity(coreBasePath + "/cp", requestCp, String.class);
+
+			ObjectMapper mapperCp = new ObjectMapper();
+			JsonNode rootCp = mapperCp.readTree(responseCp.getBody());
+			String cid = rootCp.path("cid").asText();
+			_folder.setCid(cid);
+
 			return new ResponseEntity<>(folderRepository.save(_folder), HttpStatus.OK);
 		} else {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
