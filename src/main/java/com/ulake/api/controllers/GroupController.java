@@ -1,12 +1,8 @@
 package com.ulake.api.controllers;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
-
-import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -42,7 +38,6 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import com.ulake.api.models.Group;
 import com.ulake.api.models.User;
 import com.ulake.api.payload.request.CreateGroupRequest;
-import com.ulake.api.payload.response.MessageResponse;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController

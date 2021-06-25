@@ -7,8 +7,6 @@ import java.util.Optional;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -84,8 +82,6 @@ public class FolderController {
 
 	private RestTemplate restTemplate = new RestTemplate();
 
-	private static final Logger log = LoggerFactory.getLogger(FolderController.class);
-
 	@Operation(summary = "Add a folder", description = "This can only be done by logged in user.", security = {
 			@SecurityRequirement(name = "bearer-key") }, tags = { "Folder" })
 	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Status OK") })
@@ -128,7 +124,7 @@ public class FolderController {
 		dataset.put("topics", new JSONArray(createFolderRequest.getTopics()));
 
 		if (createFolderRequest.getLanguage() != null) {
-			dataset.put("source", createFolderRequest.getLanguage());
+			dataset.put("language", createFolderRequest.getLanguage());
 		}
 		
 		HttpEntity<String> requestDataset = new HttpEntity<String>(dataset.toString(), headers);

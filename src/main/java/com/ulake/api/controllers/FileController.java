@@ -2,9 +2,14 @@ package com.ulake.api.controllers;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -26,8 +31,11 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ulake.api.constant.AclSourceType;
 import com.ulake.api.constant.AclTargetType;
 import com.ulake.api.constant.PermType;
@@ -68,15 +76,10 @@ public class FileController {
 	@Autowired
 	private LocalPermissionService permissionService;
 
-//	private Sort.Direction getSortDirection(String direction) {
-//	    if (direction.equals("ASC")) {
-//	      return Sort.Direction.ASC;
-//	    } else if (direction.equals("DESC")) {
-//	      return Sort.Direction.DESC;
-//	    }
-//
-//	    return Sort.Direction.ASC;
-//	}
+	@Value("${app.coreBasePath}")
+	private String coreBasePath;
+
+	private RestTemplate restTemplate = new RestTemplate();
 
 	@Operation(summary = "Upload a file", description = "This can only be done by logged in user having the file permissions.", security = {
 			@SecurityRequirement(name = "bearer-key") }, tags = { "File" })
@@ -84,13 +87,10 @@ public class FileController {
 	@PostMapping(value = "/files", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
 	@PostAuthorize("hasPermission(returnObject, 'READ')")
-	public File uploadFile(
-			@RequestParam("file") MultipartFile file,
-			@RequestHeader(required = false, value = "topics") String topics,
+	public File uploadFile(@RequestParam("file") MultipartFile file,
+			@RequestHeader(required = true, value = "topics") List<String> topics,
 			@RequestHeader(required = false, value = "language") String language,
-			@RequestHeader(required = false, value = "source") String source,
-			@RequestHeader(required = false, value = "folderId") Long folderId
-			) throws IOException {
+			@RequestHeader(required = true, value = "source") String source) throws IOException {
 		// Find out who is the current logged in user
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
@@ -99,17 +99,56 @@ public class FileController {
 		String fileMimeType = file.getContentType();
 		Long fileSize = file.getSize();
 		byte[] fileData = file.getBytes();
-		
+
 		File fileInfo = new File(fileOwner, fileName, fileMimeType, fileSize, fileData);
-		
-		Folder folder = folderRepository.findById(folderId).get();			
-		fileInfo.setFolder(folder);
-		
-		// Append optional metadata to file 
-		fileInfo.setTopics(topics);
+
+		// Append metadata to file
+		String topicsStr = String.join(",", topics);
+		fileInfo.setTopics(topicsStr);
+
 		fileInfo.setLanguage(language);
 		fileInfo.setSource(source);
 
+		// Request to core POST /file - Add the file to the underlying file system
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+		headers.set("Content-Length", fileSize.toString());
+		headers.set("Content-Type", fileMimeType);
+
+        HttpEntity<?> entity = new HttpEntity<>(fileData, headers);
+
+		ResponseEntity<String> response = restTemplate.postForEntity(coreBasePath + "/file", entity, String.class);
+		
+		// Get and save the response cid
+		ObjectMapper mapperCreate = new ObjectMapper();
+		JsonNode rootCreate = mapperCreate.readTree(response.getBody());
+		String cid = rootCreate.path("cid").asText();
+		fileInfo.setCid(cid);
+
+		// Request to core POST /add - Add Metadata for the directory
+		HttpHeaders headersJson = new HttpHeaders();
+		headersJson.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+
+		JSONObject dataset = new JSONObject();
+		dataset.put("file", cid);
+		dataset.put("description", fileName);
+		dataset.put("source", source);
+		dataset.put("topics", new JSONArray(topics));
+		if (language != null) {
+			dataset.put("language", language);
+		}
+		
+		HttpEntity<String> requestDataset = new HttpEntity<String>(dataset.toString(), headers);
+		ResponseEntity<String> responseDataset = restTemplate.postForEntity(coreBasePath + "/add", requestDataset,
+				String.class);
+
+		// Get and save the response datasetId
+		ObjectMapper mapperDataset = new ObjectMapper();
+		JsonNode rootDataset = mapperDataset.readTree(responseDataset.getBody());
+		String datasetId = rootDataset.path("id").asText();
+		fileInfo.setDatasetId(datasetId);
+
+		
 		// Save File Metadata in our db;
 		fileRepository.save(fileInfo);
 
@@ -127,7 +166,7 @@ public class FileController {
 
 		return fileInfo;
 	}
-	
+
 	@Operation(summary = "Update a file by ID", description = "This can only be done by user who has write permission to file.", security = {
 			@SecurityRequirement(name = "bearer-key") }, tags = { "File" })
 	@ApiResponses(value = @ApiResponse(description = "successful operation"))
