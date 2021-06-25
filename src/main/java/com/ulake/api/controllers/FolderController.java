@@ -254,8 +254,30 @@ public class FolderController {
 	@PreAuthorize("(hasAnyRole('ADMIN','USER')) or (hasPermission(#id, 'com.ulake.api.models.Folder', 'READ'))")
 	public ResponseEntity<Folder> getFolderById(@PathVariable("id") long id) {
 		Optional<Folder> folderData = folderRepository.findById(id);
-		if (folderData.isPresent()) {
+		if (folderData.isPresent()) {			
 			return new ResponseEntity<>(folderData.get(), HttpStatus.OK);
+		} else {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
+	}
+	
+	@Operation(summary = "Get a list of content inside folder by ID", description = "This can only be done by users who has read permission for folders.", security = {
+			@SecurityRequirement(name = "bearer-key") }, tags = { "Folder" })
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = Folder.class))),
+			@ApiResponse(responseCode = "400", description = "Invalid ID supplied", content = @Content),
+			@ApiResponse(responseCode = "404", description = "Folder not found", content = @Content) })
+	@GetMapping("/folders/content/{id}")
+	@PreAuthorize("(hasAnyRole('ADMIN','USER')) or (hasPermission(#id, 'com.ulake.api.models.Folder', 'READ'))")
+	public ResponseEntity<?> getContentFolderById(@PathVariable("id") long id) throws JsonMappingException, JsonProcessingException {
+		Optional<Folder> folderData = folderRepository.findById(id);
+		if (folderData.isPresent()) {			
+			Folder _folder = folderData.get();
+			ResponseEntity<String> response
+			  = restTemplate.getForEntity(coreBasePath + "/dir/" + _folder.getCid(), String.class);
+			ObjectMapper mapper = new ObjectMapper();
+			JsonNode root = mapper.readTree(response.getBody());
+			return new ResponseEntity<>(root, HttpStatus.OK);
 		} else {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
