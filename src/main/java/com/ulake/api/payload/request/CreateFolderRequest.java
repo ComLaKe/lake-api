@@ -1,6 +1,6 @@
 package com.ulake.api.payload.request;
 
-import java.util.Set;
+import java.util.List;
 
 import javax.validation.constraints.NotBlank;
 
@@ -15,7 +15,7 @@ public class CreateFolderRequest {
 //	private String topics;
 	
 	@NotBlank
-	private Set<String> topics;
+	private List<String> topics;
 
 	public String getName() {
 		return name;
@@ -33,11 +33,11 @@ public class CreateFolderRequest {
 		this.source = source;
 	}
 
-	public Set<String> getTopics() {
+	public List<String> getTopics() {
 		return topics;
 	}
 
-	public void setTopics(Set<String> topics) {
+	public void setTopics(List<String> topics) {
 		this.topics = topics;
 	}
 }
