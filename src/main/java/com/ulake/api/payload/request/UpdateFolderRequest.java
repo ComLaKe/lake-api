@@ -1,33 +1,15 @@
 package com.ulake.api.payload.request;
 
-public class UpdateFolderRequest {
-	private String cid;
+import java.util.List;
 
+public class UpdateFolderRequest {
 	private String name;
 
 	private String language;
-	
+
 	private String source;
-	
-	private Long parentId;
-	
-	private String topics;
 
-	public String getCid() {
-		return cid;
-	}
-
-	public void setCid(String cid) {
-		this.cid = cid;
-	}
-
-	public Long getParentId() {
-		return parentId;
-	}
-
-	public void setParentId(Long parentId) {
-		this.parentId = parentId;
-	}
+	private List<String> topics;
 
 	public String getName() {
 		return name;
@@ -36,7 +18,7 @@ public class UpdateFolderRequest {
 	public void setName(String name) {
 		this.name = name;
 	}
-	
+
 	public String getLanguage() {
 		return language;
 	}
@@ -44,7 +26,7 @@ public class UpdateFolderRequest {
 	public void setLanguage(String language) {
 		this.language = language;
 	}
-	
+
 	public String getSource() {
 		return source;
 	}
@@ -52,13 +34,12 @@ public class UpdateFolderRequest {
 	public void setSource(String source) {
 		this.source = source;
 	}
-	
-	public String getTopics() {
+
+	public List<String> getTopics() {
 		return topics;
 	}
 
-	public void setTopics(String topics) {
+	public void setTopics(List<String> topics) {
 		this.topics = topics;
 	}
-
 }

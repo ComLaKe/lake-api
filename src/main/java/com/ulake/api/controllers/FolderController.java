@@ -101,20 +101,23 @@ public class FolderController {
 
 		// Create Folder
 		Folder _folder = new Folder(folderCreator, createFolderRequest.getName());
-
 		_folder.setSource(createFolderRequest.getSource());
+		_folder.setLanguage(createFolderRequest.getLanguage());	
 
+		// Convert List to String
 		String topicsStr = String.join(",", createFolderRequest.getTopics());
 		_folder.setTopics(topicsStr);
 
-		// Request to core
+		// Request to core POST /dir - Create an empty directory
 		ResponseEntity<String> response = restTemplate.postForEntity(coreBasePath + "/dir", null, String.class);
 
+		// Get and save the response cid
 		ObjectMapper mapperCreate = new ObjectMapper();
 		JsonNode rootCreate = mapperCreate.readTree(response.getBody());
 		String cid = rootCreate.path("cid").asText();
 		_folder.setCid(cid);
 
+		// Request to core POST /add - Add Metadata for the directory
 		HttpHeaders headers = new HttpHeaders();
 		headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
 
@@ -124,9 +127,15 @@ public class FolderController {
 		dataset.put("source", createFolderRequest.getSource());
 		dataset.put("topics", new JSONArray(createFolderRequest.getTopics()));
 
+		if (createFolderRequest.getLanguage() != null) {
+			dataset.put("source", createFolderRequest.getLanguage());
+		}
+		
 		HttpEntity<String> requestDataset = new HttpEntity<String>(dataset.toString(), headers);
-		ResponseEntity<String> responseDataset = restTemplate.postForEntity(coreBasePath + "/add", requestDataset, String.class);
+		ResponseEntity<String> responseDataset = restTemplate.postForEntity(coreBasePath + "/add", requestDataset,
+				String.class);
 
+		// Get and save the response datasetId
 		ObjectMapper mapperDataset = new ObjectMapper();
 		JsonNode rootDataset = mapperDataset.readTree(responseDataset.getBody());
 		String datasetId = rootDataset.path("id").asText();
@@ -156,14 +165,42 @@ public class FolderController {
 	@PutMapping("/folders/{id}")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#folder, 'WRITE')")
 	public ResponseEntity<Folder> updateFolder(@PathVariable("id") long id,
-			@RequestBody UpdateFolderRequest updateFolderRequest) {
+			@RequestBody UpdateFolderRequest updateFolderRequest) throws JsonMappingException, JsonProcessingException {
 		Optional<Folder> folderData = folderRepository.findById(id);
 		if (folderData.isPresent()) {
 			Folder _folder = folderData.get();
+
+			HttpHeaders headers = new HttpHeaders();
+			headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+
+			JSONObject dataset = new JSONObject();
+			dataset.put("parent", _folder.getDatasetId());
+			if (updateFolderRequest.getName() != null) {
+				dataset.put("description", updateFolderRequest.getName());
+			}
+			if (updateFolderRequest.getSource() != null) {
+				dataset.put("source", updateFolderRequest.getSource());
+			}
+			if (updateFolderRequest.getTopics() != null) {
+				dataset.put("topics", new JSONArray(updateFolderRequest.getTopics()));
+			}
+			if (updateFolderRequest.getLanguage() != null) {
+				dataset.put("language", updateFolderRequest.getLanguage());
+			}
+
+			HttpEntity<String> requestDataset = new HttpEntity<String>(dataset.toString(), headers);
+			ResponseEntity<String> responseDataset = restTemplate.postForEntity(coreBasePath + "/update",
+					requestDataset, String.class);
+
+			ObjectMapper mapperDataset = new ObjectMapper();
+			JsonNode rootDataset = mapperDataset.readTree(responseDataset.getBody());
+			String datasetId = rootDataset.path("id").asText();
+			_folder.setDatasetId(datasetId);
+
+			String topicsStr = String.join(",", updateFolderRequest.getTopics());
+			_folder.setTopics(topicsStr);
 			_folder.setName(updateFolderRequest.getName());
 			_folder.setSource(updateFolderRequest.getSource());
-			_folder.setCid(updateFolderRequest.getCid());
-			_folder.setTopics(updateFolderRequest.getTopics());
 			return new ResponseEntity<>(folderRepository.save(_folder), HttpStatus.OK);
 		} else {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -183,7 +220,7 @@ public class FolderController {
 			Folder _folder = folderData.get();
 			Folder _subfolder = subfolderData.get();
 			_folder.addSubfolder(_subfolder);
-			
+
 			HttpHeaders headers = new HttpHeaders();
 			headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
 
@@ -193,7 +230,8 @@ public class FolderController {
 			dataset.put("path", _subfolder.getName());
 
 			HttpEntity<String> requestCp = new HttpEntity<String>(dataset.toString(), headers);
-			ResponseEntity<String> responseCp = restTemplate.postForEntity(coreBasePath + "/cp", requestCp, String.class);
+			ResponseEntity<String> responseCp = restTemplate.postForEntity(coreBasePath + "/cp", requestCp,
+					String.class);
 
 			ObjectMapper mapperCp = new ObjectMapper();
 			JsonNode rootCp = mapperCp.readTree(responseCp.getBody());

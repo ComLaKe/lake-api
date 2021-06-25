@@ -42,12 +42,14 @@ public class Folder extends Auditable<String> implements IEntity {
 	private String cid;
 
 	private String datasetId;
-	
+
 	private String name;
 
 	private String source;
 
 	private String topics;
+
+	private String language;
 
 	public Folder() {
 
@@ -57,7 +59,7 @@ public class Folder extends Auditable<String> implements IEntity {
 		this.creator = creator;
 		this.name = name;
 	}
-	
+
 	@Override
 	public Long getId() {
 		return id;
@@ -102,7 +104,7 @@ public class Folder extends Auditable<String> implements IEntity {
 	public void setCid(String cid) {
 		this.cid = cid;
 	}
-	
+
 	public String getDatasetId() {
 		return datasetId;
 	}
@@ -141,5 +143,13 @@ public class Folder extends Auditable<String> implements IEntity {
 
 	public void setTopics(String topics) {
 		this.topics = topics;
+	}
+
+	public String getLanguage() {
+		return language;
+	}
+
+	public void setLanguage(String language) {
+		this.language = language;
 	}
 }

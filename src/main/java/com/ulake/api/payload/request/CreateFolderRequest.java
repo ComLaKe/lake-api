@@ -11,11 +11,10 @@ public class CreateFolderRequest {
 	@NotBlank
 	private String source;
 
-//	@NotBlank
-//	private String topics;
-	
 	@NotBlank
 	private List<String> topics;
+
+	private String language;
 
 	public String getName() {
 		return name;
@@ -39,5 +38,13 @@ public class CreateFolderRequest {
 
 	public void setTopics(List<String> topics) {
 		this.topics = topics;
+	}
+	
+	public String getLanguage() {
+		return language;
+	}
+
+	public void setLanguage(String language) {
+		this.language = language;
 	}
 }
