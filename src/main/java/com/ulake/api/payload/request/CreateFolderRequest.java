@@ -1,16 +1,21 @@
 package com.ulake.api.payload.request;
 
+import java.util.Set;
+
 import javax.validation.constraints.NotBlank;
 
 public class CreateFolderRequest {
 	@NotBlank
 	private String name;
 
+	@NotBlank
 	private String source;
 
-	private String topics;
+//	@NotBlank
+//	private String topics;
 	
-	private Long parentId;
+	@NotBlank
+	private Set<String> topics;
 
 	public String getName() {
 		return name;
@@ -28,19 +33,11 @@ public class CreateFolderRequest {
 		this.source = source;
 	}
 
-	public String getTopics() {
+	public Set<String> getTopics() {
 		return topics;
 	}
 
-	public void setTopics(String topics) {
+	public void setTopics(Set<String> topics) {
 		this.topics = topics;
-	}
-	
-	public Long getParentId() {
-		return parentId;
-	}
-
-	public void setParentId(Long parentId) {
-		this.parentId = parentId;
 	}
 }

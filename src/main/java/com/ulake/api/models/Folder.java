@@ -57,7 +57,7 @@ public class Folder extends Auditable<String> implements IEntity {
 		this.creator = creator;
 		this.name = name;
 	}
-
+	
 	@Override
 	public Long getId() {
 		return id;

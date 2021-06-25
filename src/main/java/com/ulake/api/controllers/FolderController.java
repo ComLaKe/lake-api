@@ -1,12 +1,18 @@
 package com.ulake.api.controllers;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -82,7 +88,8 @@ public class FolderController {
 	@PostMapping("/folders")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
 	@PostAuthorize("hasPermission(returnObject, 'READ')")
-	public Folder createFolder(@RequestBody CreateFolderRequest createFolderRequest) throws JsonMappingException, JsonProcessingException {
+	public Folder createFolder(@RequestBody CreateFolderRequest createFolderRequest)
+			throws JsonMappingException, JsonProcessingException {
 		// Get current principal
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
@@ -91,20 +98,35 @@ public class FolderController {
 		// Create Folder
 		Folder _folder = new Folder(folderCreator, createFolderRequest.getName());
 
-		// Optional metadata
 		_folder.setSource(createFolderRequest.getSource());
-		_folder.setTopics(createFolderRequest.getTopics());
+
+		String topicsStr = String.join(",", createFolderRequest.getTopics());
+		_folder.setTopics(topicsStr);
 
 		// Request to core
 		ResponseEntity<String> response = restTemplate.postForEntity(coreBasePath + "/dir", null, String.class);
-		
-		ObjectMapper mapper = new ObjectMapper();
-		JsonNode root = mapper.readTree(response.getBody());
-		System.out.print(response);
-		String cid = root.path("cid").asText();
+
+		ObjectMapper mapperCreate = new ObjectMapper();
+		JsonNode rootCreate = mapperCreate.readTree(response.getBody());
+		String cid = rootCreate.path("cid").asText();
 		_folder.setCid(cid);
 
-//		ResponseEntity<String> responseDataset = restTemplate.postForEntity(coreBasePath + "/add", null, String.class);
+		HttpHeaders headers = new HttpHeaders();
+		headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+
+		JSONObject dataset = new JSONObject();
+		dataset.put("file", cid);
+		dataset.put("description", createFolderRequest.getName());
+		dataset.put("source", createFolderRequest.getSource());
+		dataset.put("topics", new JSONArray(createFolderRequest.getTopics()));
+
+		HttpEntity<String> requestDataset = new HttpEntity<String>(dataset.toString(), headers);
+		ResponseEntity<String> responseDataset = restTemplate.postForEntity(coreBasePath + "/add", requestDataset, String.class);
+
+		ObjectMapper mapperDataset = new ObjectMapper();
+		JsonNode rootDataset = mapperDataset.readTree(responseDataset.getBody());
+		String datasetId = rootDataset.path("id").asText();
+		_folder.setDatasetId(datasetId);
 
 		// Save to Repository
 		folderRepository.save(_folder);
