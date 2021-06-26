@@ -114,14 +114,7 @@ public class FileController {
 		Long fileSize = file.getSize();
 		byte[] fileData = file.getBytes();
 
-		CLFile fileInfo = new CLFile(fileOwner, fileName, fileMimeType, fileSize, fileData);
-
-		// Append metadata to file
-		String topicsStr = String.join(",", topics);
-		fileInfo.setTopics(topicsStr);
-
-		fileInfo.setLanguage(language);
-		fileInfo.setSource(source);
+		CLFile fileInfo = new CLFile(fileOwner, fileName);
 
 		// Request to core POST /file - Add the file to the underlying file system
 		HttpHeaders headers = new HttpHeaders();
@@ -147,6 +140,8 @@ public class FileController {
 		dataset.put("file", cid);
 		dataset.put("description", fileName);
 		dataset.put("source", source);
+		dataset.put("mimeType", fileMimeType);
+		dataset.put("size", fileSize);
 		dataset.put("topics", new JSONArray(topics));
 		if (language != null) {
 			dataset.put("language", language);
@@ -216,10 +211,8 @@ public class FileController {
 		String datasetId = rootDataset.path("id").asText();
 		_file.setDatasetId(datasetId);
 
-		String topicsStr = String.join(",", updateFileRequest.getTopics());
-		_file.setTopics(topicsStr);
 		_file.setName(updateFileRequest.getName());
-		_file.setSource(updateFileRequest.getSource());
+
 
 		return fileRepository.save(_file);
 	}

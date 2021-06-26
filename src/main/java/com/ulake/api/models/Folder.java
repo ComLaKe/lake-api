@@ -45,12 +45,6 @@ public class Folder extends Auditable<String> implements IEntity {
 
 	private String name;
 
-	private String source;
-
-	private String topics;
-
-	private String language;
-
 	public Folder() {
 
 	}
@@ -127,29 +121,5 @@ public class Folder extends Auditable<String> implements IEntity {
 
 	public void setFiles(Set<CLFile> files) {
 		this.files = files;
-	}
-
-	public String getSource() {
-		return source;
-	}
-
-	public void setSource(String source) {
-		this.source = source;
-	}
-
-	public String getTopics() {
-		return topics;
-	}
-
-	public void setTopics(String topics) {
-		this.topics = topics;
-	}
-
-	public String getLanguage() {
-		return language;
-	}
-
-	public void setLanguage(String language) {
-		this.language = language;
 	}
 }

@@ -97,12 +97,6 @@ public class FolderController {
 
 		// Create Folder
 		Folder _folder = new Folder(folderCreator, createFolderRequest.getName());
-		_folder.setSource(createFolderRequest.getSource());
-		_folder.setLanguage(createFolderRequest.getLanguage());	
-
-		// Convert List to String
-		String topicsStr = String.join(",", createFolderRequest.getTopics());
-		_folder.setTopics(topicsStr);
 
 		// Request to core POST /dir - Create an empty directory
 		ResponseEntity<String> response = restTemplate.postForEntity(coreBasePath + "/dir", null, String.class);
@@ -193,10 +187,7 @@ public class FolderController {
 			String datasetId = rootDataset.path("id").asText();
 			_folder.setDatasetId(datasetId);
 
-			String topicsStr = String.join(",", updateFolderRequest.getTopics());
-			_folder.setTopics(topicsStr);
 			_folder.setName(updateFolderRequest.getName());
-			_folder.setSource(updateFolderRequest.getSource());
 			return new ResponseEntity<>(folderRepository.save(_folder), HttpStatus.OK);
 		} else {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
