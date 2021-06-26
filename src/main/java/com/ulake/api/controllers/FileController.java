@@ -3,6 +3,7 @@ package com.ulake.api.controllers;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -46,6 +47,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ulake.api.constant.AclSourceType;
@@ -55,6 +58,7 @@ import com.ulake.api.models.Acl;
 import com.ulake.api.models.CLFile;
 import com.ulake.api.models.Folder;
 import com.ulake.api.models.User;
+import com.ulake.api.payload.request.UpdateFolderRequest;
 import com.ulake.api.repository.AclRepository;
 import com.ulake.api.repository.FileRepository;
 import com.ulake.api.repository.FolderRepository;
@@ -187,13 +191,41 @@ public class FileController {
 	@ApiResponses(value = @ApiResponse(description = "successful operation"))
 	@PutMapping("/files/{id}")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#file, 'WRITE')")
-	public CLFile updateFile(@PathVariable("id") Long id, @RequestBody CLFile file) {
+	public CLFile updateFile(@PathVariable("id") Long id, @RequestBody UpdateFolderRequest updateFileRequest) throws JsonMappingException, JsonProcessingException {
 		CLFile _file = fileRepository.findById(id).get();
-		_file.setName(file.getName());
-		_file.setCid(file.getCid());
-		_file.setSource(file.getSource());
-		_file.setLanguage(file.getLanguage());
-		_file.setTopics(file.getTopics());
+		
+		HttpHeaders headers = new HttpHeaders();
+		headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+
+		JSONObject dataset = new JSONObject();
+		dataset.put("parent", _file.getDatasetId());
+		if (updateFileRequest.getName() != null) {
+			dataset.put("description", updateFileRequest.getName());
+		}
+		if (updateFileRequest.getSource() != null) {
+			dataset.put("source", updateFileRequest.getSource());
+		}
+		if (updateFileRequest.getTopics() != null) {
+			dataset.put("topics", new JSONArray(updateFileRequest.getTopics()));
+		}
+		if (updateFileRequest.getLanguage() != null) {
+			dataset.put("language", updateFileRequest.getLanguage());
+		}
+
+		HttpEntity<String> requestDataset = new HttpEntity<String>(dataset.toString(), headers);
+		ResponseEntity<String> responseDataset = restTemplate.postForEntity(coreBasePath + "/update",
+				requestDataset, String.class);
+
+		ObjectMapper mapperDataset = new ObjectMapper();
+		JsonNode rootDataset = mapperDataset.readTree(responseDataset.getBody());
+		String datasetId = rootDataset.path("id").asText();
+		_file.setDatasetId(datasetId);
+
+		String topicsStr = String.join(",", updateFileRequest.getTopics());
+		_file.setTopics(topicsStr);
+		_file.setName(updateFileRequest.getName());
+		_file.setSource(updateFileRequest.getSource());
+
 		return fileRepository.save(_file);
 	}
 
@@ -289,22 +321,17 @@ public class FileController {
 	@Operation(summary = "Get File Data", description = "This can only be done by logged in user and those who have read permssions of file.", security = {
 			@SecurityRequirement(name = "bearer-key") }, tags = { "File" })
 	@GetMapping("/files/data")
-	public void testDownLoadBigFile() throws IOException {
+	public ResponseEntity<InputStream> testDownLoadBigFile() throws IOException {
 		// File address to be downloaded
-		String FILE_URL = "http://localhost:8090/file/QmbboxGZtfKZNSqnSXyqRzqn7hwbNh8JjHzAysH8PLa5vF";
-		// Local path to save the file
-		String targetPath = "C:\\Users\\thaonp\\Downloads\\testfiles\\download\\interject.txt";
+		String FILE_URL = "http://localhost:8090/file/QmUVqzbxLxHWRQkNNNEDr8DfN2pXuBZKG7odiKy9JS9dmC";
 
-		File file = restTemplate.execute(FILE_URL, HttpMethod.GET, null, clientHttpResponse -> {
-			File ret = File.createTempFile("download", "tmp");
-			StreamUtils.copy(clientHttpResponse.getBody(), new FileOutputStream(ret));
-			return ret;
+		RequestCallback requestCallback = request -> request.getHeaders()
+				.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM, MediaType.ALL));
+		return restTemplate.execute(FILE_URL, HttpMethod.GET, requestCallback, clientHttpResponse -> {
+			return ResponseEntity.ok()
+					.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + "users.csv" + "\"")
+					.body(clientHttpResponse.getBody());
 		});
-
-//		return ResponseEntity.ok()
-//		.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileInfo.getName() + "\"")
-//		.body(fileInfo.getData());
-
 	}
 
 	@Operation(summary = "Get All Files by Folder Id", description = "This can only be done by logged in user and those who have read permssions of file.", security = {
