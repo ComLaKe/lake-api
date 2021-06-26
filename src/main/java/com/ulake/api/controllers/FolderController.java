@@ -248,10 +248,14 @@ public class FolderController {
 			@ApiResponse(responseCode = "404", description = "Folder not found", content = @Content) })
 	@GetMapping("/folders/{id}")
 	@PreAuthorize("(hasAnyRole('ADMIN','USER')) or (hasPermission(#id, 'com.ulake.api.models.Folder', 'READ'))")
-	public ResponseEntity<Folder> getFolderById(@PathVariable("id") long id) {
+	public ResponseEntity<?> getFolderById(@PathVariable("id") long id) {
 		Optional<Folder> folderData = folderRepository.findById(id);
-		if (folderData.isPresent()) {			
-			return new ResponseEntity<>(folderData.get(), HttpStatus.OK);
+		if (folderData.isPresent()) {		
+			Folder _folder = folderData.get();
+			String astQuery = "[\"==\", [\".\", \"id\"], " + _folder.getDatasetId() + "]";
+			HttpEntity<String> request = new HttpEntity<String>(astQuery);
+			ResponseEntity<Object[]> response = restTemplate.postForEntity(coreBasePath + "find", request, Object[].class);
+			return new ResponseEntity<>(response.getBody(), HttpStatus.OK);
 		} else {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}

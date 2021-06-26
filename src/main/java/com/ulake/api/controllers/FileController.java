@@ -88,13 +88,13 @@ public class FileController {
 
 	private RestTemplate restTemplate = new RestTemplate();
 
-
-	private HttpMessageConverter<?> jacksonSupportsMoreTypes() { 
-	    MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
-	    converter.setSupportedMediaTypes(Arrays.asList(MediaType.parseMediaType("text/plain;charset=utf-8"), MediaType.APPLICATION_OCTET_STREAM));
-	    return converter;
+	private HttpMessageConverter<?> jacksonSupportsMoreTypes() {
+		MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
+		converter.setSupportedMediaTypes(Arrays.asList(MediaType.parseMediaType("text/plain;charset=utf-8"),
+				MediaType.APPLICATION_OCTET_STREAM));
+		return converter;
 	}
-	
+
 	@Operation(summary = "Upload a file", description = "This can only be done by logged in user having the file permissions.", security = {
 			@SecurityRequirement(name = "bearer-key") }, tags = { "File" })
 	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Status OK") })
@@ -153,7 +153,7 @@ public class FileController {
 		}
 
 		HttpEntity<String> requestDataset = new HttpEntity<String>(dataset.toString(), headers);
-		ResponseEntity<String> responseDataset = restTemplate.postForEntity(coreBasePath + "/add", requestDataset,
+		ResponseEntity<String> responseDataset = restTemplate.postForEntity(coreBasePath + "add", requestDataset,
 				String.class);
 
 		// Get and save the response datasetId
@@ -237,7 +237,7 @@ public class FileController {
 			Folder _folder = folderData.get();
 			CLFile _file = fileData.get();
 			_file.setFolder(_folder);
-			
+
 			HttpHeaders headers = new HttpHeaders();
 			headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
 
@@ -268,8 +268,17 @@ public class FileController {
 			@ApiResponse(responseCode = "404", description = "File not found", content = @Content) })
 	@GetMapping("/files/{id}")
 	@PreAuthorize("(hasAnyRole('ADMIN','USER')) or (hasPermission(#id, 'com.ulake.api.models.File', 'READ'))")
-	public CLFile getFileById(@PathVariable("id") Long id) {
-		return fileRepository.findById(id).get();
+	public ResponseEntity<?> getFileById(@PathVariable("id") Long id) {
+		Optional<CLFile> fileData = fileRepository.findById(id);
+		if (fileData.isPresent()) {
+			CLFile _file = fileData.get();
+			String astQuery = "[\"==\", [\".\", \"id\"], " + _file.getDatasetId() + "]";
+			HttpEntity<String> request = new HttpEntity<String>(astQuery);
+			ResponseEntity<Object[]> response = restTemplate.postForEntity(coreBasePath + "find", request, Object[].class);
+			return new ResponseEntity<>(response.getBody(), HttpStatus.OK);
+		} else {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
 	}
 
 	@Operation(summary = "Delete a file by ID", description = "This can only be done by logged in user.", security = {
@@ -310,13 +319,13 @@ public class FileController {
 			@SecurityRequirement(name = "bearer-key") }, tags = { "File" })
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#file, 'READ')")
 	@GetMapping("/files/data/{id}")
-	public ResponseEntity<?> getFileData(@PathVariable Long id){
+	public ResponseEntity<?> getFileData(@PathVariable Long id) {
 		CLFile fileInfo = fileRepository.findById(id).get();
 		String FILE_URL = coreBasePath + "file/" + fileInfo.getCid();
-	    restTemplate.getMessageConverters().add(jacksonSupportsMoreTypes());
+		restTemplate.getMessageConverters().add(jacksonSupportsMoreTypes());
 
 		ResponseEntity<String> response = restTemplate.getForEntity(FILE_URL, String.class);
-		
+
 		return ResponseEntity.ok()
 				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileInfo.getName() + "\"")
 				.body(response.getBody());
