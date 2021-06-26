@@ -221,8 +221,8 @@ public class FolderController {
 			headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
 
 			JSONObject dataset = new JSONObject();
-			dataset.put("src", _folder.getCid());
-			dataset.put("dest", _subfolder.getCid());
+			dataset.put("src", _subfolder.getCid());
+			dataset.put("dest", _folder .getCid());
 			dataset.put("path", _subfolder.getName());
 
 			HttpEntity<String> requestCp = new HttpEntity<String>(dataset.toString(), headers);

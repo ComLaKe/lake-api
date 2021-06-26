@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.json.JSONArray;
@@ -191,9 +192,10 @@ public class FileController {
 	@ApiResponses(value = @ApiResponse(description = "successful operation"))
 	@PutMapping("/files/{id}")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#file, 'WRITE')")
-	public CLFile updateFile(@PathVariable("id") Long id, @RequestBody UpdateFolderRequest updateFileRequest) throws JsonMappingException, JsonProcessingException {
+	public CLFile updateFile(@PathVariable("id") Long id, @RequestBody UpdateFolderRequest updateFileRequest)
+			throws JsonMappingException, JsonProcessingException {
 		CLFile _file = fileRepository.findById(id).get();
-		
+
 		HttpHeaders headers = new HttpHeaders();
 		headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
 
@@ -213,8 +215,8 @@ public class FileController {
 		}
 
 		HttpEntity<String> requestDataset = new HttpEntity<String>(dataset.toString(), headers);
-		ResponseEntity<String> responseDataset = restTemplate.postForEntity(coreBasePath + "/update",
-				requestDataset, String.class);
+		ResponseEntity<String> responseDataset = restTemplate.postForEntity(coreBasePath + "/update", requestDataset,
+				String.class);
 
 		ObjectMapper mapperDataset = new ObjectMapper();
 		JsonNode rootDataset = mapperDataset.readTree(responseDataset.getBody());
@@ -234,12 +236,35 @@ public class FileController {
 	@ApiResponses(value = @ApiResponse(description = "successful operation"))
 	@PutMapping("/folders/{folderId}/files/{fileId}")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#file, 'WRITE')")
-	public CLFile addFileToFolder(@PathVariable("folderId") Long folderId, @PathVariable("fileId") Long fileId) {
-//		  TODO Will fail if not found		
-		Folder folder = folderRepository.findById(folderId).get();
-		CLFile _file = fileRepository.findById(fileId).get();
-		_file.setFolder(folder);
-		return fileRepository.save(_file);
+	public ResponseEntity<CLFile> addFileToFolder(@PathVariable("folderId") Long folderId,
+			@PathVariable("fileId") Long fileId) throws JsonMappingException, JsonProcessingException {
+		Optional<Folder> folderData = folderRepository.findById(folderId);
+		Optional<CLFile> fileData = fileRepository.findById(fileId);
+		if (folderData.isPresent() && fileData.isPresent()) {
+			Folder _folder = folderData.get();
+			CLFile _file = fileData.get();
+			_file.setFolder(_folder);
+			
+			HttpHeaders headers = new HttpHeaders();
+			headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+
+			JSONObject dataset = new JSONObject();
+			dataset.put("src", _file.getCid());
+			dataset.put("dest", _folder.getCid());
+			dataset.put("path", _file.getName());
+
+			HttpEntity<String> requestCp = new HttpEntity<String>(dataset.toString(), headers);
+			ResponseEntity<String> responseCp = restTemplate.postForEntity(coreBasePath + "/cp", requestCp,
+					String.class);
+
+			ObjectMapper mapperCp = new ObjectMapper();
+			JsonNode rootCp = mapperCp.readTree(responseCp.getBody());
+			String cid = rootCp.path("cid").asText();
+			_file.setCid(cid);
+			return new ResponseEntity<>(fileRepository.save(_file), HttpStatus.OK);
+		} else {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
 	}
 
 	@Operation(summary = "Get a file by ID", description = "This can only be done by logged in user.", security = {
