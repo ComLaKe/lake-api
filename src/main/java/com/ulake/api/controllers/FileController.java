@@ -1,38 +1,28 @@
 package com.ulake.api.controllers;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.ResponseEntity.BodyBuilder;
-import org.springframework.http.ResponseEntity.HeadersBuilder;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.util.StreamUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -74,10 +64,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
-import org.springframework.web.client.HttpStatusCodeException;
-import org.springframework.web.client.RequestCallback;
-import org.springframework.web.client.ResponseExtractor;
-
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api")
@@ -102,6 +88,13 @@ public class FileController {
 
 	private RestTemplate restTemplate = new RestTemplate();
 
+
+	private HttpMessageConverter<?> jacksonSupportsMoreTypes() { 
+	    MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
+	    converter.setSupportedMediaTypes(Arrays.asList(MediaType.parseMediaType("text/plain;charset=utf-8"), MediaType.APPLICATION_OCTET_STREAM));
+	    return converter;
+	}
+	
 	@Operation(summary = "Upload a file", description = "This can only be done by logged in user having the file permissions.", security = {
 			@SecurityRequirement(name = "bearer-key") }, tags = { "File" })
 	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Status OK") })
@@ -138,7 +131,7 @@ public class FileController {
 
 		HttpEntity<byte[]> entity = new HttpEntity<>(fileData, headers);
 
-		ResponseEntity<byte[]> response = restTemplate.postForEntity(coreBasePath + "/file", entity, byte[].class);
+		ResponseEntity<byte[]> response = restTemplate.postForEntity(coreBasePath + "file", entity, byte[].class);
 
 		// Get and save the response cid
 		ObjectMapper mapperCreate = new ObjectMapper();
@@ -215,7 +208,7 @@ public class FileController {
 		}
 
 		HttpEntity<String> requestDataset = new HttpEntity<String>(dataset.toString(), headers);
-		ResponseEntity<String> responseDataset = restTemplate.postForEntity(coreBasePath + "/update", requestDataset,
+		ResponseEntity<String> responseDataset = restTemplate.postForEntity(coreBasePath + "update", requestDataset,
 				String.class);
 
 		ObjectMapper mapperDataset = new ObjectMapper();
@@ -254,7 +247,7 @@ public class FileController {
 			dataset.put("path", _file.getName());
 
 			HttpEntity<String> requestCp = new HttpEntity<String>(dataset.toString(), headers);
-			ResponseEntity<String> responseCp = restTemplate.postForEntity(coreBasePath + "/cp", requestCp,
+			ResponseEntity<String> responseCp = restTemplate.postForEntity(coreBasePath + "cp", requestCp,
 					String.class);
 
 			ObjectMapper mapperCp = new ObjectMapper();
@@ -317,46 +310,16 @@ public class FileController {
 			@SecurityRequirement(name = "bearer-key") }, tags = { "File" })
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#file, 'READ')")
 	@GetMapping("/files/data/{id}")
-	public void getFileData(@PathVariable Long id) throws IOException {
+	public ResponseEntity<?> getFileData(@PathVariable Long id){
 		CLFile fileInfo = fileRepository.findById(id).get();
-		String FILE_URL = coreBasePath + "/file" + fileInfo.getCid();
+		String FILE_URL = coreBasePath + "file/" + fileInfo.getCid();
+	    restTemplate.getMessageConverters().add(jacksonSupportsMoreTypes());
 
-		// Optional Accept header
-		RequestCallback requestCallback = request -> request.getHeaders()
-				.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM, MediaType.ALL));
-
-		// Streams the response instead of loading it all in memory
-//	    ResponseExtractor<Void> responseExtractor = response -> {
-//	        // Here you can write the inputstream to a file or any other place
-//	        Path path = Paths.get(fileInfo.getName());
-//	        Files.copy(response.getBody(), path);
-//	        return null;
-//	    };
-
-//		return ResponseEntity.ok()
-//				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileInfo.getName() + "\"")
-//				.body(fileInfo.getData());
-
-		restTemplate.execute(FILE_URL, HttpMethod.GET, requestCallback, clientHttpResponse -> {
-			Files.copy(clientHttpResponse.getBody(), Paths.get(fileInfo.getName()));
-			return null;
-		});
-	}
-
-	@Operation(summary = "Get File Data", description = "This can only be done by logged in user and those who have read permssions of file.", security = {
-			@SecurityRequirement(name = "bearer-key") }, tags = { "File" })
-	@GetMapping("/files/data")
-	public ResponseEntity<InputStream> testDownLoadBigFile() throws IOException {
-		// File address to be downloaded
-		String FILE_URL = "http://localhost:8090/file/QmUVqzbxLxHWRQkNNNEDr8DfN2pXuBZKG7odiKy9JS9dmC";
-
-		RequestCallback requestCallback = request -> request.getHeaders()
-				.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM, MediaType.ALL));
-		return restTemplate.execute(FILE_URL, HttpMethod.GET, requestCallback, clientHttpResponse -> {
-			return ResponseEntity.ok()
-					.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + "users.csv" + "\"")
-					.body(clientHttpResponse.getBody());
-		});
+		ResponseEntity<String> response = restTemplate.getForEntity(FILE_URL, String.class);
+		
+		return ResponseEntity.ok()
+				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileInfo.getName() + "\"")
+				.body(response.getBody());
 	}
 
 	@Operation(summary = "Get All Files by Folder Id", description = "This can only be done by logged in user and those who have read permssions of file.", security = {

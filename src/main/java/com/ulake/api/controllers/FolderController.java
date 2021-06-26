@@ -226,7 +226,7 @@ public class FolderController {
 			dataset.put("path", _subfolder.getName());
 
 			HttpEntity<String> requestCp = new HttpEntity<String>(dataset.toString(), headers);
-			ResponseEntity<String> responseCp = restTemplate.postForEntity(coreBasePath + "/cp", requestCp,
+			ResponseEntity<String> responseCp = restTemplate.postForEntity(coreBasePath + "cp", requestCp,
 					String.class);
 
 			ObjectMapper mapperCp = new ObjectMapper();
@@ -270,7 +270,7 @@ public class FolderController {
 		if (folderData.isPresent()) {			
 			Folder _folder = folderData.get();
 			ResponseEntity<String> response
-			  = restTemplate.getForEntity(coreBasePath + "/dir/" + _folder.getCid(), String.class);
+			  = restTemplate.getForEntity(coreBasePath + "dir/" + _folder.getCid(), String.class);
 			ObjectMapper mapper = new ObjectMapper();
 			JsonNode root = mapper.readTree(response.getBody());
 			return new ResponseEntity<>(root, HttpStatus.OK);
