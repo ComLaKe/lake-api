@@ -13,7 +13,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "CLake_files")
-public class File extends Auditable<String> implements IEntity {
+public class CLFile extends Auditable<String> implements IEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
@@ -47,10 +47,10 @@ public class File extends Auditable<String> implements IEntity {
 	@JsonIgnore
 	private byte[] data;
 
-	public File() {
+	public CLFile() {
 	}
 
-	public File(User owner, String name, String mimeType, Long size, byte[] data) {
+	public CLFile(User owner, String name, String mimeType, Long size, byte[] data) {
 		this.owner = owner;
 		this.name = name;
 		this.mimeType = mimeType;

@@ -37,7 +37,7 @@ public class Folder extends Auditable<String> implements IEntity {
 	private Set<Folder> subfolders = new HashSet<>();
 
 	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "folder")
-	private Set<File> files = new HashSet<>();
+	private Set<CLFile> files = new HashSet<>();
 
 	private String cid;
 
@@ -121,11 +121,11 @@ public class Folder extends Auditable<String> implements IEntity {
 		this.name = name;
 	}
 
-	public Set<File> getFiles() {
+	public Set<CLFile> getFiles() {
 		return files;
 	}
 
-	public void setFiles(Set<File> files) {
+	public void setFiles(Set<CLFile> files) {
 		this.files = files;
 	}
 

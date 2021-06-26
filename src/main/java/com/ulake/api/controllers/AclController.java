@@ -19,7 +19,7 @@ import com.ulake.api.constant.AclSourceType;
 import com.ulake.api.constant.AclTargetType;
 import com.ulake.api.constant.PermType;
 import com.ulake.api.models.Acl;
-import com.ulake.api.models.File;
+import com.ulake.api.models.CLFile;
 import com.ulake.api.models.Folder;
 import com.ulake.api.models.Group;
 import com.ulake.api.models.User;
@@ -63,7 +63,7 @@ public class AclController {
 	@Operation(summary = "Get All Permissions", description = "This can only by done by Admin or File Owner.", security = {
 			@SecurityRequirement(name = "bearer-key") }, tags = { "ACL - Access Control" })
 	@ApiResponses(value = {
-			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = File.class))),
+			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = CLFile.class))),
 			@ApiResponse(responseCode = "400", description = "Invalid ID supplied", content = @Content),
 			@ApiResponse(responseCode = "404", description = "User not found", content = @Content) })
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
@@ -94,14 +94,14 @@ public class AclController {
 	@Operation(summary = "Grant File Permission For User", description = "This can only by done by Admin or File Owner.", security = {
 			@SecurityRequirement(name = "bearer-key") }, tags = { "ACL - Access Control" })
 	@ApiResponses(value = {
-			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = File.class))),
+			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = CLFile.class))),
 			@ApiResponse(responseCode = "400", description = "Invalid ID supplied", content = @Content),
 			@ApiResponse(responseCode = "404", description = "User not found", content = @Content) })
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#file, 'WRITE')")
 	@PutMapping("/acl/file/user")
 	public ResponseEntity<?> grantFilePermissionForUser(@RequestParam Long fileId, @RequestParam Long userId,
 			@RequestParam String perm) {
-		File file = fileRepository.findById(fileId).get();
+		CLFile file = fileRepository.findById(fileId).get();
 		User user = userRepository.findById(userId).get();
 		switch (perm) {
 		case "WRITE":
@@ -175,14 +175,14 @@ public class AclController {
 	@Operation(summary = "Grant File Permission For Group", description = "This can only by done by Admin or File Owner.", security = {
 			@SecurityRequirement(name = "bearer-key") }, tags = { "ACL - Access Control" })
 	@ApiResponses(value = {
-			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = File.class))),
+			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = CLFile.class))),
 			@ApiResponse(responseCode = "400", description = "Invalid ID supplied", content = @Content),
 			@ApiResponse(responseCode = "404", description = "User not found", content = @Content) })
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#file, 'WRITE')")
 	@PutMapping("/acl/file/group")
 	public ResponseEntity<?> grantFilePermissionForGroup(@RequestParam Long fileId, @RequestParam Long groupId,
 			@RequestParam String perm) {
-		File file = fileRepository.findById(fileId).get();
+		CLFile file = fileRepository.findById(fileId).get();
 		Group group = groupRepository.findById(groupId).get();
 		switch (perm) {
 		case "WRITE":
@@ -202,14 +202,14 @@ public class AclController {
 	@Operation(summary = "Remove a File Permission For User", description = "This can only by done by Admin or File Owner.", security = {
 			@SecurityRequirement(name = "bearer-key") }, tags = { "ACL - Access Control" })
 	@ApiResponses(value = {
-			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = File.class))),
+			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = CLFile.class))),
 			@ApiResponse(responseCode = "400", description = "Invalid ID supplied", content = @Content),
 			@ApiResponse(responseCode = "404", description = "User not found", content = @Content) })
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#file, 'WRITE')")
 	@DeleteMapping("/acl/file/user")
 	public ResponseEntity<?> removeFilePermissionForUser(@RequestParam Long fileId, @RequestParam Long userId,
 			@RequestParam String permStr) {
-		File file = fileRepository.findById(fileId).get();
+		CLFile file = fileRepository.findById(fileId).get();
 		User user = userRepository.findById(userId).get();
 		PermType perm = PermType.valueOf(permStr);
 		switch (perm) {
@@ -230,14 +230,14 @@ public class AclController {
 	@Operation(summary = "Remove a File Permission For Group", description = "This can only by done by Admin or File Owner.", security = {
 			@SecurityRequirement(name = "bearer-key") }, tags = { "ACL - Access Control" })
 	@ApiResponses(value = {
-			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = File.class))),
+			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = CLFile.class))),
 			@ApiResponse(responseCode = "400", description = "Invalid ID supplied", content = @Content),
 			@ApiResponse(responseCode = "404", description = "User not found", content = @Content) })
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#file, 'WRITE')")
 	@DeleteMapping("/acl/file/group")
 	public ResponseEntity<?> removeFilePermissionForGroup(@RequestParam Long fileId, @RequestParam Long groupId,
 			@RequestParam String permStr) {
-		File file = fileRepository.findById(fileId).get();
+		CLFile file = fileRepository.findById(fileId).get();
 		Group group = groupRepository.findById(groupId).get();
 		PermType perm = PermType.valueOf(permStr);
 		switch (perm) {
@@ -258,7 +258,7 @@ public class AclController {
 	@Operation(summary = "Remove a Folder Permission For Group", description = "This can only by done by Admin or File Owner.", security = {
 			@SecurityRequirement(name = "bearer-key") }, tags = { "ACL - Access Control" })
 	@ApiResponses(value = {
-			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = File.class))),
+			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = CLFile.class))),
 			@ApiResponse(responseCode = "400", description = "Invalid ID supplied", content = @Content),
 			@ApiResponse(responseCode = "404", description = "User not found", content = @Content) })
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#file, 'WRITE')")
@@ -286,7 +286,7 @@ public class AclController {
 	@Operation(summary = "Remove a File Permission For User", description = "This can only by done by Admin or File Owner.", security = {
 			@SecurityRequirement(name = "bearer-key") }, tags = { "ACL - Access Control" })
 	@ApiResponses(value = {
-			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = File.class))),
+			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = CLFile.class))),
 			@ApiResponse(responseCode = "400", description = "Invalid ID supplied", content = @Content),
 			@ApiResponse(responseCode = "404", description = "User not found", content = @Content) })
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#file, 'WRITE')")
@@ -349,13 +349,13 @@ public class AclController {
 	@Operation(summary = "Remove ALL File Permission For User", description = "This can only by done by Admin or File Owner.", security = {
 			@SecurityRequirement(name = "bearer-key") }, tags = { "ACL - Access Control" })
 	@ApiResponses(value = {
-			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = File.class))),
+			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = CLFile.class))),
 			@ApiResponse(responseCode = "400", description = "Invalid ID supplied", content = @Content),
 			@ApiResponse(responseCode = "404", description = "User not found", content = @Content) })
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#file, 'WRITE')")
 	@DeleteMapping("/acl/file/user/all")
 	public ResponseEntity<?> removeAllFilePermissionForUser(@RequestParam Long fileId, @RequestParam Long userId) {
-		File file = fileRepository.findById(fileId).get();
+		CLFile file = fileRepository.findById(fileId).get();
 		User user = userRepository.findById(userId).get();
 		permissionService.removeAllPermissionForUser(file, user.getUsername());
 		aclRepository.removeBySourceIdAndTargetIdAndSourceTypeAndTargetType(fileId, userId, AclSourceType.FILE,
@@ -366,13 +366,13 @@ public class AclController {
 	@Operation(summary = "Remove ALL File Permission For Group", description = "This can only by done by Admin or File Owner.", security = {
 			@SecurityRequirement(name = "bearer-key") }, tags = { "ACL - Access Control" })
 	@ApiResponses(value = {
-			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = File.class))),
+			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = CLFile.class))),
 			@ApiResponse(responseCode = "400", description = "Invalid ID supplied", content = @Content),
 			@ApiResponse(responseCode = "404", description = "User not found", content = @Content) })
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#file, 'WRITE')")
 	@DeleteMapping("/acl/file/group/all")
 	public ResponseEntity<?> removeAllFilePermissionForGroup(@RequestParam Long fileId, @RequestParam Long groupId) {
-		File file = fileRepository.findById(fileId).get();
+		CLFile file = fileRepository.findById(fileId).get();
 		Group group = groupRepository.findById(groupId).get();
 		permissionService.removeAllPermissionForAuthority(file, group.getName());
 		aclRepository.removeBySourceIdAndTargetIdAndSourceTypeAndTargetType(fileId, groupId, AclSourceType.FILE,

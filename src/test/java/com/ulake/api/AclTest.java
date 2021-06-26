@@ -11,7 +11,7 @@ import com.ulake.api.constant.AclSourceType;
 import com.ulake.api.constant.AclTargetType;
 import com.ulake.api.constant.PermType;
 import com.ulake.api.models.Acl;
-import com.ulake.api.models.File;
+import com.ulake.api.models.CLFile;
 import com.ulake.api.models.User;
 import com.ulake.api.repository.AclRepository;
 import com.ulake.api.repository.FileRepository;
