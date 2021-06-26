@@ -224,7 +224,7 @@ public class FolderController {
 			JsonNode rootCp = mapperCp.readTree(responseCp.getBody());
 			String cid = rootCp.path("cid").asText();
 			_folder.setCid(cid);
-
+			_subfolder.setIsFirstNode(false);
 			return new ResponseEntity<>(folderRepository.save(_folder), HttpStatus.OK);
 		} else {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);

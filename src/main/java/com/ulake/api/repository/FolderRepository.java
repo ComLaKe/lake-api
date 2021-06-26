@@ -23,6 +23,9 @@ public interface FolderRepository extends JpaRepository<Folder, Long> {
 	@PostFilter("hasPermission(filterObject, 'READ')")
 	List<Folder> findAll();
 
+	@PostFilter("hasPermission(filterObject, 'READ')")
+	List<Folder> findByIsFirstNodeTrue();
+
 	@PreAuthorize("hasPermission(#id, 'com.ulake.api.models.Folder', 'READ')")
 	Optional<Folder> findByName(String name);
 

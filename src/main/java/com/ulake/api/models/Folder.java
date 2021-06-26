@@ -44,6 +44,10 @@ public class Folder extends Auditable<String> implements IEntity {
 	private String datasetId;
 
 	private String name;
+	
+	private String type = "Folder";
+	
+    private Boolean isFirstNode = true;
 
 	public Folder() {
 
@@ -114,6 +118,14 @@ public class Folder extends Auditable<String> implements IEntity {
 	public void setName(String name) {
 		this.name = name;
 	}
+	
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
+	}
 
 	public Set<File> getFiles() {
 		return files;
@@ -121,5 +133,13 @@ public class Folder extends Auditable<String> implements IEntity {
 
 	public void setFiles(Set<File> files) {
 		this.files = files;
+	}
+	
+	public Boolean getIsFirstNode() {
+		return isFirstNode;
+	}
+	
+	public void setIsFirstNode(Boolean isFirstNode) {
+		this.isFirstNode = isFirstNode; 
 	}
 }

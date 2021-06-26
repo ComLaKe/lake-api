@@ -247,6 +247,7 @@ public class FileController {
 			JsonNode rootCp = mapperCp.readTree(responseCp.getBody());
 			String cid = rootCp.path("cid").asText();
 			_file.setCid(cid);
+			_file.setIsFirstNode(false);
 			return new ResponseEntity<>(fileRepository.save(_file), HttpStatus.OK);
 		} else {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -306,6 +307,22 @@ public class FileController {
 		else
 			fileRepository.findByNameContaining(name).forEach(files::add);
 		return files;
+	}
+	
+	@Operation(summary = "Get all first node content", description = "This can only be done by logged in user with file permissions.", security = {
+			@SecurityRequirement(name = "bearer-key") }, tags = { "File" })
+	@ApiResponses(value = @ApiResponse(description = "successful operation"))
+	@GetMapping("/content")
+	@PreAuthorize("(hasAnyRole('ADMIN','USER')) or (hasPermission(#file, 'READ')) or (hasPermission(#folder, 'READ'))")
+	public List<Object> getFirstNodeFiles() {
+		List<File> files = new ArrayList<File>();
+		List<Folder> folders = new ArrayList<Folder>();
+		fileRepository.findByIsFirstNodeTrue().forEach(files::add);
+		folderRepository.findByIsFirstNodeTrue().forEach(folders::add);
+		List<Object> content = new ArrayList<>();
+		content.addAll(folders);
+		content.addAll(files);
+		return content;
 	}
 
 	@Operation(summary = "Get File Data", description = "This can only be done by logged in user and those who have read permssions of file.", security = {
