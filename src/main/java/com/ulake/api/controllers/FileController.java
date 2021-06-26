@@ -46,7 +46,7 @@ import com.ulake.api.constant.AclSourceType;
 import com.ulake.api.constant.AclTargetType;
 import com.ulake.api.constant.PermType;
 import com.ulake.api.models.Acl;
-import com.ulake.api.models.CLFile;
+import com.ulake.api.models.File;
 import com.ulake.api.models.Folder;
 import com.ulake.api.models.User;
 import com.ulake.api.payload.request.UpdateFolderRequest;
@@ -101,7 +101,7 @@ public class FileController {
 	@PostMapping(value = "/files", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
 	@PostAuthorize("hasPermission(returnObject, 'READ')")
-	public CLFile uploadFile(@RequestParam("file") MultipartFile file,
+	public File uploadFile(@RequestParam("file") MultipartFile file,
 			@RequestHeader(required = true, value = "topics") List<String> topics,
 			@RequestHeader(required = false, value = "language") String language,
 			@RequestHeader(required = true, value = "source") String source) throws IOException {
@@ -114,7 +114,7 @@ public class FileController {
 		Long fileSize = file.getSize();
 		byte[] fileData = file.getBytes();
 
-		CLFile fileInfo = new CLFile(fileOwner, fileName);
+		File fileInfo = new File(fileOwner, fileName);
 
 		// Request to core POST /file - Add the file to the underlying file system
 		HttpHeaders headers = new HttpHeaders();
@@ -180,9 +180,9 @@ public class FileController {
 	@ApiResponses(value = @ApiResponse(description = "successful operation"))
 	@PutMapping("/files/{id}")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#file, 'WRITE')")
-	public CLFile updateFile(@PathVariable("id") Long id, @RequestBody UpdateFolderRequest updateFileRequest)
+	public File updateFile(@PathVariable("id") Long id, @RequestBody UpdateFolderRequest updateFileRequest)
 			throws JsonMappingException, JsonProcessingException {
-		CLFile _file = fileRepository.findById(id).get();
+		File _file = fileRepository.findById(id).get();
 
 		HttpHeaders headers = new HttpHeaders();
 		headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
@@ -222,13 +222,13 @@ public class FileController {
 	@ApiResponses(value = @ApiResponse(description = "successful operation"))
 	@PutMapping("/folders/{folderId}/files/{fileId}")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#file, 'WRITE')")
-	public ResponseEntity<CLFile> addFileToFolder(@PathVariable("folderId") Long folderId,
+	public ResponseEntity<File> addFileToFolder(@PathVariable("folderId") Long folderId,
 			@PathVariable("fileId") Long fileId) throws JsonMappingException, JsonProcessingException {
 		Optional<Folder> folderData = folderRepository.findById(folderId);
-		Optional<CLFile> fileData = fileRepository.findById(fileId);
+		Optional<File> fileData = fileRepository.findById(fileId);
 		if (folderData.isPresent() && fileData.isPresent()) {
 			Folder _folder = folderData.get();
-			CLFile _file = fileData.get();
+			File _file = fileData.get();
 			_file.setFolder(_folder);
 
 			HttpHeaders headers = new HttpHeaders();
@@ -256,15 +256,15 @@ public class FileController {
 	@Operation(summary = "Get a file by ID", description = "This can only be done by logged in user.", security = {
 			@SecurityRequirement(name = "bearer-key") }, tags = { "File" })
 	@ApiResponses(value = {
-			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = CLFile.class))),
+			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = File.class))),
 			@ApiResponse(responseCode = "400", description = "Invalid ID supplied", content = @Content),
 			@ApiResponse(responseCode = "404", description = "File not found", content = @Content) })
 	@GetMapping("/files/{id}")
 	@PreAuthorize("(hasAnyRole('ADMIN','USER')) or (hasPermission(#id, 'com.ulake.api.models.File', 'READ'))")
 	public ResponseEntity<?> getFileById(@PathVariable("id") Long id) {
-		Optional<CLFile> fileData = fileRepository.findById(id);
+		Optional<File> fileData = fileRepository.findById(id);
 		if (fileData.isPresent()) {
-			CLFile _file = fileData.get();
+			File _file = fileData.get();
 			String astQuery = "[\"==\", [\".\", \"id\"], " + _file.getDatasetId() + "]";
 			HttpEntity<String> request = new HttpEntity<String>(astQuery);
 			ResponseEntity<Object[]> response = restTemplate.postForEntity(coreBasePath + "find", request, Object[].class);
@@ -277,14 +277,14 @@ public class FileController {
 	@Operation(summary = "Delete a file by ID", description = "This can only be done by logged in user.", security = {
 			@SecurityRequirement(name = "bearer-key") }, tags = { "File" })
 	@ApiResponses(value = {
-			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = CLFile.class))),
+			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = File.class))),
 			@ApiResponse(responseCode = "400", description = "Invalid ID supplied", content = @Content),
 			@ApiResponse(responseCode = "404", description = "File not found", content = @Content) })
 	@DeleteMapping("/files/{id}")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#file, 'WRITE')")
-	public ResponseEntity<CLFile> deleteFileById(@PathVariable("id") long id) {
+	public ResponseEntity<File> deleteFileById(@PathVariable("id") long id) {
 		try {
-			CLFile file = fileRepository.findById(id).get();
+			File file = fileRepository.findById(id).get();
 			fileRepository.deleteById(id);
 			aclRepository.removeBySourceIdAndSourceType(id, AclSourceType.FILE);
 			permissionService.removeAcl(file);
@@ -299,8 +299,8 @@ public class FileController {
 	@ApiResponses(value = @ApiResponse(description = "successful operation"))
 	@GetMapping("/files")
 	@PreAuthorize("(hasAnyRole('ADMIN','USER')) or (hasPermission(#file, 'READ'))")
-	public List<CLFile> getAllFiles(@RequestParam(required = false) String name) {
-		List<CLFile> files = new ArrayList<CLFile>();
+	public List<File> getAllFiles(@RequestParam(required = false) String name) {
+		List<File> files = new ArrayList<File>();
 		if (name == null)
 			fileRepository.findAll().forEach(files::add);
 		else
@@ -313,12 +313,10 @@ public class FileController {
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#file, 'READ')")
 	@GetMapping("/files/data/{id}")
 	public ResponseEntity<?> getFileData(@PathVariable Long id) {
-		CLFile fileInfo = fileRepository.findById(id).get();
+		File fileInfo = fileRepository.findById(id).get();
 		String FILE_URL = coreBasePath + "file/" + fileInfo.getCid();
 		restTemplate.getMessageConverters().add(jacksonSupportsMoreTypes());
-
 		ResponseEntity<String> response = restTemplate.getForEntity(FILE_URL, String.class);
-
 		return ResponseEntity.ok()
 				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileInfo.getName() + "\"")
 				.body(response.getBody());
@@ -328,7 +326,7 @@ public class FileController {
 			@SecurityRequirement(name = "bearer-key") }, tags = { "File" })
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#file, 'READ')")
 	@GetMapping("/folder/{folderId}/files")
-	public List<CLFile> getAllFilesByFolderId(@PathVariable(value = "folderId") Long folderId) {
+	public List<File> getAllFilesByFolderId(@PathVariable(value = "folderId") Long folderId) {
 		return fileRepository.findByFolderId(folderId);
 	}
 }
