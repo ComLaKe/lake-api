@@ -315,13 +315,9 @@ public class FileController {
 	@GetMapping("/content")
 	@PreAuthorize("(hasAnyRole('ADMIN','USER')) or (hasPermission(#file, 'READ')) or (hasPermission(#folder, 'READ'))")
 	public List<Object> getFirstNodeFiles() {
-		List<File> files = new ArrayList<File>();
-		List<Folder> folders = new ArrayList<Folder>();
-		fileRepository.findByIsFirstNodeTrue().forEach(files::add);
-		folderRepository.findByIsFirstNodeTrue().forEach(folders::add);
 		List<Object> content = new ArrayList<>();
-		content.addAll(folders);
-		content.addAll(files);
+		fileRepository.findByIsFirstNodeTrue().forEach(content::add);
+		folderRepository.findByIsFirstNodeTrue().forEach(content::add);
 		return content;
 	}
 
