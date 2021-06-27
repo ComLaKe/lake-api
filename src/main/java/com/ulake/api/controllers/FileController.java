@@ -321,6 +321,18 @@ public class FileController {
 		folderRepository.findByIsFirstNodeTrue().forEach(content::add);
 		return content;
 	}
+	
+	@Operation(summary = "Find all contents by name containing", description = "This can only be done by logged in user with file permissions.", security = {
+			@SecurityRequirement(name = "bearer-key") }, tags = { "File" })
+	@ApiResponses(value = @ApiResponse(description = "successful operation"))
+	@GetMapping("/find/{name}")
+	@PreAuthorize("(hasAnyRole('ADMIN','USER')) or (hasPermission(#file, 'READ')) or (hasPermission(#folder, 'READ'))")
+	public List<Object> findByName(@PathVariable String name) {
+		List<Object> content = new ArrayList<>();
+		fileRepository.findByNameContaining(name).forEach(content::add);
+		folderRepository.findByNameContaining(name).forEach(content::add);
+		return content;
+	}
 
 	@Operation(summary = "Get File Data", description = "This can only be done by logged in user and those who have read permssions of file.", security = {
 			@SecurityRequirement(name = "bearer-key") }, tags = { "File" })

@@ -18,7 +18,7 @@ public interface FileRepository extends JpaRepository<File, Long> {
 	List<File> findByNameContaining(String name);
 
 	@PostFilter("hasPermission(filterObject, 'READ')")
-	Page<File> findByNameContaining(String name, Pageable pageable);
+	List<File> findByNameContaining(String name, Pageable pageable);
 
 	@PostFilter("hasPermission(filterObject, 'READ')")
 	List<File> findAll();
