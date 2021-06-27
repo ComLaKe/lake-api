@@ -101,9 +101,9 @@ public class FileController {
 	@PostMapping(value = "/files", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
 	@PostAuthorize("hasPermission(returnObject, 'READ')")
-	public File uploadFile(@RequestParam("file") MultipartFile file,
-			@RequestHeader(required = true, value = "topics") List<String> topics,
-			@RequestHeader(required = false, value = "language") String language,
+	public File uploadFile(@RequestParam(required = true, value = "file") MultipartFile file,
+			@RequestParam(required = true, value = "topics") List<String> topics,
+			@RequestParam(required = false, value = "language") String language,
 			@RequestHeader(required = true, value = "source") String source) throws IOException {
 		// Find out who is the current logged in user
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -316,9 +316,9 @@ public class FileController {
 	@GetMapping("/content")
 	@PreAuthorize("(hasAnyRole('ADMIN','USER')) or (hasPermission(#file, 'READ')) or (hasPermission(#folder, 'READ'))")
 	public List<Object> getFirstNodeFiles() {
-		List<Object> content = new ArrayList<>();
-		fileRepository.findByIsFirstNodeTrue().forEach(content::add);
+		List<Object> content = new ArrayList<>();		
 		folderRepository.findByIsFirstNodeTrue().forEach(content::add);
+		fileRepository.findByIsFirstNodeTrue().forEach(content::add);
 		return content;
 	}
 	
