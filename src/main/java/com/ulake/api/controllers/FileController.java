@@ -222,7 +222,7 @@ public class FileController {
 	@ApiResponses(value = @ApiResponse(description = "successful operation"))
 	@PutMapping("/folders/{folderId}/files/{fileId}")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasPermission(#file, 'WRITE')")
-	public ResponseEntity<File> addFileToFolder(@PathVariable("folderId") Long folderId,
+	public ResponseEntity<Folder> addFileToFolder(@PathVariable("folderId") Long folderId,
 			@PathVariable("fileId") Long fileId) throws JsonMappingException, JsonProcessingException {
 		Optional<Folder> folderData = folderRepository.findById(folderId);
 		Optional<File> fileData = fileRepository.findById(fileId);
@@ -246,9 +246,10 @@ public class FileController {
 			ObjectMapper mapperCp = new ObjectMapper();
 			JsonNode rootCp = mapperCp.readTree(responseCp.getBody());
 			String cid = rootCp.path("cid").asText();
-			_file.setCid(cid);
+			_folder.setCid(cid);
 			_file.setIsFirstNode(false);
-			return new ResponseEntity<>(fileRepository.save(_file), HttpStatus.OK);
+			fileRepository.save(_file); 
+			return new ResponseEntity<>(folderRepository.save(_folder), HttpStatus.OK);
 		} else {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
