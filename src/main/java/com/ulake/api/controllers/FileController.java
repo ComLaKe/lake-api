@@ -94,7 +94,8 @@ public class FileController {
 				MediaType.APPLICATION_OCTET_STREAM));
 		return converter;
 	}
-
+	
+	// TODO: Bulk upload files
 	@Operation(summary = "Upload a file", description = "This can only be done by logged in user having the file permissions.", security = {
 			@SecurityRequirement(name = "bearer-key") }, tags = { "File" })
 	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Status OK") })
