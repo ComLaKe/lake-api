@@ -3,8 +3,6 @@ use ulakedb;
 -- ============================================================================
 -- ACL tables
 -- ============================================================================
-
-SET FOREIGN_KEY_CHECKS=0;
 drop table if exists acl_class;
 create table acl_class (
     id smallint unsigned not null auto_increment primary key,
@@ -45,4 +43,3 @@ create table acl_entry (
     foreign key (acl_object_identity) references acl_object_identity (id),
     foreign key (sid) references acl_sid (id)
 ) engine = InnoDb;
-SET FOREIGN_KEY_CHECKS=1;

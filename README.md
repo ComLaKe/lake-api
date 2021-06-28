@@ -27,11 +27,15 @@ Edit your MySQL username and password
 mvn spring-boot:run
 ```
 
-## Run following SQL insert statements
+## Set up MySQL database
+Run following SQL insert statements
+
 ```
 INSERT INTO clake_roles(name) VALUES('ROLE_USER');
 INSERT INTO clake_roles(name) VALUES('ROLE_ADMIN');
 ```
+
+Open and run `src/main/resources/acl-schema.sql` and `src/main/resources/acl-data.sql`
 
 ## Get an executable contains all the resources and dependencies Jar file
 ```
