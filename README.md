@@ -1,6 +1,16 @@
 # lake-api
 API for Ulake
 
+# Prerequisites
+- Java
+- JDK 
+- Maven 
+- MySQL 
+
+With Comlake Core: 
+- IPFS 
+- PostgreSQL 
+
 # Configure Spring Datasource, JPA, App properties
 Open `src/main/resources/application.properties`
 
