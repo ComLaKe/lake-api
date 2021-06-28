@@ -31,7 +31,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -94,7 +93,7 @@ public class FileController {
 				MediaType.APPLICATION_OCTET_STREAM));
 		return converter;
 	}
-	
+
 	// TODO: Bulk upload files
 	@Operation(summary = "Upload a file", description = "This can only be done by logged in user having the file permissions.", security = {
 			@SecurityRequirement(name = "bearer-key") }, tags = { "File" })
@@ -103,13 +102,15 @@ public class FileController {
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
 	@PostAuthorize("hasPermission(returnObject, 'READ')")
 	public File uploadFile(@RequestParam(required = true, value = "file") MultipartFile file,
-			@RequestParam(required = true, value = "topics") List<String> topics,
-			@RequestParam(required = false, value = "language") String language,
-			@RequestHeader(required = true, value = "source") String source) throws IOException {
+			@RequestParam(required = true, value = "topics", defaultValue = "unlisted") List<String> topics,
+			@RequestParam(required = false, value = "language", defaultValue = "English") String language,
+			@RequestParam(required = true, value = "source", defaultValue = "unspecified") String source)
+			throws IOException {
 		// Find out who is the current logged in user
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 		User fileOwner = userRepository.findByEmail(userDetails.getEmail());
+
 		String fileName = StringUtils.cleanPath(file.getOriginalFilename());
 		String fileMimeType = file.getContentType();
 		Long fileSize = file.getSize();
@@ -214,7 +215,6 @@ public class FileController {
 
 		_file.setName(updateFileRequest.getName());
 
-
 		return fileRepository.save(_file);
 	}
 
@@ -249,7 +249,7 @@ public class FileController {
 			String cid = rootCp.path("cid").asText();
 			_folder.setCid(cid);
 			_file.setIsFirstNode(false);
-			fileRepository.save(_file); 
+			fileRepository.save(_file);
 			return new ResponseEntity<>(folderRepository.save(_folder), HttpStatus.OK);
 		} else {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -270,7 +270,8 @@ public class FileController {
 			File _file = fileData.get();
 			String astQuery = "[\"==\", [\".\", \"id\"], " + _file.getDatasetId() + "]";
 			HttpEntity<String> request = new HttpEntity<String>(astQuery);
-			ResponseEntity<Object[]> response = restTemplate.postForEntity(coreBasePath + "find", request, Object[].class);
+			ResponseEntity<Object[]> response = restTemplate.postForEntity(coreBasePath + "find", request,
+					Object[].class);
 			return new ResponseEntity<>(response.getBody(), HttpStatus.OK);
 		} else {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -310,19 +311,19 @@ public class FileController {
 			fileRepository.findByNameContaining(name).forEach(files::add);
 		return files;
 	}
-	
+
 	@Operation(summary = "Get all first node content", description = "This can only be done by logged in user with file permissions.", security = {
 			@SecurityRequirement(name = "bearer-key") }, tags = { "File" })
 	@ApiResponses(value = @ApiResponse(description = "successful operation"))
 	@GetMapping("/content")
 	@PreAuthorize("(hasAnyRole('ADMIN','USER')) or (hasPermission(#file, 'READ')) or (hasPermission(#folder, 'READ'))")
 	public List<Object> getFirstNodeFiles() {
-		List<Object> content = new ArrayList<>();		
+		List<Object> content = new ArrayList<>();
 		folderRepository.findByIsFirstNodeTrue().forEach(content::add);
 		fileRepository.findByIsFirstNodeTrue().forEach(content::add);
 		return content;
 	}
-	
+
 	@Operation(summary = "Find all contents by name containing", description = "This can only be done by logged in user with file permissions.", security = {
 			@SecurityRequirement(name = "bearer-key") }, tags = { "File" })
 	@ApiResponses(value = @ApiResponse(description = "successful operation"))
