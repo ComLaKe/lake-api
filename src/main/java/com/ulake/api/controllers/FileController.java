@@ -149,7 +149,7 @@ public class FileController {
 			dataset.put("language", language);
 		}
 
-		HttpEntity<String> requestDataset = new HttpEntity<String>(dataset.toString(), headers);
+		HttpEntity<String> requestDataset = new HttpEntity<String>(dataset.toString(), headersJson);
 		ResponseEntity<String> responseDataset = restTemplate.postForEntity(coreBasePath + "add", requestDataset,
 				String.class);
 

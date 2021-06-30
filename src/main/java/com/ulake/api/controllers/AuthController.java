@@ -100,7 +100,7 @@ public class AuthController {
 	@Operation(summary = "Create user", description = "Create user.", tags = { "User Authentication" })
 	@ApiResponses(value = { @ApiResponse(description = "successful operation", content = {
 			@Content(mediaType = "application/json", schema = @Schema(implementation = User.class)) }) })
-	@PostMapping("/api/users")
+	@PostMapping("/api/auth/signup")
 	public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
 		if (userRepository.existsByUsername(signUpRequest.getUsername())) {
 			return ResponseEntity.badRequest().body(new MessageResponse("Error: Username is already taken!"));
