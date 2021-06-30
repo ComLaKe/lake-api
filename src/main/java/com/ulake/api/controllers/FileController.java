@@ -53,6 +53,7 @@ import com.ulake.api.repository.AclRepository;
 import com.ulake.api.repository.FileRepository;
 import com.ulake.api.repository.FolderRepository;
 import com.ulake.api.repository.UserRepository;
+import com.ulake.api.security.services.ComlakeCoreService;
 import com.ulake.api.security.services.LocalPermissionService;
 import com.ulake.api.security.services.impl.UserDetailsImpl;
 
@@ -87,6 +88,9 @@ public class FileController {
 
 	private RestTemplate restTemplate = new RestTemplate();
 
+	@Autowired
+	ComlakeCoreService coreService;
+
 	private HttpMessageConverter<?> jacksonSupportsMoreTypes() {
 		MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
 		converter.setSupportedMediaTypes(Arrays.asList(MediaType.parseMediaType("text/plain;charset=utf-8"),
@@ -118,45 +122,10 @@ public class FileController {
 
 		File fileInfo = new File(fileOwner, fileName);
 
-		// Request to core POST /file - Add the file to the underlying file system
-		HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-		headers.set("Content-Length", fileSize.toString());
-		headers.set("Content-Type", fileMimeType);
-
-		HttpEntity<byte[]> entity = new HttpEntity<>(fileData, headers);
-
-		ResponseEntity<byte[]> response = restTemplate.postForEntity(coreBasePath + "file", entity, byte[].class);
-
-		// Get and save the response cid
-		ObjectMapper mapperCreate = new ObjectMapper();
-		JsonNode rootCreate = mapperCreate.readTree(response.getBody());
-		String cid = rootCreate.path("cid").asText();
+		String cid = coreService.postFile(fileData, fileSize, fileMimeType);
 		fileInfo.setCid(cid);
 
-		// Request to core POST /add - Add Metadata for the directory
-		HttpHeaders headersJson = new HttpHeaders();
-		headersJson.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
-
-		JSONObject dataset = new JSONObject();
-		dataset.put("file", cid);
-		dataset.put("description", fileName);
-		dataset.put("source", source);
-		dataset.put("mimeType", fileMimeType);
-		dataset.put("size", fileSize);
-		dataset.put("topics", new JSONArray(topics));
-		if (language != null) {
-			dataset.put("language", language);
-		}
-
-		HttpEntity<String> requestDataset = new HttpEntity<String>(dataset.toString(), headersJson);
-		ResponseEntity<String> responseDataset = restTemplate.postForEntity(coreBasePath + "add", requestDataset,
-				String.class);
-
-		// Get and save the response datasetId
-		ObjectMapper mapperDataset = new ObjectMapper();
-		JsonNode rootDataset = mapperDataset.readTree(responseDataset.getBody());
-		String datasetId = rootDataset.path("id").asText();
+		String datasetId = coreService.addDataset(cid, fileName, source, topics, fileSize, fileMimeType, language);
 		fileInfo.setDatasetId(datasetId);
 
 		// Save File Metadata in our db;
@@ -185,34 +154,14 @@ public class FileController {
 	public File updateFile(@PathVariable("id") Long id, @RequestBody UpdateFolderRequest updateFileRequest)
 			throws JsonMappingException, JsonProcessingException {
 		File _file = fileRepository.findById(id).get();
+		String currDatasetId = _file.getDatasetId();
+		String name = updateFileRequest.getName();
+		String source = updateFileRequest.getSource();
+		List<String> topics = updateFileRequest.getTopics();
+		String language = updateFileRequest.getLanguage();
 
-		HttpHeaders headers = new HttpHeaders();
-		headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
-
-		JSONObject dataset = new JSONObject();
-		dataset.put("parent", _file.getDatasetId());
-		if (updateFileRequest.getName() != null) {
-			dataset.put("description", updateFileRequest.getName());
-		}
-		if (updateFileRequest.getSource() != null) {
-			dataset.put("source", updateFileRequest.getSource());
-		}
-		if (updateFileRequest.getTopics() != null) {
-			dataset.put("topics", new JSONArray(updateFileRequest.getTopics()));
-		}
-		if (updateFileRequest.getLanguage() != null) {
-			dataset.put("language", updateFileRequest.getLanguage());
-		}
-
-		HttpEntity<String> requestDataset = new HttpEntity<String>(dataset.toString(), headers);
-		ResponseEntity<String> responseDataset = restTemplate.postForEntity(coreBasePath + "update", requestDataset,
-				String.class);
-
-		ObjectMapper mapperDataset = new ObjectMapper();
-		JsonNode rootDataset = mapperDataset.readTree(responseDataset.getBody());
-		String datasetId = rootDataset.path("id").asText();
-		_file.setDatasetId(datasetId);
-
+		String newDatasetId = coreService.updateDataset(currDatasetId, name, source, topics, language);
+		_file.setDatasetId(newDatasetId);
 		_file.setName(updateFileRequest.getName());
 
 		return fileRepository.save(_file);
@@ -232,21 +181,7 @@ public class FileController {
 			File _file = fileData.get();
 			_file.setFolder(_folder);
 
-			HttpHeaders headers = new HttpHeaders();
-			headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
-
-			JSONObject dataset = new JSONObject();
-			dataset.put("src", _file.getCid());
-			dataset.put("dest", _folder.getCid());
-			dataset.put("path", _file.getName());
-
-			HttpEntity<String> requestCp = new HttpEntity<String>(dataset.toString(), headers);
-			ResponseEntity<String> responseCp = restTemplate.postForEntity(coreBasePath + "cp", requestCp,
-					String.class);
-
-			ObjectMapper mapperCp = new ObjectMapper();
-			JsonNode rootCp = mapperCp.readTree(responseCp.getBody());
-			String cid = rootCp.path("cid").asText();
+			String cid = coreService.cpToDir(_file.getCid(), _folder.getCid(), _file.getName());
 			_folder.setCid(cid);
 			_file.setIsFirstNode(false);
 			fileRepository.save(_file);
@@ -268,7 +203,7 @@ public class FileController {
 		Optional<File> fileData = fileRepository.findById(id);
 		if (fileData.isPresent()) {
 			File _file = fileData.get();
-			String astQuery = "[\"==\", [\".\", \"id\"], " + _file.getDatasetId() + "]";
+			String astQuery = "[\"==\", [\".\", [\"$\"], \"id\"], " + _file.getDatasetId() + "]";
 			HttpEntity<String> request = new HttpEntity<String>(astQuery);
 			ResponseEntity<Object[]> response = restTemplate.postForEntity(coreBasePath + "find", request,
 					Object[].class);

@@ -1,5 +1,6 @@
 package com.ulake.api.controllers;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -35,6 +36,7 @@ import com.ulake.api.repository.AclRepository;
 import com.ulake.api.repository.FileRepository;
 import com.ulake.api.repository.FolderRepository;
 import com.ulake.api.repository.UserRepository;
+import com.ulake.api.security.services.ComlakeCoreService;
 import com.ulake.api.security.services.LocalPermissionService;
 import com.ulake.api.security.services.impl.UserDetailsImpl;
 
@@ -77,6 +79,9 @@ public class FolderController {
 	@Autowired
 	private LocalPermissionService permissionService;
 
+	@Autowired
+	ComlakeCoreService coreService;
+
 	@Value("${app.coreBasePath}")
 	private String coreBasePath;
 
@@ -88,8 +93,7 @@ public class FolderController {
 	@PostMapping("/folders")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
 	@PostAuthorize("hasPermission(returnObject, 'READ')")
-	public Folder createFolder(@RequestBody CreateFolderRequest createFolderRequest)
-			throws JsonMappingException, JsonProcessingException {
+	public Folder createFolder(@RequestBody CreateFolderRequest createFolderRequest) throws IOException {
 		// Get current principal
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
@@ -98,37 +102,12 @@ public class FolderController {
 		// Create Folder
 		Folder _folder = new Folder(folderCreator, createFolderRequest.getName());
 
-		// Request to core POST /dir - Create an empty directory
-		ResponseEntity<String> response = restTemplate.postForEntity(coreBasePath + "/dir", null, String.class);
-
-		// Get and save the response cid
-		ObjectMapper mapperCreate = new ObjectMapper();
-		JsonNode rootCreate = mapperCreate.readTree(response.getBody());
-		String cid = rootCreate.path("cid").asText();
+		String cid = coreService.postFolder();
 		_folder.setCid(cid);
 
 		// Request to core POST /add - Add Metadata for the directory
-		HttpHeaders headers = new HttpHeaders();
-		headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
-
-		JSONObject dataset = new JSONObject();
-		dataset.put("file", cid);
-		dataset.put("description", createFolderRequest.getName());
-		dataset.put("source", createFolderRequest.getSource());
-		dataset.put("topics", new JSONArray(createFolderRequest.getTopics()));
-
-		if (createFolderRequest.getLanguage() != null) {
-			dataset.put("language", createFolderRequest.getLanguage());
-		}
-		
-		HttpEntity<String> requestDataset = new HttpEntity<String>(dataset.toString(), headers);
-		ResponseEntity<String> responseDataset = restTemplate.postForEntity(coreBasePath + "/add", requestDataset,
-				String.class);
-
-		// Get and save the response datasetId
-		ObjectMapper mapperDataset = new ObjectMapper();
-		JsonNode rootDataset = mapperDataset.readTree(responseDataset.getBody());
-		String datasetId = rootDataset.path("id").asText();
+		String datasetId = coreService.addDataset(cid, createFolderRequest.getName(), createFolderRequest.getSource(),
+				createFolderRequest.getTopics(), null, null, createFolderRequest.getLanguage());
 		_folder.setDatasetId(datasetId);
 
 		// Save to Repository
@@ -159,35 +138,16 @@ public class FolderController {
 		Optional<Folder> folderData = folderRepository.findById(id);
 		if (folderData.isPresent()) {
 			Folder _folder = folderData.get();
+			String currDatasetId = _folder.getDatasetId();
+			String name = updateFolderRequest.getName();
+			String source = updateFolderRequest.getSource();
+			List<String> topics = updateFolderRequest.getTopics();
+			String language = updateFolderRequest.getLanguage();
 
-			HttpHeaders headers = new HttpHeaders();
-			headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
-
-			JSONObject dataset = new JSONObject();
-			dataset.put("parent", _folder.getDatasetId());
-			if (updateFolderRequest.getName() != null) {
-				dataset.put("description", updateFolderRequest.getName());
-			}
-			if (updateFolderRequest.getSource() != null) {
-				dataset.put("source", updateFolderRequest.getSource());
-			}
-			if (updateFolderRequest.getTopics() != null) {
-				dataset.put("topics", new JSONArray(updateFolderRequest.getTopics()));
-			}
-			if (updateFolderRequest.getLanguage() != null) {
-				dataset.put("language", updateFolderRequest.getLanguage());
-			}
-
-			HttpEntity<String> requestDataset = new HttpEntity<String>(dataset.toString(), headers);
-			ResponseEntity<String> responseDataset = restTemplate.postForEntity(coreBasePath + "/update",
-					requestDataset, String.class);
-
-			ObjectMapper mapperDataset = new ObjectMapper();
-			JsonNode rootDataset = mapperDataset.readTree(responseDataset.getBody());
-			String datasetId = rootDataset.path("id").asText();
-			_folder.setDatasetId(datasetId);
-
+			String newDatasetId = coreService.updateDataset(currDatasetId, name, source, topics, language);
+			_folder.setDatasetId(newDatasetId);
 			_folder.setName(updateFolderRequest.getName());
+			
 			return new ResponseEntity<>(folderRepository.save(_folder), HttpStatus.OK);
 		} else {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -208,21 +168,7 @@ public class FolderController {
 			Folder _subfolder = subfolderData.get();
 			_folder.addSubfolder(_subfolder);
 
-			HttpHeaders headers = new HttpHeaders();
-			headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
-
-			JSONObject dataset = new JSONObject();
-			dataset.put("src", _subfolder.getCid());
-			dataset.put("dest", _folder .getCid());
-			dataset.put("path", _subfolder.getName());
-
-			HttpEntity<String> requestCp = new HttpEntity<String>(dataset.toString(), headers);
-			ResponseEntity<String> responseCp = restTemplate.postForEntity(coreBasePath + "cp", requestCp,
-					String.class);
-
-			ObjectMapper mapperCp = new ObjectMapper();
-			JsonNode rootCp = mapperCp.readTree(responseCp.getBody());
-			String cid = rootCp.path("cid").asText();
+			String cid = coreService.cpToDir(_subfolder.getCid(), _folder.getCid(), _subfolder.getName());
 			_folder.setCid(cid);
 			_subfolder.setIsFirstNode(false);
 			return new ResponseEntity<>(folderRepository.save(_folder), HttpStatus.OK);
@@ -241,17 +187,18 @@ public class FolderController {
 	@PreAuthorize("(hasAnyRole('ADMIN','USER')) or (hasPermission(#id, 'com.ulake.api.models.Folder', 'READ'))")
 	public ResponseEntity<?> getFolderById(@PathVariable("id") long id) {
 		Optional<Folder> folderData = folderRepository.findById(id);
-		if (folderData.isPresent()) {		
+		if (folderData.isPresent()) {
 			Folder _folder = folderData.get();
-			String astQuery = "[\"==\", [\".\", \"id\"], " + _folder.getDatasetId() + "]";
+			String astQuery = "[\"==\", [\".\", [\"$\"], \"id\"], " + _folder.getDatasetId() + "]";
 			HttpEntity<String> request = new HttpEntity<String>(astQuery);
-			ResponseEntity<Object[]> response = restTemplate.postForEntity(coreBasePath + "find", request, Object[].class);
+			ResponseEntity<Object[]> response = restTemplate.postForEntity(coreBasePath + "find", request,
+					Object[].class);
 			return new ResponseEntity<>(response.getBody(), HttpStatus.OK);
 		} else {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
 	}
-	
+
 	@Operation(summary = "Get a list of content inside folder by ID", description = "This can only be done by users who has read permission for folders.", security = {
 			@SecurityRequirement(name = "bearer-key") }, tags = { "Folder" })
 	@ApiResponses(value = {
@@ -260,14 +207,12 @@ public class FolderController {
 			@ApiResponse(responseCode = "404", description = "Folder not found", content = @Content) })
 	@GetMapping("/folders/content/{id}")
 	@PreAuthorize("(hasAnyRole('ADMIN','USER')) or (hasPermission(#id, 'com.ulake.api.models.Folder', 'READ'))")
-	public ResponseEntity<?> getContentFolderById(@PathVariable("id") long id) throws JsonMappingException, JsonProcessingException {
+	public ResponseEntity<?> getContentFolderById(@PathVariable("id") long id)
+			throws JsonMappingException, JsonProcessingException {
 		Optional<Folder> folderData = folderRepository.findById(id);
-		if (folderData.isPresent()) {			
+		if (folderData.isPresent()) {
 			Folder _folder = folderData.get();
-			ResponseEntity<String> response
-			  = restTemplate.getForEntity(coreBasePath + "dir/" + _folder.getCid(), String.class);
-			ObjectMapper mapper = new ObjectMapper();
-			JsonNode root = mapper.readTree(response.getBody());
+			JsonNode root = coreService.listContent(_folder.getCid());
 			return new ResponseEntity<>(root, HttpStatus.OK);
 		} else {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
