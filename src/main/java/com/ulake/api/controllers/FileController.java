@@ -2,22 +2,14 @@ package com.ulake.api.controllers;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.acls.domain.BasePermission;
@@ -34,13 +26,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ulake.api.constant.AclSourceType;
 import com.ulake.api.constant.AclTargetType;
 import com.ulake.api.constant.PermType;
@@ -83,20 +72,8 @@ public class FileController {
 	@Autowired
 	private LocalPermissionService permissionService;
 
-	@Value("${app.coreBasePath}")
-	private String coreBasePath;
-
-	private RestTemplate restTemplate = new RestTemplate();
-
 	@Autowired
 	ComlakeCoreService coreService;
-
-	private HttpMessageConverter<?> jacksonSupportsMoreTypes() {
-		MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
-		converter.setSupportedMediaTypes(Arrays.asList(MediaType.parseMediaType("text/plain;charset=utf-8"),
-				MediaType.APPLICATION_OCTET_STREAM));
-		return converter;
-	}
 
 	// TODO: Bulk upload files
 	@Operation(summary = "Upload a file", description = "This can only be done by logged in user having the file permissions.", security = {
@@ -203,11 +180,7 @@ public class FileController {
 		Optional<File> fileData = fileRepository.findById(id);
 		if (fileData.isPresent()) {
 			File _file = fileData.get();
-			String astQuery = "[\"==\", [\".\", [\"$\"], \"id\"], " + _file.getDatasetId() + "]";
-			HttpEntity<String> request = new HttpEntity<String>(astQuery);
-			ResponseEntity<Object[]> response = restTemplate.postForEntity(coreBasePath + "find", request,
-					Object[].class);
-			return new ResponseEntity<>(response.getBody(), HttpStatus.OK);
+			return new ResponseEntity<>(coreService.findByDatasetId(_file.getDatasetId()), HttpStatus.OK);
 		} else {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
@@ -277,12 +250,10 @@ public class FileController {
 	@GetMapping("/files/data/{id}")
 	public ResponseEntity<?> getFileData(@PathVariable Long id) {
 		File fileInfo = fileRepository.findById(id).get();
-		String FILE_URL = coreBasePath + "file/" + fileInfo.getCid();
-		restTemplate.getMessageConverters().add(jacksonSupportsMoreTypes());
-		ResponseEntity<String> response = restTemplate.getForEntity(FILE_URL, String.class);
+		String cid = fileInfo.getCid();
 		return ResponseEntity.ok()
 				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileInfo.getName() + "\"")
-				.body(response.getBody());
+				.body(coreService.getFileData(cid));
 	}
 
 	@Operation(summary = "Get All Files by Folder Id", description = "This can only be done by logged in user and those who have read permssions of file.", security = {

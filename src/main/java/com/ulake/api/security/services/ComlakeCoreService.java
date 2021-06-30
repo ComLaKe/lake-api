@@ -12,6 +12,8 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -26,6 +28,13 @@ public class ComlakeCoreService {
 	private String coreBasePath;
 
 	private RestTemplate restTemplate = new RestTemplate();
+
+	private HttpMessageConverter<?> jacksonSupportsMoreTypes() {
+		MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
+		converter.setSupportedMediaTypes(Arrays.asList(MediaType.parseMediaType("text/plain;charset=utf-8"),
+				MediaType.APPLICATION_OCTET_STREAM));
+		return converter;
+	}
 
 	// POST /file
 	public String postFile(byte[] data, Long size, String mimeType) throws IOException {
@@ -57,8 +66,14 @@ public class ComlakeCoreService {
 		return cid;
 	}
 
-	// TODO: GET /file/{cid}
-
+	// GET /file/{cid}
+	public String getFileData(String cid) {
+		String FILE_URL = coreBasePath + "file/" + cid;
+		restTemplate.getMessageConverters().add(jacksonSupportsMoreTypes());
+		ResponseEntity<String> response = restTemplate.getForEntity(FILE_URL, String.class);
+		return response.getBody();
+	}
+	
 	// POST /cp
 	public String cpToDir(String src, String dest, String path) throws JsonMappingException, JsonProcessingException {
 		HttpHeaders headers = new HttpHeaders();
@@ -146,5 +161,23 @@ public class ComlakeCoreService {
 		return datasetId;
 	}
 
-	// TODO: POST /find by datasetId
+	// POST /find by datasetId
+	public Object[] findByDatasetId(String datasetId) {
+		String astQuery = "[\"==\", [\".\", [\"$\"], \"id\"], " + datasetId + "]";
+		HttpEntity<String> request = new HttpEntity<String>(astQuery);
+		ResponseEntity<Object[]> response = restTemplate.postForEntity(coreBasePath + "find", request,
+				Object[].class);
+		return response.getBody();
+	}
+	
+	// POST /find by topics
+	public Object[] findByTopics(List<String> topics) {
+		String astQuery = "[\"&&\", [\".\", [\"$\"], \"topics\"], " + topics + "]";
+		System.out.print(astQuery);
+		HttpEntity<String> request = new HttpEntity<String>(astQuery);
+		ResponseEntity<Object[]> response = restTemplate.postForEntity(coreBasePath + "find", request,
+				Object[].class);
+		System.out.print(response.getBody());
+		return response.getBody();
+	}
 }

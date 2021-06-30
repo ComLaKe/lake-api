@@ -2,18 +2,11 @@ package com.ulake.api.controllers;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -30,7 +23,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestTemplate;
 
 import com.ulake.api.repository.AclRepository;
 import com.ulake.api.repository.FileRepository;
@@ -50,7 +42,6 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ulake.api.constant.AclSourceType;
 import com.ulake.api.constant.AclTargetType;
 import com.ulake.api.constant.PermType;
@@ -81,11 +72,6 @@ public class FolderController {
 
 	@Autowired
 	ComlakeCoreService coreService;
-
-	@Value("${app.coreBasePath}")
-	private String coreBasePath;
-
-	private RestTemplate restTemplate = new RestTemplate();
 
 	@Operation(summary = "Add a folder", description = "This can only be done by logged in user.", security = {
 			@SecurityRequirement(name = "bearer-key") }, tags = { "Folder" })
@@ -188,12 +174,8 @@ public class FolderController {
 	public ResponseEntity<?> getFolderById(@PathVariable("id") long id) {
 		Optional<Folder> folderData = folderRepository.findById(id);
 		if (folderData.isPresent()) {
-			Folder _folder = folderData.get();
-			String astQuery = "[\"==\", [\".\", [\"$\"], \"id\"], " + _folder.getDatasetId() + "]";
-			HttpEntity<String> request = new HttpEntity<String>(astQuery);
-			ResponseEntity<Object[]> response = restTemplate.postForEntity(coreBasePath + "find", request,
-					Object[].class);
-			return new ResponseEntity<>(response.getBody(), HttpStatus.OK);
+			Folder _folder = folderData.get();			
+			return new ResponseEntity<>(coreService.findByDatasetId(_folder.getDatasetId()), HttpStatus.OK);
 		} else {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
