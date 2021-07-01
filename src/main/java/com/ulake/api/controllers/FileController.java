@@ -92,7 +92,7 @@ public class FileController {
 		UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 		User fileOwner = userRepository.findByEmail(userDetails.getEmail());
 
-		String fileName = StringUtils.cleanPath(file.getOriginalFilename());
+		String fileName = StringUtils.getFilename(file.getOriginalFilename()); 
 		String fileMimeType = file.getContentType();
 		Long fileSize = file.getSize();
 		byte[] fileData = file.getBytes();
