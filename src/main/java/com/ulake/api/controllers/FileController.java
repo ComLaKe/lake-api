@@ -92,7 +92,7 @@ public class FileController {
 		UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 		User fileOwner = userRepository.findByEmail(userDetails.getEmail());
 
-		String fileName = StringUtils.getFilename(file.getOriginalFilename()); 
+		String fileName = StringUtils.getFilename(file.getOriginalFilename());
 		String fileMimeType = file.getContentType();
 		Long fileSize = file.getSize();
 		byte[] fileData = file.getBytes();
@@ -186,6 +186,18 @@ public class FileController {
 		}
 	}
 
+	@Operation(summary = "Get content by topics", description = "This can only be done by logged in user.", security = {
+			@SecurityRequirement(name = "bearer-key") }, tags = { "Content" })
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = File.class))),
+			@ApiResponse(responseCode = "400", description = "Invalid ID supplied", content = @Content),
+			@ApiResponse(responseCode = "404", description = "File not found", content = @Content) })
+	@GetMapping("/find/topics")
+	@PreAuthorize("(hasAnyRole('ADMIN','USER')) or (hasPermission(#id, 'com.ulake.api.models.File', 'READ')) or (hasPermission(#id, 'com.ulake.api.models.Folder', 'READ'))")
+	public ResponseEntity<?> getContentByTopic(@RequestParam("topics") List<String> topics) {
+		return new ResponseEntity<>(coreService.findByTopics(topics), HttpStatus.OK);
+	}
+
 	@Operation(summary = "Delete a file by ID", description = "This can only be done by logged in user.", security = {
 			@SecurityRequirement(name = "bearer-key") }, tags = { "File" })
 	@ApiResponses(value = {
@@ -221,7 +233,7 @@ public class FileController {
 	}
 
 	@Operation(summary = "Get all first node content", description = "This can only be done by logged in user with file permissions.", security = {
-			@SecurityRequirement(name = "bearer-key") }, tags = { "File" })
+			@SecurityRequirement(name = "bearer-key") }, tags = { "Content" })
 	@ApiResponses(value = @ApiResponse(description = "successful operation"))
 	@GetMapping("/content")
 	@PreAuthorize("(hasAnyRole('ADMIN','USER')) or (hasPermission(#file, 'READ')) or (hasPermission(#folder, 'READ'))")
@@ -233,9 +245,9 @@ public class FileController {
 	}
 
 	@Operation(summary = "Find all contents by name containing", description = "This can only be done by logged in user with file permissions.", security = {
-			@SecurityRequirement(name = "bearer-key") }, tags = { "File" })
+			@SecurityRequirement(name = "bearer-key") }, tags = { "Content" })
 	@ApiResponses(value = @ApiResponse(description = "successful operation"))
-	@GetMapping("/find/{name}")
+	@GetMapping("/find/name/{name}")
 	@PreAuthorize("(hasAnyRole('ADMIN','USER')) or (hasPermission(#file, 'READ')) or (hasPermission(#folder, 'READ'))")
 	public List<Object> findByName(@PathVariable String name) {
 		List<Object> content = new ArrayList<>();
