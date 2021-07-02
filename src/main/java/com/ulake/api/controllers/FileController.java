@@ -157,7 +157,6 @@ public class FileController {
 			Folder _folder = folderData.get();
 			File _file = fileData.get();
 			_file.setFolder(_folder);
-
 			String cid = coreService.cpToDir(_file.getCid(), _folder.getCid(), _file.getName());
 			_folder.setCid(cid);
 			_file.setIsFirstNode(false);
@@ -243,7 +242,20 @@ public class FileController {
 		fileRepository.findByIsFirstNodeTrue().forEach(content::add);
 		return content;
 	}
-	
+
+	@Operation(summary = "List directory by ID", description = "This can only be done by logged in user with file permissions.", security = {
+			@SecurityRequirement(name = "bearer-key") }, tags = { "Content" })
+	@ApiResponses(value = @ApiResponse(description = "successful operation"))
+	@GetMapping("/folders/ls/{folderId}")
+	@PreAuthorize("(hasAnyRole('ADMIN','USER')) or (hasPermission(#folder, 'READ'))")
+	public List<Object> getContentById(@PathVariable Long folderId) {
+		List<Object> content = new ArrayList<>();
+		Folder _folder = folderRepository.findById(folderId).get();
+		_folder.getSubfolders().forEach(content::add);
+		_folder.getFiles().forEach(content::add);
+		return content;
+	}
+
 	@Operation(summary = "Find all contents by name containing", description = "This can only be done by logged in user with file permissions.", security = {
 			@SecurityRequirement(name = "bearer-key") }, tags = { "Content" })
 	@ApiResponses(value = @ApiResponse(description = "successful operation"))

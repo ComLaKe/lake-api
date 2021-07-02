@@ -153,7 +153,7 @@ public class FolderController {
 			Folder _folder = folderData.get();
 			Folder _subfolder = subfolderData.get();
 			_folder.addSubfolder(_subfolder);
-
+			_subfolder.setParent(_folder);
 			String cid = coreService.cpToDir(_subfolder.getCid(), _folder.getCid(), _subfolder.getName());
 			_folder.setCid(cid);
 			_subfolder.setIsFirstNode(false);
@@ -180,6 +180,25 @@ public class FolderController {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
 	}
+	
+	@Operation(summary = "Get a folder by ID (Internal)", description = "This can only be done by users who has read permission for folders.", security = {
+			@SecurityRequirement(name = "bearer-key") }, tags = { "Folder" })
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = Folder.class))),
+			@ApiResponse(responseCode = "400", description = "Invalid ID supplied", content = @Content),
+			@ApiResponse(responseCode = "404", description = "Folder not found", content = @Content) })
+	@GetMapping("/folders/internal/{id}")
+	@PreAuthorize("(hasAnyRole('ADMIN','USER')) or (hasPermission(#id, 'com.ulake.api.models.Folder', 'READ'))")
+	public ResponseEntity<Folder> getFolderByIdInt(@PathVariable("id") long id) {
+		Optional<Folder> folderData = folderRepository.findById(id);
+		if (folderData.isPresent()) {
+			Folder _folder = folderData.get();			
+			return new ResponseEntity<>(_folder, HttpStatus.OK);
+		} else {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
+	}
+
 
 	@Operation(summary = "Get a list of content inside folder by ID", description = "This can only be done by users who has read permission for folders.", security = {
 			@SecurityRequirement(name = "bearer-key") }, tags = { "Folder" })

@@ -91,7 +91,6 @@ public class ComlakeCoreService {
 		ObjectMapper mapperCp = new ObjectMapper();
 		JsonNode rootCp = mapperCp.readTree(responseCp.getBody());
 		String cid = rootCp.path("cid").asText();
-
 		return cid;
 	}
 
@@ -174,7 +173,6 @@ public class ComlakeCoreService {
 	public Object[] findByTopics(List<String> topics) {
 		String astQuery = "[\"&&\", [\".\", [\"$\"], \"topics\"], "
 				+ "[" + topics.stream().collect(Collectors.joining("\", \"", "\"", "\"")) + "]" + "]";
-		System.out.print(astQuery);
 		HttpEntity<String> request = new HttpEntity<String>(astQuery);
 		ResponseEntity<Object[]> response = restTemplate.postForEntity(coreBasePath + "find", request, Object[].class);
 		System.out.print(response.getBody());

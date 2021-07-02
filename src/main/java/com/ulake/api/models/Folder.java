@@ -32,8 +32,8 @@ public class Folder extends Auditable<String> implements IEntity {
 	@JoinColumn(name = "parent_id")
 	@JsonIgnore
 	private Folder parent;
-
-	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "parent")
+	
+	@OneToMany(mappedBy = "parent", cascade = CascadeType.ALL)
 	private Set<Folder> subfolders = new HashSet<>();
 
 	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "folder")
