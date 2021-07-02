@@ -237,13 +237,13 @@ public class FileController {
 	@ApiResponses(value = @ApiResponse(description = "successful operation"))
 	@GetMapping("/content")
 	@PreAuthorize("(hasAnyRole('ADMIN','USER')) or (hasPermission(#file, 'READ')) or (hasPermission(#folder, 'READ'))")
-	public List<Object> getFirstNodeFiles() {
+	public List<Object> getFirstNodeContent() {
 		List<Object> content = new ArrayList<>();
 		folderRepository.findByIsFirstNodeTrue().forEach(content::add);
 		fileRepository.findByIsFirstNodeTrue().forEach(content::add);
 		return content;
 	}
-
+	
 	@Operation(summary = "Find all contents by name containing", description = "This can only be done by logged in user with file permissions.", security = {
 			@SecurityRequirement(name = "bearer-key") }, tags = { "Content" })
 	@ApiResponses(value = @ApiResponse(description = "successful operation"))

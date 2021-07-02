@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -73,7 +74,7 @@ public class ComlakeCoreService {
 		ResponseEntity<String> response = restTemplate.getForEntity(FILE_URL, String.class);
 		return response.getBody();
 	}
-	
+
 	// POST /cp
 	public String cpToDir(String src, String dest, String path) throws JsonMappingException, JsonProcessingException {
 		HttpHeaders headers = new HttpHeaders();
@@ -165,18 +166,17 @@ public class ComlakeCoreService {
 	public Object[] findByDatasetId(String datasetId) {
 		String astQuery = "[\"==\", [\".\", [\"$\"], \"id\"], " + datasetId + "]";
 		HttpEntity<String> request = new HttpEntity<String>(astQuery);
-		ResponseEntity<Object[]> response = restTemplate.postForEntity(coreBasePath + "find", request,
-				Object[].class);
+		ResponseEntity<Object[]> response = restTemplate.postForEntity(coreBasePath + "find", request, Object[].class);
 		return response.getBody();
 	}
-	
+
 	// POST /find by topics
 	public Object[] findByTopics(List<String> topics) {
-		String astQuery = "[\"&&\", [\".\", [\"$\"], \"topics\"], " + topics + "]";
+		String astQuery = "[\"&&\", [\".\", [\"$\"], \"topics\"], "
+				+ "[" + topics.stream().collect(Collectors.joining("\", \"", "\"", "\"")) + "]" + "]";
 		System.out.print(astQuery);
 		HttpEntity<String> request = new HttpEntity<String>(astQuery);
-		ResponseEntity<Object[]> response = restTemplate.postForEntity(coreBasePath + "find", request,
-				Object[].class);
+		ResponseEntity<Object[]> response = restTemplate.postForEntity(coreBasePath + "find", request, Object[].class);
 		System.out.print(response.getBody());
 		return response.getBody();
 	}
