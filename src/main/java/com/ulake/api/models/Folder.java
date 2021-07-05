@@ -32,8 +32,8 @@ public class Folder extends Auditable<String> implements IEntity {
 	@JoinColumn(name = "parent_id")
 	@JsonIgnore
 	private Folder parent;
-
-	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "parent")
+	
+	@OneToMany(mappedBy = "parent", cascade = CascadeType.ALL)
 	private Set<Folder> subfolders = new HashSet<>();
 
 	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "folder")
@@ -41,11 +41,13 @@ public class Folder extends Auditable<String> implements IEntity {
 
 	private String cid;
 
+	private String datasetId;
+
 	private String name;
-
-	private String source;
-
-	private String topics;
+	
+	private String type = "Folder";
+	
+    private Boolean isFirstNode = true;
 
 	public Folder() {
 
@@ -101,12 +103,28 @@ public class Folder extends Auditable<String> implements IEntity {
 		this.cid = cid;
 	}
 
+	public String getDatasetId() {
+		return datasetId;
+	}
+
+	public void setDatasetId(String datasetId) {
+		this.datasetId = datasetId;
+	}
+
 	public String getName() {
 		return name;
 	}
 
 	public void setName(String name) {
 		this.name = name;
+	}
+	
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
 	}
 
 	public Set<File> getFiles() {
@@ -116,20 +134,12 @@ public class Folder extends Auditable<String> implements IEntity {
 	public void setFiles(Set<File> files) {
 		this.files = files;
 	}
-
-	public String getSource() {
-		return source;
+	
+	public Boolean getIsFirstNode() {
+		return isFirstNode;
 	}
-
-	public void setSource(String source) {
-		this.source = source;
-	}
-
-	public String getTopics() {
-		return topics;
-	}
-
-	public void setTopics(String topics) {
-		this.topics = topics;
+	
+	public void setIsFirstNode(Boolean isFirstNode) {
+		this.isFirstNode = isFirstNode; 
 	}
 }

@@ -36,19 +36,19 @@ public class LocalPermissionService {
 		LOGGER.error("Grant {} permission to principal {} on Object {}", permission, username, targetObj);
 	}
 	
-//	public void addPermission(IEntity targetObj, Permission permission, String name, boolean principal) {
-//		if (principal == true) {
-//			Sid sid = new PrincipalSid(name);
-//			addPermissionForSid(targetObj, permission, sid);
-//		} else if (principal == false) {
-//			Sid sid = new GrantedAuthoritySid(name);
-//			addPermissionForSid(targetObj, permission, sid);
-//		}
-//		else {
-//			LOGGER.error("Error");
-//		}
-//		LOGGER.error("Grant {} permission to principal {} on Object {}", permission, name, targetObj);
-//	}
+	public void addPermission(IEntity targetObj, Permission permission, String name, boolean principal) {
+		if (principal == true) {
+			Sid sid = new PrincipalSid(name);
+			addPermissionForSid(targetObj, permission, sid);
+		} else if (principal == false) {
+			Sid sid = new GrantedAuthoritySid(name);
+			addPermissionForSid(targetObj, permission, sid);
+		}
+		else {
+			LOGGER.error("Error");
+		}
+		LOGGER.error("Grant {} permission to principal {} on Object {}", permission, name, targetObj);
+	}
 	
 	public void removePermissionForUser(IEntity targetObj, Permission permission, String username) {
 		final Sid sid = new PrincipalSid(username);
@@ -72,6 +72,11 @@ public class LocalPermissionService {
 		final Sid sid = new GrantedAuthoritySid(authority);
 		deletePermissionForSid(targetObj, permission, sid);
 		LOGGER.error("Remove {} permissions to principal {} on Object {}", permission, authority, targetObj);
+	}
+	
+	public void removePermission(IEntity targetObj, Permission permission, Sid sid) {
+		deletePermissionForSid(targetObj, permission, sid);
+		LOGGER.error("Remove {} permissions to principal {} on Object {}", permission, sid, targetObj);
 	}
 	
 	public void removeAllPermissionForAuthority(IEntity targetObj, String authority) {

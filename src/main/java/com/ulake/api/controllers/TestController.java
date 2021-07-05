@@ -14,7 +14,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 @RestController
 @RequestMapping("/api/test")
 public class TestController {
-	@Operation(summary = "Has Role User", description = "This can only by done by User.", tags = {
+	@Operation(summary = "Public Content", description = "This can only by done by User.", tags = {
 			"Internal - Debugging Tools" })
 	@GetMapping("/all")
 	public String allAccess() {

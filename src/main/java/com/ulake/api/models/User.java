@@ -8,6 +8,8 @@ import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @Table(name = "CLake_users", uniqueConstraints = { @UniqueConstraint(columnNames = "username"),
 		@UniqueConstraint(columnNames = "email") })
@@ -29,12 +31,13 @@ public class User {
 	private String affiliation;
 
 	@NotBlank
-	@Size(max = 50)
+	@Size(max = 120)
 	@Email
 	private String email;
 
 	@NotBlank
 	@Size(min=6, max = 120)
+	@JsonIgnore
 	private String password;
 
 	@ManyToMany(fetch = FetchType.LAZY)
