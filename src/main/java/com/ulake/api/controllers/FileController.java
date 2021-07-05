@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -30,6 +31,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ulake.api.constant.AclSourceType;
 import com.ulake.api.constant.AclTargetType;
 import com.ulake.api.constant.PermType;
@@ -175,11 +177,20 @@ public class FileController {
 			@ApiResponse(responseCode = "404", description = "File not found", content = @Content) })
 	@GetMapping("/files/{id}")
 	@PreAuthorize("(hasAnyRole('ADMIN','USER')) or (hasPermission(#id, 'com.ulake.api.models.File', 'READ'))")
-	public ResponseEntity<?> getFileById(@PathVariable("id") Long id) {
+	public ResponseEntity<?> getFileById(@PathVariable("id") Long id) throws JsonProcessingException {
 		Optional<File> fileData = fileRepository.findById(id);
 		if (fileData.isPresent()) {
 			File _file = fileData.get();
-			return new ResponseEntity<>(coreService.findByDatasetId(_file.getDatasetId()), HttpStatus.OK);
+			Object[] dataset = coreService.findByDatasetId(_file.getDatasetId());
+			ObjectMapper mapper = new ObjectMapper();
+			String jsonString = mapper.writeValueAsString(_file);
+			JSONObject jo = new JSONObject(jsonString);; 
+			String datasetJsonString = mapper.writeValueAsString(dataset[0]);
+			JSONObject datasetJson = new JSONObject(datasetJsonString);; 
+			jo.put("language", datasetJson.getString("language"));
+			jo.put("source", datasetJson.getString("source"));
+			jo.put("topics", datasetJson.getJSONArray("topics"));			
+			return ResponseEntity.status(HttpStatus.OK).body(jo.toString());
 		} else {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
