@@ -135,20 +135,13 @@ public class ComlakeCoreService {
 			throws JsonMappingException, JsonProcessingException {
 		HttpHeaders headers = new HttpHeaders();
 		headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+		
 		JSONObject dataset = new JSONObject();
 		dataset.put("parent", parent);
-		if (description != null) {
-			dataset.put("description", description);
-		}
-		if (source != null) {
-			dataset.put("source", source);
-		}
-		if (!topics.isEmpty()) {
-			dataset.put("topics", language);
-		}
-		if (language != null) {
-			dataset.put("language", language);
-		}
+		dataset.put("description", description);
+		dataset.put("source", source);
+		dataset.put("topics", new JSONArray(topics));	
+		dataset.put("language", language);		
 
 		HttpEntity<String> requestDataset = new HttpEntity<String>(dataset.toString(), headers);
 		ResponseEntity<String> responseDataset = restTemplate.postForEntity(coreBasePath + "update", requestDataset,
