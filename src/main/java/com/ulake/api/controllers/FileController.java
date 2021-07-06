@@ -118,9 +118,9 @@ public class FileController {
 		permissionService.addPermissionForUser(fileInfo, BasePermission.WRITE, authentication.getName());
 
 		aclRepository.save(
-				new Acl(fileInfo.getId(), fileOwner.getId(), AclSourceType.FILE, AclTargetType.USER, PermType.READ));
+				new Acl(fileInfo.getId(), fileOwner.getUsername(), AclSourceType.FILE, AclTargetType.USER, PermType.READ));
 		aclRepository.save(
-				new Acl(fileInfo.getId(), fileOwner.getId(), AclSourceType.FILE, AclTargetType.USER, PermType.WRITE));
+				new Acl(fileInfo.getId(), fileOwner.getUsername(), AclSourceType.FILE, AclTargetType.USER, PermType.WRITE));
 
 		return fileInfo;
 	}

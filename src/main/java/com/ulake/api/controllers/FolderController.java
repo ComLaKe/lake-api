@@ -108,9 +108,9 @@ public class FolderController {
 		permissionService.addPermissionForUser(_folder, BasePermission.WRITE, authentication.getName());
 
 		// Create Acl
-		aclRepository.save(new Acl(_folder.getId(), folderCreator.getId(), AclSourceType.FOLDER, AclTargetType.USER,
+		aclRepository.save(new Acl(_folder.getId(), folderCreator.getUsername(), AclSourceType.FOLDER, AclTargetType.USER,
 				PermType.READ));
-		aclRepository.save(new Acl(_folder.getId(), folderCreator.getId(), AclSourceType.FOLDER, AclTargetType.USER,
+		aclRepository.save(new Acl(_folder.getId(), folderCreator.getUsername(), AclSourceType.FOLDER, AclTargetType.USER,
 				PermType.WRITE));
 
 		return _folder;

@@ -15,18 +15,18 @@ import com.ulake.api.models.Acl;
 @Repository
 @Transactional
 public interface AclRepository extends JpaRepository<Acl, Long> {
-	void removeBySourceIdAndTargetIdAndSourceTypeAndTargetType(Long sourceId, Long targetId, AclSourceType sourceType,
+	void removeBySourceIdAndTargetNameAndSourceTypeAndTargetType(Long sourceId, String targetName, AclSourceType sourceType,
 			AclTargetType targetType);
 
-	void removeBySourceIdAndTargetIdAndSourceTypeAndTargetTypeAndPerm(Long sourceId, Long targetId,
+	void removeBySourceIdAndTargetNameAndSourceTypeAndTargetTypeAndPerm(Long sourceId, String targetName,
 			AclSourceType sourceType, AclTargetType targetType, PermType perm);
 
 	void removeBySourceIdAndSourceType(Long sourceId, AclSourceType sourceType);
 
-	List<Acl> findByTargetTypeAndTargetId(AclTargetType targetType, Long targetId);
+	List<Acl> findByTargetTypeAndTargetName(AclTargetType targetType, Long targetName);
 
 	List<Acl> findBySourceTypeAndSourceId(AclSourceType sourceType, Long sourceId);
 
-	List<Acl> findBySourceIdAndTargetIdAndSourceTypeAndTargetType(Long sourceId, Long targetId,
+	List<Acl> findBySourceIdAndTargetNameAndSourceTypeAndTargetType(Long sourceId, String targetName,
 			AclSourceType sourceType, AclTargetType targetType);
 }
