@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.acls.domain.BasePermission;
@@ -13,7 +12,6 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -26,7 +24,6 @@ import com.ulake.api.models.File;
 import com.ulake.api.models.Folder;
 import com.ulake.api.models.Group;
 import com.ulake.api.models.User;
-import com.ulake.api.payload.request.CreateAclRequest;
 import com.ulake.api.payload.response.MessageResponse;
 import com.ulake.api.repository.AclRepository;
 import com.ulake.api.repository.FileRepository;
@@ -64,6 +61,7 @@ public class AclController {
 	@Autowired
 	private LocalPermissionService permissionService;
 
+	// I don't want to talk about any of this 	
 	@Operation(summary = "Get All Permissions", description = "This can only by done by Admin or File Owner.", security = {
 			@SecurityRequirement(name = "bearer-key") }, tags = { "ACL - Access Control" })
 	@ApiResponses(value = {

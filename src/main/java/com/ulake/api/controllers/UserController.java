@@ -90,7 +90,7 @@ public class UserController {
 	@Operation(summary = "Get a list of all users in the system", description = "This can only be done by admin.", security = {
 			@SecurityRequirement(name = "bearer-key") }, tags = { "Users" })
 	@GetMapping("/users")
-	@PreAuthorize("hasRole('ADMIN')")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
 	public ResponseEntity<List<User>> getAllUsers(@RequestParam(required = false) String email,
 			@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int perPage,
 			@RequestParam(defaultValue = "id,asc") String[] sort) {

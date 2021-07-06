@@ -29,5 +29,4 @@ public interface AclRepository extends JpaRepository<Acl, Long> {
 
 	List<Acl> findBySourceIdAndTargetIdAndSourceTypeAndTargetType(Long sourceId, Long targetId,
 			AclSourceType sourceType, AclTargetType targetType);
-
 }
