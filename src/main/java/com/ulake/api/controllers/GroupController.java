@@ -74,22 +74,22 @@ public class GroupController {
 		}
 	}
 
-	@Operation(summary = "Update a group name by ID", description = "This can only be done by admin.", security = {
-			@SecurityRequirement(name = "bearer-key") }, tags = { "Groups" })
-	@ApiResponses(value = @ApiResponse(description = "successful operation"))
-	@PutMapping("/groups/{id}")
-	@PreAuthorize("hasRole('ADMIN')")
-	public ResponseEntity<Group> updateGroup(@PathVariable("id") long id, @RequestBody CreateGroupRequest createGroupRequest) {
-		Optional<Group> groupData = groupRepository.findById(id);
-		if (groupData.isPresent()) {
-			Group _group = groupData.get();
-			String name = createGroupRequest.getName();
-			_group.setName(name);
-			return new ResponseEntity<>(groupRepository.save(_group), HttpStatus.OK);
-		} else {
-			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-		}
-	}
+//	@Operation(summary = "Update a group name by ID", description = "This can only be done by admin.", security = {
+//			@SecurityRequirement(name = "bearer-key") }, tags = { "Groups" })
+//	@ApiResponses(value = @ApiResponse(description = "successful operation"))
+//	@PutMapping("/groups/{id}")
+//	@PreAuthorize("hasRole('ADMIN')")
+//	public ResponseEntity<Group> updateGroup(@PathVariable("id") long id, @RequestBody CreateGroupRequest createGroupRequest) {
+//		Optional<Group> groupData = groupRepository.findById(id);
+//		if (groupData.isPresent()) {
+//			Group _group = groupData.get();
+//			String name = createGroupRequest.getName();
+//			_group.setName(name);
+//			return new ResponseEntity<>(groupRepository.save(_group), HttpStatus.OK);
+//		} else {
+//			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+//		}
+//	}
 
 	@Operation(summary = "Get a group by ID", description = "This can only be done by logged in user.", security = {
 			@SecurityRequirement(name = "bearer-key") }, tags = { "Groups" })
