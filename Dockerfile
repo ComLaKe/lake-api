@@ -1,5 +1,5 @@
-FROM java:11
+FROM adoptopenjdk/openjdk11:latest
 VOLUME /tmp
-EXPOSE 8090
-ADD comlake.core-0.4.0-standalone.jar comlake.core-0.4.0-standalone.jar
-ENTRYPOINT ["java","-jar","comlake.core-0.4.0-standalone.jar"]
+EXPOSE 5000
+ADD ulake-api-0.1.0-SNAPSHOT.jar ulake-api-0.1.0-SNAPSHOT.jar
+ENTRYPOINT ["java","-jar","ulake-api-0.1.0-SNAPSHOT.jar"]
