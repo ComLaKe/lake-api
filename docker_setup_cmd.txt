@@ -1,3 +1,5 @@
+https://www.javainuse.com/devOps/docker/docker-mysql
+
 MySQL Docker:
 docker network create lakeapi-mysql
 docker container run --name mysqldb --network lakeapi-mysql -e MYSQL_ROOT_PASSWORD=123456 -e MYSQL_DATABASE=ulakedb -d mysql:8
