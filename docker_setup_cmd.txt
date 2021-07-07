@@ -12,9 +12,9 @@ Spring Boot Docker:
 - Create jar file:
 mvn clean install -DskipTests
 - Build 
-docker image build -t ulake-api .
+docker image build -t comlake-api .
 - Link 
-docker container run --network lakeapi-mysql --name ulake-api-container -p 5000:5000 -d ulake-api
+docker container run --network lakeapi-mysql --name comlake-api-container -p 5000:5000 -d comlake-api
 - Insert role names into MySQL Docker:
 INSERT INTO clake_roles(name) VALUES('ROLE_USER');
 INSERT INTO clake_roles(name) VALUES('ROLE_ADMIN');
