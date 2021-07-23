@@ -1,3 +1,5 @@
+FROM clojure:lein
+
 FROM adoptopenjdk/openjdk11:latest
 VOLUME /tmp
 EXPOSE 5000

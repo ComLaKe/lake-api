@@ -74,11 +74,17 @@
 	
 	## Create a Dockerfile: 
 	
-	FROM adoptopenjdk/openjdk11:latest
-	VOLUME /tmp
-	EXPOSE 8090
-	ADD comlake.core-0.4.0-standalone.jar comlake.core-0.4.0-standalone.jar
-	ENTRYPOINT ["java","-jar","comlake.core-0.4.0-standalone.jar"]
+	FROM    clojure:lein
+	RUN     mkdir -p /usr/src/app
+	WORKDIR /usr/src/app
+	COPY    project.clj /usr/src/app/
+	RUN     lein deps
+	COPY    . /usr/src/app
+	RUN     mv "$(lein uberjar | sed -n 's/^Created \(.*standalone\.jar\)/\1/p')" comlake.core-0.4.0-standalone.jar
+
+	EXPOSE  8090
+
+	CMD java -jar comlake.core-0.4.0-standalone.jar
 	
 	## Build: 
 	
@@ -90,15 +96,18 @@
 	
 	docker network connect core-postgres postgresql-container
 	
-	## Run comlake-core and link to postgres: 
-	
-	docker container run --network core-ipfs --name comlake-core-container -p 8090:8090 -d comlake-core
+	docker network connect core-postgres comlake-core-container
 
-	5a67be8ce1d5f203988279a3af4fafb0fd3bc69d65d9d92e437cdf657c0c514e
+	## Run comlake-core and link to postgres: 	
+	docker container run --network core-ipfs --name comlake-core-container -p 8090:8090 -d comlake-core
+	
+	docker container run --name comlake-core-container -p 8090:8090 -d comlake-core
+
+	e822960e8f70a1c21a1f3f861c1dff7f6b3439cfa98fcf0936abf1eeed8973af
 	
 	Check if there is any bug: 
 	
-	docker container logs -f 5a67be8ce1d5f203988279a3af4fafb0fd3bc69d65d9d92e437cdf657c0c514e
+	docker container logs -f e822960e8f70a1c21a1f3f861c1dff7f6b3439cfa98fcf0936abf1eeed8973af
 	
 	docker network create core-ipfs
 	
