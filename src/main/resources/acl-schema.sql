@@ -8,8 +8,8 @@ create table acl_class (
     id smallint unsigned not null auto_increment primary key,
     class varchar(100) unique not null
 ) engine = InnoDb;
-drop table acl_sid;
 
+drop table if exists acl_sid;
 create table acl_sid (
     id int unsigned not null auto_increment primary key,
     principal boolean not null,

@@ -1,3 +1,4 @@
+use ulakedb;
 -- Bit mask 	
 -- 1 read 
 -- 2 write 
