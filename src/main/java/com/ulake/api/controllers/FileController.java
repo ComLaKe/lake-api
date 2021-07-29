@@ -68,29 +68,16 @@ public class FileController {
 	@Autowired
 	private LocalPermissionService permissionService;
 
-//	private Sort.Direction getSortDirection(String direction) {
-//	    if (direction.equals("ASC")) {
-//	      return Sort.Direction.ASC;
-//	    } else if (direction.equals("DESC")) {
-//	      return Sort.Direction.DESC;
-//	    }
-//
-//	    return Sort.Direction.ASC;
-//	}
-
 	@Operation(summary = "Upload a file", description = "This can only be done by logged in user having the file permissions.", security = {
 			@SecurityRequirement(name = "bearer-key") }, tags = { "File" })
 	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Status OK") })
 	@PostMapping(value = "/files", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
 	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
 	@PostAuthorize("hasPermission(returnObject, 'READ')")
-	public File uploadFile(
-			@RequestParam("file") MultipartFile file,
+	public File uploadFile(@RequestParam("file") MultipartFile file,
 			@RequestHeader(required = false, value = "topics") String topics,
 			@RequestHeader(required = false, value = "language") String language,
-			@RequestHeader(required = false, value = "source") String source,
-			@RequestHeader(required = false, value = "folderId") Long folderId
-			) throws IOException {
+			@RequestHeader(required = false, value = "source") String source) throws IOException {
 		// Find out who is the current logged in user
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
@@ -99,13 +86,10 @@ public class FileController {
 		String fileMimeType = file.getContentType();
 		Long fileSize = file.getSize();
 		byte[] fileData = file.getBytes();
-		
+
 		File fileInfo = new File(fileOwner, fileName, fileMimeType, fileSize, fileData);
-		
-		Folder folder = folderRepository.findById(folderId).get();			
-		fileInfo.setFolder(folder);
-		
-		// Append optional metadata to file 
+
+		// Append optional metadata to file
 		fileInfo.setTopics(topics);
 		fileInfo.setLanguage(language);
 		fileInfo.setSource(source);
@@ -127,7 +111,7 @@ public class FileController {
 
 		return fileInfo;
 	}
-	
+
 	@Operation(summary = "Update a file by ID", description = "This can only be done by user who has write permission to file.", security = {
 			@SecurityRequirement(name = "bearer-key") }, tags = { "File" })
 	@ApiResponses(value = @ApiResponse(description = "successful operation"))
